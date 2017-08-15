@@ -55,6 +55,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 
 	# compute pyramid features as per https://arxiv.org/abs/1708.02002
 	pyramid_features = compute_pyramid_features(res3, res4, res5)
+	strides = [8, 16, 32, 64, 128]
 
 	# construct classification and regression subnets
 	classification_layers = classification_subnet(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
@@ -65,14 +66,14 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 	labels            = None
 	regression        = None
 	regression_target = None
-	for i, p in enumerate(pyramid_features):
+	for i, (p, s) in enumerate(zip(pyramid_features, strides)):
 		# run the classification subnet
 		cls = p
 		for l in classification_layers:
 			cls = l(cls)
 
 		# compute labels and bbox_reg_targets
-		l, r              = keras_retinanet.layers.AnchorTarget(stride=16, name='boxes_{}'.format(i))([cls, im_info, gt_boxes])
+		l, r              = keras_retinanet.layers.AnchorTarget(stride=s, name='boxes_{}'.format(i))([cls, im_info, gt_boxes])
 		labels            = l if labels == None else keras.layers.Concatenate(axis=0)([labels, l])
 		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=0)([regression_target, r])
 
