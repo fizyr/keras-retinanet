@@ -76,7 +76,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 		labels            = l if labels == None else keras.layers.Concatenate(axis=0)([labels, l])
 		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=0)([regression_target, r])
 
-		cls = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
+		cls            = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
 		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
 
 		# run the regression subnet
@@ -84,12 +84,13 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 		for l in regression_layers:
 			reg = l(reg)
 
-		reg = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
+		reg        = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
 		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
 
-	#TODO: Apply loss on classification / regression
+	# compute classification and regression losses
+	cls_loss = keras_retinanet.layers.FocalLoss()([classification, labels, regression, regression_target])
 
-	return keras.models.Model(inputs=inputs, outputs=[classification, regression], *args, **kwargs)
+	return keras.models.Model(inputs=inputs, outputs=[classification, regression, cls_loss], *args, **kwargs)
 
 def ResNet50RetinaNet(inputs, *args, **kwargs):
 	image, _, _ = inputs
