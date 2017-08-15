@@ -10,7 +10,7 @@ class FocalLoss(keras.layers.Layer):
 
 		super().__init__(*args, **kwargs)
 
-	def call(self, inputs, **kwargs):
+	def call(self, inputs):
 		labels, prediction = inputs
 
 		loss = self.alpha * (1.0 - prediction) ** self.gamma * keras.backend.sparse_categorical_crossentropy(labels, prediction)

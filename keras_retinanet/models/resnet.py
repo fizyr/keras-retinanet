@@ -1,6 +1,8 @@
 import keras
 import keras_resnet.models
 
+import keras_retinanet.layers
+
 def classification_subnet(num_classes=21, num_anchors=9, feature_size=256):
 	layers = []
 	for i in range(4):
@@ -17,7 +19,7 @@ def regression_subnet(num_anchors=9, feature_size=256):
 
 	return layers
 
-def compute_pyramid_features(res3, res4, res5):
+def compute_pyramid_features(res3, res4, res5, feature_size=256):
 	# compute deconvolution kernel size based on scale
 	scale = 2
 	kernel_size = (2 * scale - scale % 2)
@@ -45,6 +47,8 @@ def compute_pyramid_features(res3, res4, res5):
 	return P3, P4, P5, P6, P7
 
 def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwargs):
+	image, im_info, gt_boxes = inputs
+
 	# TODO: Parametrize this
 	num_anchors = 9
 	_, res3, res4, res5 = backbone.outputs # we ignore res2
@@ -56,37 +60,38 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 	classification_layers = classification_subnet(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
 	regression_layers     = regression_subnet(num_anchors=num_anchors, feature_size=feature_size)
 
-	# for all pyramid levels, run classification and regression branch
-	classification = None
-	regression     = None
-	for p in pyramid_features:
+	# for all pyramid levels, run classification and regression branch and compute anchors
+	classification    = None
+	labels            = None
+	regression        = None
+	regression_target = None
+	for i, p in enumerate(pyramid_features):
 		# run the classification subnet
-		x = p
+		cls = p
 		for l in classification_layers:
-			x = l(x)
-		x = keras.layers.Reshape((-1, num_classes), name='classification')(x)
-		if classification == None:
-			classification = x
-		else:
-			x = keras.layers.Concatenate(axis=1)([classification, x])
+			cls = l(cls)
+
+		# compute labels and bbox_reg_targets
+		l, r              = keras_retinanet.layers.AnchorTarget(stride=16, name='boxes_{}'.format(i))([cls, im_info, gt_boxes])
+		labels            = l if labels == None else keras.layers.Concatenate(axis=0)([labels, l])
+		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=0)([regression_target, r])
+
+		cls = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
+		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
 
 		# run the regression subnet
-		x = p
+		reg = p
 		for l in regression_layers:
-			x = l(x)
-		x = keras.layers.Reshape((-1, 4), name='regression')(x)
-		if regression == None:
-			regression = x
-		else:
-			x = keras.layers.Concatenate(axis=1)([regression, x])
+			reg = l(reg)
 
-	#TODO: Generate anchors
-	#TODO: Apply regression to anchors
-	#TODO: Compute regression targets
+		reg = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
+		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
+
 	#TODO: Apply loss on classification / regression
 
 	return keras.models.Model(inputs=inputs, outputs=[classification, regression], *args, **kwargs)
 
 def ResNet50RetinaNet(inputs, *args, **kwargs):
-	resnet = keras_resnet.models.ResNet50(inputs, include_top=False)
+	image, _, _ = inputs
+	resnet = keras_resnet.models.ResNet50(image, include_top=False)
 	return RetinaNet(inputs, resnet, *args, **kwargs)
