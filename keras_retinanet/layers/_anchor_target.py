@@ -66,11 +66,11 @@ class AnchorTarget(keras.layers.Layer):
 
 		# fg label: for each gt, anchor with highest overlap
 		# generate a marker to identify where updates should be done
-		marker = tensorflow.ones_like(gt_argmax_overlaps_inds)
+		#marker = tensorflow.ones_like(gt_argmax_overlaps_inds)
 		# scatter_nd marker array to labels array shape
-		update_mask = tensorflow.scatter_nd(gt_argmax_overlaps_inds, marker, labels.shape)
+		#update_mask = tensorflow.scatter_nd(gt_argmax_overlaps_inds, marker, labels.shape)
 		# update labels accordingly
-		labels = keras_retinanet.backend.where(keras.backend.equal(update_mask, 1), ones, labels)
+		#labels = keras_retinanet.backend.where(keras.backend.equal(update_mask, 1), ones, labels)
 
 		# fg label: above threshold IOU
 		labels = keras_retinanet.backend.where(keras.backend.greater_equal(max_overlaps, self.positive_overlap), ones, labels)
