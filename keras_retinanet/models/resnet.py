@@ -95,7 +95,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 			cls = l(cls)
 
 		# compute labels and bbox_reg_targets
-		lb, r, a          = keras_retinanet.layers.AnchorTarget(
+		lb, r, a = keras_retinanet.layers.AnchorTarget(
 			features_shape=keras.backend.int_shape(cls)[1:3],
 			stride=stride,
 			anchor_size=size,
@@ -118,7 +118,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 
 	# compute classification and regression losses
 	classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
-	cls_loss = keras_retinanet.layers.FocalLoss()([classification, labels, regression_target, regression_target])
+	cls_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes)([classification, labels, regression_target, regression_target])
 
 	return keras.models.Model(inputs=inputs, outputs=[classification, labels, regression_target, cls_loss, anchors], *args, **kwargs)
 
