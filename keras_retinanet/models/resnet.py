@@ -89,7 +89,8 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
 
 	# compute classification and regression losses
-	cls_loss = keras_retinanet.layers.FocalLoss()([classification, labels, regression, regression_target])
+	classification = keras.layers.Lambda(lambda x: keras.backend.softmax(x), name='classification_softmax')(classification)
+	cls_loss = keras_retinanet.layers.FocalLoss()([classification, labels, regression_target, regression_target])
 
 	return keras.models.Model(inputs=inputs, outputs=[classification, regression, cls_loss], *args, **kwargs)
 

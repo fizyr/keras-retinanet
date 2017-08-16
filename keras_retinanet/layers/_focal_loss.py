@@ -41,7 +41,6 @@ class FocalLoss(keras.layers.Layer):
 		classification, labels, regression, regression_target = inputs
 
 		classification = keras.backend.reshape(classification, (-1, self.num_classes))
-		classification = keras.backend.softmax(classification)
 		regression     = keras.backend.reshape(regression, (-1, 4))
 
 		indices = keras_retinanet.backend.where(keras.backend.not_equal(labels, -1))
