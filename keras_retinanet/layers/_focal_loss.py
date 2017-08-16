@@ -50,10 +50,16 @@ class FocalLoss(keras.layers.Layer):
 		classification    = keras_retinanet.backend.gather_nd(classification, indices)
 		labels            = keras_retinanet.backend.gather_nd(labels, indices)
 
-		indices         = keras.backend.expand_dims(keras_retinanet.backend.range(keras.backend.shape(labels)[0]), axis=1)
-		labeled_indices = keras.backend.concatenate([indices, keras.backend.expand_dims(keras.backend.cast(labels, 'int32'), axis=1)], axis=1)
-		probabilities   = keras_retinanet.backend.gather_nd(classification, labeled_indices)
-		focal_weight    = self.alpha * (1.0 - probabilities) ** self.gamma
+		# compute alpha as (1 - alpha) for background and alpha for foreground
+		foreground_alpha = keras.backend.ones_like(labels) * self.alpha
+		background_alpha = 1.0 - foreground_alpha
+		alpha            = keras_retinanet.backend.where(keras.backend.equal(labels, 0), background_alpha, foreground_alpha)
+
+		# select classification scores for labeled anchors
+		indices          = keras.backend.expand_dims(keras_retinanet.backend.range(keras.backend.shape(labels)[0]), axis=1)
+		labeled_indices  = keras.backend.concatenate([indices, keras.backend.expand_dims(keras.backend.cast(labels, 'int32'), axis=1)], axis=1)
+		probabilities    = keras_retinanet.backend.gather_nd(classification, labeled_indices)
+		focal_weight     = alpha * (1.0 - probabilities) ** self.gamma
 
 		cls_loss = self.classification_loss(focal_weight, classification, labels)
 		self.add_loss(cls_loss)
