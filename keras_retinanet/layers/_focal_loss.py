@@ -55,7 +55,7 @@ class FocalLoss(keras.layers.Layer):
 		focal_weight = self.alpha * (1.0 - probabilities) ** self.gamma
 
 		cls_loss = self.classification_loss(focal_weight, classification, labels)
-		self.add_loss(cls_loss, [labels, classification])
+		self.add_loss(cls_loss)
 
 		#reg_loss = self.regression_loss(focal_weight, labels, regression, regression_target)
 		#self.add_loss(cls_loss, [labels, regression, regression_target])
@@ -64,3 +64,6 @@ class FocalLoss(keras.layers.Layer):
 
 	#def compute_mask(self, inputs, mask=None):
 	#	return [None, None]
+
+	def compute_output_shape(self, input_shape):
+		return (1,)

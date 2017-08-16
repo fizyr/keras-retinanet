@@ -10,6 +10,7 @@ class AnchorTarget(keras.layers.Layer):
 	"""Calculate proposal anchor targets and corresponding labels (label: 1 is positive, 0 is negative, -1 is do not care) for ground truth boxes
 
 	# Arguments
+		num_anchors: number of anchors used
 		allowed_border: allow boxes to be outside the image by allowed_border pixels
 		clobber_positives: if an anchor statisfied by positive and negative conditions given to negative label
 		negative_overlap: IoU threshold below which labels should be given negative label
@@ -22,7 +23,7 @@ class AnchorTarget(keras.layers.Layer):
 		(# of samples, ), (# of samples, 4)
 	"""
 
-	def __init__(self, stride, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.3, positive_overlap=0.7, *args, **kwargs):
+	def __init__(self, stride, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
 		self.stride = stride
 
 		self.num_anchors       = num_anchors
