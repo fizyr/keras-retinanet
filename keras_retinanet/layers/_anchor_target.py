@@ -23,8 +23,10 @@ class AnchorTarget(keras.layers.Layer):
 		(# of samples, ), (# of samples, 4)
 	"""
 
-	def __init__(self, stride, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
-		self.stride = stride
+	def __init__(self, features_shape, stride, anchor_size, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
+		self.features_shape = features_shape
+		self.stride         = stride
+		self.anchor_size    = anchor_size
 
 		self.num_anchors       = num_anchors
 		self.allowed_border    = allowed_border
@@ -35,20 +37,19 @@ class AnchorTarget(keras.layers.Layer):
 		super().__init__(*args, **kwargs)
 
 	def call(self, inputs, **kwargs):
-		scores, im_info, gt_boxes = inputs
+		im_info, gt_boxes = inputs
 
 		# TODO: Fix usage of batch index
-		shape = im_info[0, :2]
+		image_shape = im_info[0, :2]
 
 		# TODO: Fix usage of batch index
 		gt_boxes = gt_boxes[0]
 
-		height, width = keras.backend.int_shape(scores)[1:3]
-		total_anchors = height * width * self.num_anchors
+		total_anchors = self.features_shape[0] * self.features_shape[1] * self.num_anchors
 
 		# 1. Generate proposals from bbox deltas and shifted anchors
-		anchors = keras_retinanet.backend.anchor()
-		anchors = keras_retinanet.backend.shift((height, width), self.stride, anchors)
+		anchors = keras_retinanet.backend.anchor(base_size=self.anchor_size)
+		anchors = keras_retinanet.backend.shift(self.features_shape, self.stride, anchors)
 
 		# label: 1 is positive, 0 is negative, -1 is dont care
 		ones      = keras.backend.ones((total_anchors,), dtype=keras.backend.floatx())
@@ -86,8 +87,8 @@ class AnchorTarget(keras.layers.Layer):
 		labels = keras_retinanet.backend.where(
 			(anchors[:, 0] >= -self.allowed_border) &
 			(anchors[:, 1] >= -self.allowed_border) &
-			(anchors[:, 2] < self.allowed_border + shape[1]) & # width
-			(anchors[:, 3] < self.allowed_border + shape[0]),  # height
+			(anchors[:, 2] < self.allowed_border + image_shape[1]) & # width
+			(anchors[:, 3] < self.allowed_border + image_shape[0]),  # height
 			labels,
 			negatives
 		)

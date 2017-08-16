@@ -41,7 +41,7 @@ def bbox_transform(ex_rois, gt_rois):
 
 	targets = keras.backend.transpose(targets)
 
-	return keras.backend.cast(targets, 'float32')
+	return keras.backend.cast(targets, keras.backend.floatx())
 
 def overlapping(anchors, gt_boxes):
 	"""

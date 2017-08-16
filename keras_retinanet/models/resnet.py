@@ -75,7 +75,8 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 
 	# compute pyramid features as per https://arxiv.org/abs/1708.02002
 	pyramid_features = compute_pyramid_features(res3, res4, res5)
-	strides = [8, 16, 32, 64, 128]
+	strides          = [8,  16,  32,  64, 128]
+	sizes            = [32, 64, 128, 256, 512]
 
 	# construct classification and regression subnets
 	classification_layers = classification_subnet(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
@@ -87,14 +88,19 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 	regression        = None
 	regression_target = None
 	anchors           = None
-	for i, (p, s) in enumerate(zip(pyramid_features, strides)):
+	for i, (p, stride, size) in enumerate(zip(pyramid_features, strides, sizes)):
 		# run the classification subnet
 		cls = p
 		for l in classification_layers:
 			cls = l(cls)
 
 		# compute labels and bbox_reg_targets
-		lb, r, a          = keras_retinanet.layers.AnchorTarget(stride=s, name='boxes_{}'.format(i))([cls, im_info, gt_boxes])
+		lb, r, a          = keras_retinanet.layers.AnchorTarget(
+			features_shape=keras.backend.int_shape(cls)[1:3],
+			stride=stride,
+			anchor_size=size,
+			name='boxes_{}'.format(i)
+		)([im_info, gt_boxes])
 		anchors           = a if anchors == None else keras.layers.Concatenate(axis=0)([anchors, a])
 		labels            = lb if labels == None else keras.layers.Concatenate(axis=0)([labels, lb])
 		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=0)([regression_target, r])
