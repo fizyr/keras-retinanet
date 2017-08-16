@@ -96,10 +96,10 @@ class AnchorTarget(keras.layers.Layer):
 		labels = keras_retinanet.backend.where(keras.backend.equal(labels, 1), gt_boxes[:, 4], labels)
 
 		# TODO: implement inside and outside weights
-		return [labels, bbox_reg_targets]
+		return [labels, bbox_reg_targets, anchors]
 
 	def compute_output_shape(self, input_shape):
-		return [(None, 1), (None, 4)]
+		return [(None, 1), (None, 4), (None, 4)]
 
 	def compute_mask(self, inputs, mask=None):
-		return [None, None]
+		return [None, None, None]

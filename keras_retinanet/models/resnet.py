@@ -66,6 +66,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 	labels            = None
 	regression        = None
 	regression_target = None
+	anchors           = None
 	for i, (p, s) in enumerate(zip(pyramid_features, strides)):
 		# run the classification subnet
 		cls = p
@@ -73,26 +74,27 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 			cls = l(cls)
 
 		# compute labels and bbox_reg_targets
-		l, r              = keras_retinanet.layers.AnchorTarget(stride=s, name='boxes_{}'.format(i))([cls, im_info, gt_boxes])
-		labels            = l if labels == None else keras.layers.Concatenate(axis=0)([labels, l])
+		lb, r, a          = keras_retinanet.layers.AnchorTarget(stride=s, name='boxes_{}'.format(i))([cls, im_info, gt_boxes])
+		anchors           = a if anchors == None else keras.layers.Concatenate(axis=0)([anchors, a])
+		labels            = lb if labels == None else keras.layers.Concatenate(axis=0)([labels, lb])
 		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=0)([regression_target, r])
 
 		cls            = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
 		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
 
 		# run the regression subnet
-		reg = p
-		for l in regression_layers:
-			reg = l(reg)
+		#reg = p
+		#for l in regression_layers:
+		#	reg = l(reg)
 
-		reg        = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
-		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
+		#reg        = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
+		#regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
 
 	# compute classification and regression losses
-	classification = keras.layers.Lambda(lambda x: keras.backend.softmax(x), name='classification_softmax')(classification)
+	classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
 	cls_loss = keras_retinanet.layers.FocalLoss()([classification, labels, regression_target, regression_target])
 
-	return keras.models.Model(inputs=inputs, outputs=[classification, regression, cls_loss], *args, **kwargs)
+	return keras.models.Model(inputs=inputs, outputs=[classification, labels, regression_target, cls_loss, anchors], *args, **kwargs)
 
 def ResNet50RetinaNet(inputs, *args, **kwargs):
 	image, _, _ = inputs
