@@ -50,8 +50,10 @@ class FocalLoss(keras.layers.Layer):
 		classification    = keras_retinanet.backend.gather_nd(classification, indices)
 		labels            = keras_retinanet.backend.gather_nd(labels, indices)
 
-		probabilities = keras.backend.max(classification, axis=1)
-		focal_weight = self.alpha * (1.0 - probabilities) ** self.gamma
+		indices         = keras.backend.expand_dims(keras_retinanet.backend.range(keras.backend.shape(labels)[0]), axis=1)
+		labeled_indices = keras.backend.concatenate([indices, keras.backend.expand_dims(keras.backend.cast(labels, 'int32'), axis=1)], axis=1)
+		probabilities   = keras_retinanet.backend.gather_nd(classification, labeled_indices)
+		focal_weight    = self.alpha * (1.0 - probabilities) ** self.gamma
 
 		cls_loss = self.classification_loss(focal_weight, classification, labels)
 		self.add_loss(cls_loss)
@@ -59,10 +61,7 @@ class FocalLoss(keras.layers.Layer):
 		#reg_loss = self.regression_loss(focal_weight, labels, regression, regression_target)
 		#self.add_loss(cls_loss, [labels, regression, regression_target])
 
-		return cls_loss
+		return focal_weight
 
 	#def compute_mask(self, inputs, mask=None):
 	#	return [None, None]
-
-	def compute_output_shape(self, input_shape):
-		return (1,)

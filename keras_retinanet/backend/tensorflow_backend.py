@@ -8,6 +8,9 @@ RPN_BATCHSIZE = 256
 def matmul(*args, **kwargs):
 	return tensorflow.matmul(*args, **kwargs)
 
+def range(*args, **kwargs):
+	return tensorflow.range(*args, **kwargs)
+
 def gather_nd(params, indices):
 	return tensorflow.gather_nd(params, indices)
 
