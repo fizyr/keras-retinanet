@@ -6,7 +6,7 @@ import keras_retinanet.layers
 def classification_subnet(num_classes=21, num_anchors=9, feature_size=256):
 	layers = []
 	for i in range(4):
-		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='cls_{}'.format(i)))
+		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='cls_{}'.format(i)))
 	layers.append(keras.layers.Conv2D(num_classes * num_anchors, (3, 3), strides=1, padding='same', name='pyramid_classification'))
 
 	return layers
@@ -14,7 +14,7 @@ def classification_subnet(num_classes=21, num_anchors=9, feature_size=256):
 def regression_subnet(num_anchors=9, feature_size=256):
 	layers = []
 	for i in range(4):
-		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='reg_{}'.format(i)))
+		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='reg_{}'.format(i)))
 	layers.append(keras.layers.Conv2D(num_anchors * 4, (3, 3), strides=1, padding='same', name='pyramid_regression'))
 
 	return layers
