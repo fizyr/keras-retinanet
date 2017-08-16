@@ -3,18 +3,38 @@ import keras_resnet.models
 
 import keras_retinanet.layers
 
-def classification_subnet(num_classes=21, num_anchors=9, feature_size=256):
+import math
+
+def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_pi=0.01):
+	options = {
+		'kernel_initializer': keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
+		'bias_initializer': keras.initializers.zeros()
+	}
+
 	layers = []
 	for i in range(4):
-		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='cls_{}'.format(i)))
-	layers.append(keras.layers.Conv2D(num_classes * num_anchors, (3, 3), strides=1, padding='same', name='pyramid_classification'))
+		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='cls_{}'.format(i), **options))
+	layers.append(keras.layers.Conv2D(
+		filters=num_classes * num_anchors,
+		kernel_size=(3, 3),
+		strides=1,
+		padding='same',
+		name='pyramid_classification',
+		kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
+		bias_initializer=keras.initializers.constant(-math.log((1 - prob_pi) / prob_pi)),
+	))
 
 	return layers
 
 def regression_subnet(num_anchors=9, feature_size=256):
+	options = {
+		'kernel_initializer': keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
+		'bias_initializer': keras.initializers.zeros()
+	}
+
 	layers = []
 	for i in range(4):
-		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='reg_{}'.format(i)))
+		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='reg_{}'.format(i), **options))
 	layers.append(keras.layers.Conv2D(num_anchors * 4, (3, 3), strides=1, padding='same', name='pyramid_regression'))
 
 	return layers
