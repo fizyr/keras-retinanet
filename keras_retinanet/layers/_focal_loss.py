@@ -48,15 +48,17 @@ class FocalLoss(keras.layers.Layer):
 	#	return reg_loss
 
 	def call(self, inputs):
-		classification, labels, regression, regression_target = inputs
+		classification, labels = inputs
 
-		classification = keras.backend.reshape(classification, (-1, self.num_classes))
-		regression     = keras.backend.reshape(regression, (-1, 4))
+		classification    = keras.backend.reshape(classification, (-1, self.num_classes))
+		labels            = keras.backend.reshape(labels, (-1,))
+		#regression        = keras.backend.reshape(regression, (-1, 4))
+		#regression_target = keras.backend.reshape(labels, (-1, 4))
 
 		indices = keras_retinanet.backend.where(keras.backend.not_equal(labels, -1))
 
-		regression        = keras_retinanet.backend.gather_nd(regression, indices)
-		regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
+		#regression        = keras_retinanet.backend.gather_nd(regression, indices)
+		#regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
 		classification    = keras_retinanet.backend.gather_nd(classification, indices)
 		labels            = keras_retinanet.backend.gather_nd(labels, indices)
 
