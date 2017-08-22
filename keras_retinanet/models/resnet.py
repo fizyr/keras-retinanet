@@ -101,9 +101,9 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 			anchor_size=size,
 			name='boxes_{}'.format(i)
 		)([im_info, gt_boxes])
-		anchors           = a if anchors == None else keras.layers.Concatenate(axis=0)([anchors, a])
-		labels            = lb if labels == None else keras.layers.Concatenate(axis=0)([labels, lb])
-		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=0)([regression_target, r])
+		anchors           = a if anchors == None else keras.layers.Concatenate(axis=1)([anchors, a])
+		labels            = lb if labels == None else keras.layers.Concatenate(axis=1)([labels, lb])
+		regression_target = r if regression_target == None else keras.layers.Concatenate(axis=1)([regression_target, r])
 
 		cls            = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
 		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
@@ -118,7 +118,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 
 	# compute classification and regression losses
 	classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
-	cls_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes)([classification, labels, regression_target, regression_target])
+	cls_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes)([classification, labels])
 
 	return keras.models.Model(inputs=inputs, outputs=[classification, labels, regression_target, cls_loss, anchors], *args, **kwargs)
 
