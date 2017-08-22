@@ -20,7 +20,7 @@ def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_
 		strides=1,
 		padding='same',
 		name='pyramid_classification',
-		kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
+		kernel_initializer=keras.initializers.zeros(),
 		bias_initializer=keras.initializers.constant(-math.log((1 - prob_pi) / prob_pi)),
 	))
 
