@@ -96,6 +96,10 @@ class AnchorTarget(keras.layers.Layer):
 		# select correct label from gt_boxes
 		labels = keras_retinanet.backend.where(keras.backend.equal(labels, 1), gt_boxes[:, 4], labels)
 
+		labels           = keras.backend.expand_dims(labels, axis=0)
+		bbox_reg_targets = keras.backend.expand_dims(bbox_reg_targets, axis=0)
+		anchors          = keras.backend.expand_dims(anchors, axis=0)
+
 		# TODO: implement inside and outside weights
 		return [labels, bbox_reg_targets, anchors]
 
