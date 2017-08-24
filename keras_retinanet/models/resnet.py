@@ -13,7 +13,18 @@ def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_
 
 	layers = []
 	for i in range(4):
-		layers.append(keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', activation='relu', name='cls_{}'.format(i), **options))
+		layers.append(
+			keras.layers.Conv2D(
+				filters=feature_size,
+				kernel_size=(3, 3),
+				strides=1,
+				padding='same',
+				activation='relu',
+				name='cls_{}'.format(i),
+				**options
+			)
+		)
+
 	layers.append(keras.layers.Conv2D(
 		filters=num_classes * num_anchors,
 		kernel_size=(3, 3),
@@ -22,7 +33,8 @@ def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_
 		name='pyramid_classification',
 		kernel_initializer=keras.initializers.zeros(),
 		bias_initializer=keras.initializers.constant(-math.log((1 - prob_pi) / prob_pi)),
-	))
+		)
+	)
 
 	return layers
 
