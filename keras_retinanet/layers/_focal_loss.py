@@ -13,7 +13,7 @@ class FocalLoss(keras.layers.Layer):
 		super().__init__(*args, **kwargs)
 
 	def classification_loss(self, focal_weight, classification, labels):
-		cls_loss = focal_weight * keras.backend.sparse_categorical_crossentropy(classification, labels)
+		cls_loss = focal_weight * keras.backend.sparse_categorical_crossentropy(labels, classification)
 		cls_loss = keras.backend.sum(cls_loss)
 
 		# compute the number of anchors assigned to a ground-truth box
