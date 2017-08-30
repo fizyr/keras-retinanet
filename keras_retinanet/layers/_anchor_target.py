@@ -34,7 +34,7 @@ class AnchorTarget(keras.layers.Layer):
 		self.negative_overlap  = negative_overlap
 		self.positive_overlap  = positive_overlap
 
-		super().__init__(*args, **kwargs)
+		super(AnchorTarget, self).__init__(*args, **kwargs)
 
 	def call(self, inputs, **kwargs):
 		im_info, gt_boxes = inputs
