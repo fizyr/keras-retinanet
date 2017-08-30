@@ -22,7 +22,7 @@ class FocalLoss(keras.layers.Layer):
 		assigned_boxes = keras_retinanet.backend.where(keras.backend.greater(labels, 0), ones, zeros)
 
 		# "The total focal loss of an image is computed as the sum
-		# of the focal loss over all approx 100k anchors, normalized by the
+		# of the focal loss over all ~100k anchors, normalized by the
 		# number of anchors assigned to a ground-truth box."
 		cls_loss = cls_loss / (keras.backend.sum(assigned_boxes) + keras.backend.epsilon())
 		return cls_loss
