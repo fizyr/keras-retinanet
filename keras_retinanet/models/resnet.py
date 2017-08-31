@@ -4,8 +4,23 @@ import keras_resnet.models
 import keras_retinanet.layers
 
 import math
+import numpy as np
 
-def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_pi=0.01):
+def prior_probability(num_classes=21, probability=0.1):
+	def f(shape, dtype=keras.backend.floatx()):
+		assert(shape[0] % num_classes == 0)
+
+		# set bias to -log((1 - p)/p) for foregound
+		result = np.ones(shape, dtype=dtype) * -math.log((1 - probability) / probability)
+
+		# set bias to -log(p/(1 - p)) for background
+		result[::2] = -math.log(probability / (1 - probability))
+
+		return result
+
+	return f
+
+def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_pi=0.1):
 	options = {
 		'kernel_initializer': keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
 		'bias_initializer': keras.initializers.zeros()
@@ -25,14 +40,15 @@ def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_
 			)
 		)
 
-	layers.append(keras.layers.Conv2D(
-		filters=num_classes * num_anchors,
-		kernel_size=(3, 3),
-		strides=1,
-		padding='same',
-		name='pyramid_classification',
-		kernel_initializer=keras.initializers.zeros(),
-		bias_initializer=keras.initializers.constant(-math.log((1 - prob_pi) / prob_pi)),
+	layers.append(
+		keras.layers.Conv2D(
+			filters=num_classes * num_anchors,
+			kernel_size=(3, 3),
+			strides=1,
+			padding='same',
+			name='pyramid_classification',
+			kernel_initializer=keras.initializers.zeros(),
+			bias_initializer=prior_probability(num_classes=num_classes, probability=prob_pi)
 		)
 	)
 
