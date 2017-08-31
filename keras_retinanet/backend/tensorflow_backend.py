@@ -2,8 +2,8 @@ import tensorflow
 import keras
 import keras_retinanet.backend
 
-RPN_FG_FRACTION = 0.5
-RPN_BATCHSIZE = 256
+def scatter_nd(*args, **kwargs):
+	return tensorflow.scatter_nd(*args, **kwargs)
 
 def matmul(*args, **kwargs):
 	return tensorflow.matmul(*args, **kwargs)
