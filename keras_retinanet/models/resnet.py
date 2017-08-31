@@ -106,11 +106,6 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 	strides          = [8,  16,  32,  64, 128]
 	sizes            = [32, 64, 128, 256, 512]
 
-	# TODO: Remove this ... this skips the first pyramid level
-	pyramid_features = pyramid_features[1:]
-	strides          = [16, 32, 64, 128]
-	sizes            = [64, 128, 256, 512]
-
 	# construct classification and regression subnets
 	classification_layers = classification_subnet(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
 	#regression_layers     = regression_subnet(num_anchors=num_anchors, feature_size=feature_size)
