@@ -14,7 +14,7 @@ def prior_probability(num_classes=21, probability=0.1):
 		result = np.ones(shape, dtype=dtype) * -math.log((1 - probability) / probability)
 
 		# set bias to -log(p/(1 - p)) for background
-		result[::2] = -math.log(probability / (1 - probability))
+		result[::num_classes] = -math.log(probability / (1 - probability))
 
 		return result
 
