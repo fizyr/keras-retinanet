@@ -146,7 +146,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 
 	# compute classification and regression losses
 	classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
-	cls_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes)([classification, labels])
+	cls_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels])
 
 	return keras.models.Model(inputs=inputs, outputs=[classification, labels, cls_loss, anchors], *args, **kwargs)
 
