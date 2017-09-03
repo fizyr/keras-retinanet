@@ -5,7 +5,7 @@ import keras_retinanet.backend
 As described in https://arxiv.org/abs/1708.02002
 """
 class FocalLoss(keras.layers.Layer):
-	def __init__(self, num_classes=21, alpha=0.75, gamma=2.0, *args, **kwargs):
+	def __init__(self, num_classes=21, alpha=0.25, gamma=2.0, *args, **kwargs):
 		self.num_classes = num_classes
 		self.alpha = alpha
 		self.gamma = gamma
