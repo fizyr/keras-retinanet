@@ -24,7 +24,7 @@ class FocalLoss(keras.layers.Layer):
 		# "The total focal loss of an image is computed as the sum
 		# of the focal loss over all ~100k anchors, normalized by the
 		# number of anchors assigned to a ground-truth box."
-		cls_loss = cls_loss / (keras.backend.sum(assigned_boxes) + keras.backend.epsilon())
+		cls_loss = cls_loss / (keras.backend.maximum(1.0, keras.backend.sum(assigned_boxes) + keras.backend.epsilon()))
 		return cls_loss
 
 	#def regression_loss(self, focal_weight, labels, regression, regression_target):
