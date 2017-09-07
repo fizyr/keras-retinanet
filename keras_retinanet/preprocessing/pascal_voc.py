@@ -1,3 +1,4 @@
+import keras.applications.imagenet_utils
 import keras.preprocessing.image
 import keras.backend
 
@@ -107,8 +108,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 			path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
 			image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
 			image = cv2.resize(image, self.image_shape[:2]).astype(keras.backend.floatx())
-			image = self.image_data_generator.random_transform(image)
-			image = self.image_data_generator.standardize(image)
+			#image = self.image_data_generator.random_transform(image)
 
 			# Copy image to batch blob
 			image_batch[batch_index] = image
@@ -122,6 +122,10 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 
 			# Scale the ground truth boxes to the selected image scale
 			gt_boxes_batch[batch_index, :, :4] *= self.image_scale
+
+		# Convert the image to zero-mean
+		image_batch = keras.applications.imagenet_utils.preprocess_input(image_batch)
+		image_batch = self.image_data_generator.standardize(image_batch)
 
 		return [image_batch, image_info_batch, gt_boxes_batch], None
 
