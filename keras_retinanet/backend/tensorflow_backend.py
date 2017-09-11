@@ -5,9 +5,6 @@ import keras_retinanet.backend
 def scatter_nd(*args, **kwargs):
 	return tensorflow.scatter_nd(*args, **kwargs)
 
-def matmul(*args, **kwargs):
-	return tensorflow.matmul(*args, **kwargs)
-
 def range(*args, **kwargs):
 	return tensorflow.range(*args, **kwargs)
 
