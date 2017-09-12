@@ -6,6 +6,8 @@ import keras_retinanet.layers
 import math
 import numpy as np
 
+WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+
 def prior_probability(num_classes=21, probability=0.1):
 	def f(shape, dtype=keras.backend.floatx()):
 		assert(shape[0] % num_classes == 0)
@@ -94,7 +96,7 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 
 	return P3, P4, P5, P6, P7
 
-def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwargs):
+def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='imagenet', *args, **kwargs):
 	image, im_info, gt_boxes = inputs
 
 	# TODO: Parametrize this
@@ -148,7 +150,20 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, *args, **kwarg
 	classification     = keras.layers.Activation('softmax', name='classification_softmax')(classification)
 	cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
 
-	return keras.models.Model(inputs=inputs, outputs=[classification, regression, labels, cls_loss, reg_loss, anchors], *args, **kwargs)
+	# construct the model
+	model = keras.models.Model(inputs=inputs, outputs=[classification, regression, labels, cls_loss, reg_loss, anchors], *args, **kwargs)
+
+	# load pretrained imagenet weights?
+	if weights == 'imagenet':
+		weights_path = keras.applications.imagenet_utils.get_file('resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5', WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='a268eb855778b3df3c7506639542a6af')
+	else:
+		weights_path = weights
+
+	# if set, load pretrained weights
+	if weights_path:
+		model.load_weights(weights_path, by_name=True)
+
+	return model
 
 def ResNet50RetinaNet(inputs, *args, **kwargs):
 	image, _, _ = inputs
