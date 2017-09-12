@@ -37,7 +37,6 @@ class FocalLoss(keras.layers.Layer):
 		ones           = keras.backend.ones_like(labels)
 		zeros          = keras.backend.zeros_like(labels)
 		assigned_boxes = keras_retinanet.backend.where(keras.backend.greater(labels, 0), ones, zeros)
-		assigned_boxes = keras.backend.expand_dims(assigned_boxes, axis=0)
 
 		reg_loss = mask * (0.5 * regression_diff * regression_diff) + (1 - mask) * (abs_regression_diff - 0.5)
 		reg_loss = keras.backend.sum(reg_loss, axis=1)
