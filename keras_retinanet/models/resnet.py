@@ -97,7 +97,8 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 	return P3, P4, P5, P6, P7
 
 def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='imagenet', *args, **kwargs):
-	image, im_info, gt_boxes = inputs
+	image, gt_boxes = inputs
+	image_shape = keras.layers.Lambda(lambda x: keras.backend.cast(keras.backend.shape(x)[1:3], keras.backend.floatx()))(image)
 
 	# TODO: Parametrize this
 	num_anchors = 9
@@ -130,7 +131,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 			stride=stride,
 			anchor_size=size,
 			name='boxes_{}'.format(i)
-		)([im_info, gt_boxes])
+		)([image_shape, gt_boxes])
 		anchors           = a  if anchors           == None else keras.layers.Concatenate(axis=1)([anchors, a])
 		labels            = lb if labels            == None else keras.layers.Concatenate(axis=1)([labels, lb])
 		regression_target = r  if regression_target == None else keras.layers.Concatenate(axis=1)([regression_target, r])
@@ -169,6 +170,6 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 	return model
 
 def ResNet50RetinaNet(inputs, *args, **kwargs):
-	image, _, _ = inputs
+	image, _ = inputs
 	resnet = keras_resnet.models.ResNet50(image, include_top=False)
 	return RetinaNet(inputs, resnet, *args, **kwargs)

@@ -37,10 +37,7 @@ class AnchorTarget(keras.layers.Layer):
 		super(AnchorTarget, self).__init__(*args, **kwargs)
 
 	def call(self, inputs, **kwargs):
-		im_info, gt_boxes = inputs
-
-		# TODO: Fix usage of batch index
-		image_shape = im_info[0, :2]
+		image_shape, gt_boxes = inputs
 
 		# TODO: Fix usage of batch index
 		gt_boxes = gt_boxes[0]
