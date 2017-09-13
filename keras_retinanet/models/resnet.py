@@ -150,8 +150,11 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 	classification     = keras.layers.Activation('softmax', name='classification_softmax')(classification)
 	cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
 
+	# compute resulting boxes
+	boxes = keras.layers.Lambda(lambda x: keras_retinanet.backend.bbox_transform_inv(x[0], x[1]), name='boxes')([anchors, regression])
+
 	# construct the model
-	model = keras.models.Model(inputs=inputs, outputs=[classification, regression, labels, cls_loss, reg_loss, anchors], *args, **kwargs)
+	model = keras.models.Model(inputs=inputs, outputs=[classification, boxes, labels, cls_loss, reg_loss, anchors], *args, **kwargs)
 
 	# load pretrained imagenet weights?
 	if weights == 'imagenet':
