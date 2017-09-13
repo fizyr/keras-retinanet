@@ -81,14 +81,14 @@ class AnchorTarget(keras.layers.Layer):
 		bbox_reg_targets = keras_retinanet.backend.bbox_transform(anchors, gt_boxes)
 
 		# filter out anchors that are outside the image
-		labels = keras_retinanet.backend.where(
-			(anchors[:, 0] >= -self.allowed_border) &
-			(anchors[:, 1] >= -self.allowed_border) &
-			(anchors[:, 2] < self.allowed_border + image_shape[1]) & # width
-			(anchors[:, 3] < self.allowed_border + image_shape[0]),  # height
-			labels,
-			negatives
-		)
+		#labels = keras_retinanet.backend.where(
+		#	(anchors[:, 0] >= -self.allowed_border) &
+		#	(anchors[:, 1] >= -self.allowed_border) &
+		#	(anchors[:, 2] < self.allowed_border + image_shape[1]) & # width
+		#	(anchors[:, 3] < self.allowed_border + image_shape[0]),  # height
+		#	labels,
+		#	negatives
+		#)
 
 		# select correct label from gt_boxes
 		labels = keras_retinanet.backend.where(keras.backend.equal(labels, 1), gt_boxes[:, 4], labels)
