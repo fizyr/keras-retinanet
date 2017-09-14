@@ -101,7 +101,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 
 		# Transformation of images is not under thread lock so it can be done in parallel
 		image_batch      = np.zeros((batch_size,) + self.image_shape, dtype=keras.backend.floatx())
-		image_info_batch = np.zeros((batch_size, 3), dtype=keras.backend.floatx())
 		gt_boxes_batch   = np.zeros((batch_size, 0, 5), dtype=keras.backend.floatx())
 
 		for batch_index, image_index in enumerate(selection):
@@ -112,9 +111,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 
 			# Copy image to batch blob
 			image_batch[batch_index] = image
-
-			# Set image info
-			image_info_batch[batch_index] = [image.shape[0], image.shape[1], self.image_scale]
 
 			# Set ground truth boxes
 			boxes = np.expand_dims(self.parse_annotations(self.image_names[image_index]), axis=0)
@@ -127,7 +123,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		image_batch = keras.applications.imagenet_utils.preprocess_input(image_batch)
 		image_batch = self.image_data_generator.standardize(image_batch)
 
-		return [image_batch, image_info_batch, gt_boxes_batch], None
+		return [image_batch, gt_boxes_batch], None
 
 
 class ObjectDetectionGenerator:

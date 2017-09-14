@@ -2,6 +2,9 @@ import tensorflow
 import keras
 import keras_retinanet.backend
 
+def non_max_suppression(*args, **kwargs):
+	return tensorflow.image.non_max_suppression(*args, **kwargs)
+
 def scatter_nd(*args, **kwargs):
 	return tensorflow.scatter_nd(*args, **kwargs)
 

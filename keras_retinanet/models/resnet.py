@@ -96,7 +96,7 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 
 	return P3, P4, P5, P6, P7
 
-def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='imagenet', *args, **kwargs):
+def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='imagenet', nms=True, *args, **kwargs):
 	image, gt_boxes = inputs
 	image_shape = keras.layers.Lambda(lambda x: keras.backend.cast(keras.backend.shape(x)[1:3], keras.backend.floatx()))(image)
 
@@ -152,10 +152,12 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 	cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
 
 	# compute resulting boxes
-	boxes = keras.layers.Lambda(lambda x: keras_retinanet.backend.bbox_transform_inv(x[0], x[1]), name='boxes')([anchors, regression])
+	boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
+	if nms:
+		boxes, classification = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification])
 
 	# construct the model
-	model = keras.models.Model(inputs=inputs, outputs=[classification, boxes, labels, cls_loss, reg_loss, anchors], *args, **kwargs)
+	model = keras.models.Model(inputs=inputs, outputs=[boxes, classification, reg_loss, cls_loss], *args, **kwargs)
 
 	# load pretrained imagenet weights?
 	if weights == 'imagenet':
