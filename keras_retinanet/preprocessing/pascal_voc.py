@@ -2,6 +2,8 @@ import keras.applications.imagenet_utils
 import keras.preprocessing.image
 import keras.backend
 
+from .image import random_transform_batch
+
 import cv2
 import xml.etree.ElementTree as ET
 
@@ -46,7 +48,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		skip_difficult=False,
 		batch_size=1,
 		shuffle=True,
-		seed=np.uint32(time.time() * 1000),
+		seed=None,
 	):
 		self.data_dir             = data_dir
 		self.set_name             = set_name
@@ -58,6 +60,9 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		self.image_extension      = image_extension
 		self.skip_truncated       = skip_truncated
 		self.skip_difficult       = skip_difficult
+
+		if seed is None:
+			seed = np.uint32(time.time() * 1000)
 
 		super().__init__(len(self.image_names), batch_size, shuffle, seed)
 
@@ -95,35 +100,39 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		return boxes
 
 	def next(self):
-		# Lock indexing to prevent race conditions
+		# lock indexing to prevent race conditions
 		with self.lock:
 			selection, _, batch_size = next(self.index_generator)
 
-		# Transformation of images is not under thread lock so it can be done in parallel
-		image_batch      = np.zeros((batch_size,) + self.image_shape, dtype=keras.backend.floatx())
-		gt_boxes_batch   = np.zeros((batch_size, 0, 5), dtype=keras.backend.floatx())
+		assert(batch_size == 1), "Currently only batch_size=1 is allowed."
+
+		# transformation of images is not under thread lock so it can be done in parallel
+		image_batch = np.zeros((batch_size,) + self.image_shape, dtype=keras.backend.floatx())
+		boxes_batch = np.zeros((batch_size, 0, 5), dtype=keras.backend.floatx())
 
 		for batch_index, image_index in enumerate(selection):
 			path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
 			image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
 			image = cv2.resize(image, self.image_shape[:2]).astype(keras.backend.floatx())
-			#image = self.image_data_generator.random_transform(image)
 
-			# Copy image to batch blob
+			# copy image to batch blob
 			image_batch[batch_index] = image
 
-			# Set ground truth boxes
+			# set ground truth boxes
 			boxes = np.expand_dims(self.parse_annotations(self.image_names[image_index]), axis=0)
-			gt_boxes_batch = np.append(gt_boxes_batch, boxes, axis=1)
+			boxes_batch = np.append(boxes_batch, boxes, axis=1)
 
-			# Scale the ground truth boxes to the selected image scale
-			gt_boxes_batch[batch_index, :, :4] *= self.image_scale
+			# scale the ground truth boxes to the selected image scale
+			boxes_batch[batch_index, :, :4] *= self.image_scale
 
-		# Convert the image to zero-mean
+		# randomly transform images and boxes simultaneously
+		image_batch, boxes_batch = random_transform_batch(image_batch, boxes_batch, self.image_data_generator)
+
+		# convert the image to zero-mean
 		image_batch = keras.applications.imagenet_utils.preprocess_input(image_batch)
 		image_batch = self.image_data_generator.standardize(image_batch)
 
-		return [image_batch, gt_boxes_batch], None
+		return [image_batch, boxes_batch], None
 
 
 class ObjectDetectionGenerator:
