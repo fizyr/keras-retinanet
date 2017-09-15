@@ -35,6 +35,10 @@ voc_classes = {
 	'tvmonitor'      : 20
 }
 
+voc_labels = {}
+for key, value in voc_classes.items():
+	voc_labels[value] = key
+
 class PascalVocIterator(keras.preprocessing.image.Iterator):
 	def __init__(
 		self,
