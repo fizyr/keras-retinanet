@@ -1,6 +1,8 @@
 import sys
 sys.path.append('.')
 
+import argparse
+
 import keras
 import keras.preprocessing.image
 from keras.applications.imagenet_utils import get_file
@@ -9,44 +11,57 @@ from keras.applications.resnet50 import WEIGHTS_PATH_NO_TOP
 from keras_retinanet.models import ResNet50RetinaNet
 from keras_retinanet.preprocessing import PascalVocIterator
 
-
 def create_model():
 	image = keras.layers.Input((512, 512, 3))
-	im_info = keras.layers.Input((3,))
 	gt_boxes = keras.layers.Input((None, 5))
-	return ResNet50RetinaNet([image, im_info, gt_boxes])
+	return ResNet50RetinaNet([image, gt_boxes])
+
+def parse_args():
+	parser = argparse.ArgumentParser(description='Simple training script for Pascal VOC object detection.')
+	parser.add_argument('voc_path', help='Path to Pascal VOC directory (ie. /tmp/VOCdevkit/VOC2007).')
+
+	return parser.parse_args()
+
 
 if __name__=='__main__':
+	# parse arguments
+	args = parse_args()
+
 	# create the model
+	print('Creating model, this may take a second...')
 	model = create_model()
 
-	# load pretrained weights
-	weights_path = get_file('resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5', WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='a268eb855778b3df3c7506639542a6af')
-	model.load_weights(weights_path, by_name=True)
-
 	# compile model (note: set loss to None since loss is added inside layer)
-	model.compile(loss=None, optimizer='adam')
+	model.compile(loss=None, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 
 	# print model summary
 	print(model.summary())
 
-	# create an image data generator object
-	image_data_generator = keras.preprocessing.image.ImageDataGenerator(
-		rescale=1/255
+	# create image data generator objects
+	train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
+		rescale=1/255,
+		horizontal_flip=True,
+		#vertical_flip=True,
+		width_shift_range=0.1,
+		height_shift_range=0.1,
+		zoom_range=0.1,
+	)
+	test_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
+		rescale=1/255,
 	)
 
 	# create a generator for training data
 	train_generator = PascalVocIterator(
-		'<path to VOCdevkit>/VOC2007',
+		args.voc_path,
 		'trainval',
-		image_data_generator
+		train_image_data_generator
 	)
 
 	# create a generator for testing data
 	test_generator = PascalVocIterator(
-		'<path to VOCdevkit>/VOC2007',
+		args.voc_path,
 		'test',
-		image_data_generator
+		test_image_data_generator
 	)
 
 	# start training
@@ -57,9 +72,12 @@ if __name__=='__main__':
 		epochs=100,
 		verbose=1,
 		validation_data=test_generator,
-		validation_steps=100, #len(test_generator.image_names) // batch_size,
+		validation_steps=500, #len(test_generator.image_names) // batch_size,
 		callbacks=[
-			keras.callbacks.ModelCheckpoint('snapshots/resnet50_pascal_voc_2007.h5', monitor='val_loss', verbose=1, save_best_only=True),
-			keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=8, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
+			keras.callbacks.ModelCheckpoint('snapshots/resnet50_voc_best.h5', monitor='val_loss', verbose=1, save_best_only=True),
+			keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=10, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
 		],
 	)
+
+	# store final result too
+	model.save('snapshots/resnet50_voc_final.h5')
