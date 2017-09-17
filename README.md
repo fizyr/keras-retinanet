@@ -35,13 +35,13 @@ Execution time on NVidia Pascal Titan X is roughly 35msec for an image of shape 
   <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/pascal_voc.png" alt="Example result of RetinaNet on Pascal VOC"/>
 </p>
 
-## Todo's
+### Todo's
 * Allow any shaped input image (currently only allows a predefined image shape, which has to be a multiple of 2).
 * Allow `batch_size > 1`.
 * Compare result w.r.t. paper results.
 * Disable parts of the network when in test mode.
 
-## Notes
+### Notes
 * This implementation currently uses the `softmax` activation to classify boxes. The paper mentions a `sigmoid` activation instead. Given the origin of parts of this code, the `softmax` activation method was easier to implement. A comparison between `sigmoid` and `softmax` would be interesting, but left as unexplored.
 * As of writing, this repository depends on an unmerged PR of `keras-resnet`. For now, it can be installed by manually installing [this](https://github.com/delftrobotics-forks/keras-resnet/tree/expose-intermediate) branch.
 
