@@ -5,8 +5,6 @@ import argparse
 
 import keras
 import keras.preprocessing.image
-from keras.applications.imagenet_utils import get_file
-from keras.applications.resnet50 import WEIGHTS_PATH_NO_TOP
 
 from keras_retinanet.models import ResNet50RetinaNet
 from keras_retinanet.preprocessing import PascalVocIterator
