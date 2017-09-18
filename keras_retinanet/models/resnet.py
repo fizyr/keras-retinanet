@@ -96,7 +96,7 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 
 	return P3, P4, P5, P6, P7
 
-def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='imagenet', nms=True, *args, **kwargs):
+def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet', nms=True, *args, **kwargs):
 	image, gt_boxes = inputs
 	image_shape = keras.layers.Lambda(lambda x: keras.backend.cast(keras.backend.shape(x)[1:3], keras.backend.floatx()))(image)
 

@@ -12,7 +12,7 @@ from keras_retinanet.preprocessing import PascalVocIterator
 def create_model():
 	image = keras.layers.Input((None, None, 3))
 	gt_boxes = keras.layers.Input((None, 5))
-	return ResNet50RetinaNet([image, gt_boxes])
+	return ResNet50RetinaNet([image, gt_boxes], num_classes=21)
 
 def parse_args():
 	parser = argparse.ArgumentParser(description='Simple training script for Pascal VOC object detection.')
