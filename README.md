@@ -36,7 +36,7 @@ Execution time on NVidia Pascal Titan X is roughly 35msec for an image of shape 
 </p>
 
 ### Todo's
-* Allow any shaped input image (currently only allows a predefined image shape, which has to be a multiple of 2).
+* Allow input sizes which are not a multiple of two.
 * Allow `batch_size > 1`.
 * Compare result w.r.t. paper results.
 * Disable parts of the network when in test mode.

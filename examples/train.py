@@ -10,7 +10,7 @@ from keras_retinanet.models import ResNet50RetinaNet
 from keras_retinanet.preprocessing import PascalVocIterator
 
 def create_model():
-	image = keras.layers.Input((512, 512, 3))
+	image = keras.layers.Input((None, None, 3))
 	gt_boxes = keras.layers.Input((None, 5))
 	return ResNet50RetinaNet([image, gt_boxes])
 

@@ -2,6 +2,14 @@ import tensorflow
 import keras
 import keras_retinanet.backend
 
+def zeros(*args, **kwargs):
+	# not the same as keras.backend.zeros
+	return tensorflow.zeros(*args, **kwargs)
+
+def ones(*args, **kwargs):
+	# not the same as keras.backend.ones
+	return tensorflow.ones(*args, **kwargs)
+
 def non_max_suppression(*args, **kwargs):
 	return tensorflow.image.non_max_suppression(*args, **kwargs)
 

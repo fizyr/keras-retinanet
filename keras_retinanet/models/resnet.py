@@ -127,7 +127,7 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 
 		# compute labels and bbox_reg_targets
 		lb, r, a = keras_retinanet.layers.AnchorTarget(
-			features_shape=keras.backend.int_shape(cls)[1:3],
+			features_shape=keras.backend.shape(cls)[1:3],
 			stride=stride,
 			anchor_size=size,
 			name='boxes_{}'.format(i)
@@ -136,7 +136,8 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 		labels            = lb if labels            == None else keras.layers.Concatenate(axis=1)([labels, lb])
 		regression_target = r  if regression_target == None else keras.layers.Concatenate(axis=1)([regression_target, r])
 
-		cls            = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
+		#cls            = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
+		cls            = keras.layers.Lambda(lambda x: keras.backend.reshape(x, (keras.backend.shape(x)[0], -1, num_classes)), name='classification_{}'.format(i))(cls)
 		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
 
 		# run the regression subnet
@@ -144,7 +145,8 @@ def RetinaNet(inputs, backbone, num_classes=21, feature_size=256, weights='image
 		for l in regression_layers:
 			reg = l(reg)
 
-		reg        = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
+		#reg        = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
+		reg        = keras.layers.Lambda(lambda x: keras.backend.reshape(x, (keras.backend.shape(x)[0], -1, 4)), name='boxes_reshaped_{}'.format(i))(reg)
 		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
 
 	# compute classification and regression losses

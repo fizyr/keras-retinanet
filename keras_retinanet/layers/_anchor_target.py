@@ -3,9 +3,6 @@ import keras.engine
 
 import keras_retinanet.backend
 
-import tensorflow
-
-
 class AnchorTarget(keras.layers.Layer):
 	"""Calculate proposal anchor targets and corresponding labels (label: 1 is positive, 0 is negative, -1 is do not care) for ground truth boxes
 
@@ -49,8 +46,8 @@ class AnchorTarget(keras.layers.Layer):
 		anchors = keras_retinanet.backend.shift(self.features_shape, self.stride, anchors)
 
 		# label: 1 is positive, 0 is negative, -1 is dont care
-		foreground = keras.backend.ones((total_anchors,), dtype=keras.backend.floatx())
-		background = keras.backend.zeros((total_anchors,), dtype=keras.backend.floatx())
+		foreground = keras_retinanet.backend.ones((total_anchors,))
+		background = keras_retinanet.backend.zeros((total_anchors,))
 		negatives  = foreground * -1
 		labels     = negatives
 
