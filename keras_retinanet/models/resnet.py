@@ -78,13 +78,15 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 	P5 = keras.layers.Conv2D(feature_size, (1, 1), strides=1, padding='same', name='P5')(res5)
 
 	# upsample P5 and add elementwise to C4
-	P5_upsampled = keras.layers.Conv2DTranspose(feature_size, kernel_size=kernel_size, strides=scale, padding='same', name='P5_upsampled')(P5)
 	P4 = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res4_reduced')(res4)
+	#P5_upsampled = keras.layers.Conv2DTranspose(feature_size, kernel_size=kernel_size, strides=scale, padding='same', name='P5_upsampled')(P5)
+	P5_upsampled = keras.layers.Lambda(lambda x: keras_retinanet.backend.resize_images(x, keras.backend.shape(P4)[1:3]), name='P5_upsampled')(P5)
 	P4 = keras.layers.Add(name='P4')([P5_upsampled, P4])
 
 	# upsample P4 and add elementwise to C3
-	P4_upsampled = keras.layers.Conv2DTranspose(feature_size, kernel_size=kernel_size, strides=scale, padding='same', name='P4_upsampled')(P4)
 	P3 = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res3_reduced')(res3)
+	#P4_upsampled = keras.layers.Conv2DTranspose(feature_size, kernel_size=kernel_size, strides=scale, padding='same', name='P4_upsampled')(P4)
+	P4_upsampled = keras.layers.Lambda(lambda x: keras_retinanet.backend.resize_images(x, keras.backend.shape(P3)[1:3]), name='P4_upsampled')(P4)
 	P3 = keras.layers.Add(name='P3')([P4_upsampled, P3])
 
 	# "P6 is obtained via a 3x3 stride-2 conv on C5"

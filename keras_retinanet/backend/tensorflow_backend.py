@@ -2,6 +2,9 @@ import tensorflow
 import keras
 import keras_retinanet.backend
 
+def resize_images(*args, **kwargs):
+	return tensorflow.image.resize_images(*args, **kwargs)
+
 def zeros(*args, **kwargs):
 	# not the same as keras.backend.zeros
 	return tensorflow.zeros(*args, **kwargs)
