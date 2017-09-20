@@ -46,7 +46,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		set_name,
 		image_data_generator,
 		classes=voc_classes,
-		image_shape=(512, 512, 3),
 		image_extension='.jpg',
 		skip_truncated=False,
 		skip_difficult=False,
@@ -59,7 +58,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		self.classes              = classes
 		self.image_names          = [l.strip() for l in open(os.path.join(data_dir, 'ImageSets', 'Main', set_name + '.txt')).readlines()]
 		self.image_data_generator = image_data_generator
-		self.image_shape          = image_shape # TODO: Make keras-retinanet accept any input shape
 		self.image_scale          = 1.0
 		self.image_extension      = image_extension
 		self.skip_truncated       = skip_truncated
@@ -94,10 +92,10 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 			box[0, 4] = self.classes[class_name]
 
 			bndbox = o.find('bndbox')
-			box[0, 0] = (float(bndbox.find('xmin').text) - 1) / width * self.image_shape[1]
-			box[0, 1] = (float(bndbox.find('ymin').text) - 1) / height * self.image_shape[0]
-			box[0, 2] = (float(bndbox.find('xmax').text) - 1) / width * self.image_shape[1]
-			box[0, 3] = (float(bndbox.find('ymax').text) - 1) / height * self.image_shape[0]
+			box[0, 0] = float(bndbox.find('xmin').text) - 1
+			box[0, 1] = float(bndbox.find('ymin').text) - 1
+			box[0, 2] = float(bndbox.find('xmax').text) - 1
+			box[0, 3] = float(bndbox.find('ymax').text) - 1
 
 			boxes = np.append(boxes, box, axis=0)
 
@@ -111,16 +109,14 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		assert(batch_size == 1), "Currently only batch_size=1 is allowed."
 
 		# transformation of images is not under thread lock so it can be done in parallel
-		image_batch = np.zeros((batch_size,) + self.image_shape, dtype=keras.backend.floatx())
 		boxes_batch = np.zeros((batch_size, 0, 5), dtype=keras.backend.floatx())
 
 		for batch_index, image_index in enumerate(selection):
 			path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
 			image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
-			image = cv2.resize(image, self.image_shape[:2]).astype(keras.backend.floatx())
 
-			# copy image to batch blob
-			image_batch[batch_index] = image
+			# copy image to image batch (currently only batch_size==1 is allowed)
+			image_batch = np.expand_dims(image, axis=0).astype(keras.backend.floatx())
 
 			# set ground truth boxes
 			boxes = np.expand_dims(self.parse_annotations(self.image_names[image_index]), axis=0)
@@ -140,5 +136,5 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 
 
 class ObjectDetectionGenerator:
-	def flow(self, data, classes, image_shape):
-		return PascalVocIterator(data, classes, keras.preprocessing.image.ImageDataGenerator(), image_shape)
+	def flow(self, data, classes):
+		return PascalVocIterator(data, classes, keras.preprocessing.image.ImageDataGenerator())
