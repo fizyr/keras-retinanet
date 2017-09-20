@@ -66,7 +66,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		if seed is None:
 			seed = np.uint32(time.time() * 1000)
 
-		super().__init__(len(self.image_names), batch_size, shuffle, seed)
+		super(PascalVocIterator, self).__init__(len(self.image_names), batch_size, shuffle, seed)
 
 	def parse_annotations(self, filename):
 		boxes = np.zeros((0, 5), dtype=keras.backend.floatx())

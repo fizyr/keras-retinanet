@@ -40,7 +40,7 @@ if __name__=='__main__':
 
 	# create image data generator objects
 	train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
-		rescale=1/255,
+		rescale=1.0/255.0,
 		horizontal_flip=True,
 		#vertical_flip=True,
 		width_shift_range=0.1,
@@ -48,7 +48,7 @@ if __name__=='__main__':
 		zoom_range=0.1,
 	)
 	test_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
-		rescale=1/255,
+		rescale=1.0/255.0,
 	)
 
 	# create a generator for training data
