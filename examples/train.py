@@ -3,6 +3,9 @@ sys.path.append('.')
 
 import argparse
 
+#import os
+#os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 import keras
 import keras.preprocessing.image
 
