@@ -56,7 +56,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		seed=None,
 		img_min_side=600,
 		img_max_side=1024
-
 	):
 		self.data_dir             = data_dir
 		self.set_name             = set_name
