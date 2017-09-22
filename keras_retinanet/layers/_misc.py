@@ -1,6 +1,28 @@
 import keras
 import keras_retinanet
 
+class Anchors(keras.layers.Layer):
+	def __init__(self, anchor_size, stride, *args, **kwargs):
+		self.anchor_size = anchor_size
+		self.stride      = stride
+		super(Anchors, self).__init__(*args, **kwargs)
+
+	def call(self, inputs, **kwargs):
+		features_shape = inputs
+
+		# generate proposals from bbox deltas and shifted anchors
+		anchors = keras_retinanet.backend.anchor(base_size=self.anchor_size)
+		anchors = keras_retinanet.backend.shift(features_shape, self.stride, anchors)
+		anchors = keras.backend.expand_dims(anchors, axis=0)
+
+		return anchors
+
+	def get_config(self):
+		return {
+			'anchor_size': self.anchor_size,
+			'stride'     : self.stride,
+		}
+
 class TensorReshape(keras.layers.Layer):
 	""" Nearly identical to keras.layers.Reshape, but allows reshaping tensors of unknown shape.
 

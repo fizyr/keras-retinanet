@@ -81,8 +81,11 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 
 	return P3, P4, P5, P6, P7
 
-def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet', nms=True, *args, **kwargs):
-	image, gt_boxes = inputs
+def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, weights='imagenet', nms=True, *args, **kwargs):
+	if training:
+		image, gt_boxes = inputs
+	else:
+		image = inputs
 	image_shape = keras_retinanet.layers.Dimensions()(image)
 
 	# TODO: Parametrize this
@@ -112,15 +115,15 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 
 		# compute labels and bbox_reg_targets
 		cls_shape = keras_retinanet.layers.Dimensions()(cls)
-		lb, r, a = keras_retinanet.layers.AnchorTarget(
-			stride=stride,
-			anchor_size=size,
-			name='boxes_{}'.format(i)
-		)([cls_shape, image_shape, gt_boxes])
-		anchors           = a  if anchors           == None else keras.layers.Concatenate(axis=1)([anchors, a])
-		labels            = lb if labels            == None else keras.layers.Concatenate(axis=1)([labels, lb])
-		regression_target = r  if regression_target == None else keras.layers.Concatenate(axis=1)([regression_target, r])
+		a         = keras_retinanet.layers.Anchors(stride=stride, anchor_size=size, name='anchors_{}'.format(i))(cls_shape)
+		anchors   = a  if anchors == None else keras.layers.Concatenate(axis=1)([anchors, a])
+		if training:
+			lb, r  = keras_retinanet.layers.AnchorTarget(name='anchor_target_{}'.format(i))([a, image_shape, gt_boxes])
 
+			labels            = lb if labels            == None else keras.layers.Concatenate(axis=1)([labels, lb])
+			regression_target = r  if regression_target == None else keras.layers.Concatenate(axis=1)([regression_target, r])
+
+		# concatenate classification scores
 		cls            = keras_retinanet.layers.TensorReshape((-1, num_classes), name='classification_{}'.format(i))(cls)
 		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
 
@@ -134,7 +137,8 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 
 	# compute classification and regression losses
 	classification     = keras.layers.Activation('softmax', name='classification_softmax')(classification)
-	cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
+	if training:
+		cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
 
 	# compute resulting boxes
 	boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
@@ -142,7 +146,10 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 		boxes, classification = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification])
 
 	# construct the model
-	model = keras.models.Model(inputs=inputs, outputs=[boxes, classification, reg_loss, cls_loss], *args, **kwargs)
+	if training:
+		model = keras.models.Model(inputs=inputs, outputs=[boxes, classification, reg_loss, cls_loss], *args, **kwargs)
+	else:
+		model = keras.models.Model(inputs=inputs, outputs=[boxes, classification], *args, **kwargs)
 
 	# load pretrained imagenet weights?
 	if weights == 'imagenet':
@@ -156,7 +163,11 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 
 	return model
 
-def ResNet50RetinaNet(inputs, *args, **kwargs):
-	image, _ = inputs
+def ResNet50RetinaNet(inputs, training=False, *args, **kwargs):
+	if training:
+		image, _ = inputs
+	else:
+		image = inputs
+
 	resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
-	return RetinaNet(inputs, resnet, *args, **kwargs)
+	return RetinaNet(inputs, resnet, training=training, *args, **kwargs)

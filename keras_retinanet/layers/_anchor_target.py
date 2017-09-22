@@ -7,7 +7,6 @@ class AnchorTarget(keras.layers.Layer):
 	"""Calculate proposal anchor targets and corresponding labels (label: 1 is positive, 0 is negative, -1 is do not care) for ground truth boxes
 
 	# Arguments
-		num_anchors: number of anchors used
 		allowed_border: allow boxes to be outside the image by allowed_border pixels
 		clobber_positives: if an anchor statisfied by positive and negative conditions given to negative label
 		negative_overlap: IoU threshold below which labels should be given negative label
@@ -20,11 +19,7 @@ class AnchorTarget(keras.layers.Layer):
 		(# of samples, ), (# of samples, 4)
 	"""
 
-	def __init__(self, stride, anchor_size, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
-		self.stride         = stride
-		self.anchor_size    = anchor_size
-
-		self.num_anchors       = num_anchors
+	def __init__(self, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
 		self.allowed_border    = allowed_border
 		self.clobber_positives = clobber_positives
 		self.negative_overlap  = negative_overlap
@@ -33,16 +28,13 @@ class AnchorTarget(keras.layers.Layer):
 		super(AnchorTarget, self).__init__(*args, **kwargs)
 
 	def call(self, inputs, **kwargs):
-		features_shape, image_shape, gt_boxes = inputs
+		anchors, image_shape, gt_boxes = inputs
 
 		# TODO: Fix usage of batch index
 		gt_boxes = gt_boxes[0]
+		anchors  = anchors[0]
 
-		total_anchors = features_shape[0] * features_shape[1] * self.num_anchors
-
-		# 1. Generate proposals from bbox deltas and shifted anchors
-		anchors = keras_retinanet.backend.anchor(base_size=self.anchor_size)
-		anchors = keras_retinanet.backend.shift(features_shape, self.stride, anchors)
+		total_anchors = keras.backend.shape(anchors)[0]
 
 		# label: 1 is positive, 0 is negative, -1 is dont care
 		foreground = keras_retinanet.backend.ones((total_anchors,))
@@ -50,7 +42,7 @@ class AnchorTarget(keras.layers.Layer):
 		negatives  = foreground * -1
 		labels     = negatives
 
-		# 2. obtain indices of gt boxes with the greatest overlap, balanced labels
+		# obtain indices of gt boxes with the greatest overlap, balanced labels
 		argmax_overlaps_inds, max_overlaps, gt_argmax_overlaps_inds = keras_retinanet.backend.overlapping(anchors, gt_boxes)
 
 		if not self.clobber_positives:
@@ -91,22 +83,18 @@ class AnchorTarget(keras.layers.Layer):
 
 		labels           = keras.backend.expand_dims(labels, axis=0)
 		bbox_reg_targets = keras.backend.expand_dims(bbox_reg_targets, axis=0)
-		anchors          = keras.backend.expand_dims(anchors, axis=0)
 
 		# TODO: implement inside and outside weights
-		return [labels, bbox_reg_targets, anchors]
+		return [labels, bbox_reg_targets]
 
 	def compute_output_shape(self, input_shape):
-		return [(None, 1), (None, 4), (None, 4)]
+		return [(None, 1), (None, 4)]
 
 	def compute_mask(self, inputs, mask=None):
-		return [None, None, None]
+		return [None, None]
 
 	def get_config(self):
 		return {
-			'stride'            : self.stride,
-			'anchor_size'       : self.anchor_size,
-			'num_anchors'       : self.num_anchors,
 			'allowed_border'    : self.allowed_border,
 			'clobber_positives' : self.clobber_positives,
 			'negative_overlap'  : self.negative_overlap,
