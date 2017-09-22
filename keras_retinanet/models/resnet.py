@@ -158,5 +158,5 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 
 def ResNet50RetinaNet(inputs, *args, **kwargs):
 	image, _ = inputs
-	resnet = keras_resnet.models.ResNet50(image, include_top=False)
+	resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
 	return RetinaNet(inputs, resnet, *args, **kwargs)

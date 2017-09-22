@@ -43,6 +43,6 @@ Execution time on NVidia Pascal Titan X is roughly 35msec for an image of shape 
 
 ### Notes
 * This implementation currently uses the `softmax` activation to classify boxes. The paper mentions a `sigmoid` activation instead. Given the origin of parts of this code, the `softmax` activation method was easier to implement. A comparison between `sigmoid` and `softmax` would be interesting, but left as unexplored.
-* As of writing, this repository depends on an unmerged PR of `keras-resnet`. For now, it can be installed by manually installing [this](https://github.com/delftrobotics-forks/keras-resnet/tree/expose-intermediate) branch.
+* As of writing, this repository depends on an unmerged PR of `keras-resnet`. For now, it can be installed by manually installing [this](https://github.com/delftrobotics-forks/keras-resnet/tree/bn-freeze) branch.
 
 Any and all contributions to this project are welcome.
