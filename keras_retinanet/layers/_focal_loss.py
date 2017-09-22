@@ -84,3 +84,10 @@ class FocalLoss(keras.layers.Layer):
 
 	def compute_mask(self, inputs, mask=None):
 		return [None, None]
+
+	def get_config(self):
+		return {
+			'num_classes' : self.num_classes,
+			'alpha'       : self.alpha,
+			'gamma'       : self.gamma,
+		}

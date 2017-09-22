@@ -101,3 +101,14 @@ class AnchorTarget(keras.layers.Layer):
 
 	def compute_mask(self, inputs, mask=None):
 		return [None, None, None]
+
+	def get_config(self):
+		return {
+			'stride'            : self.stride,
+			'anchor_size'       : self.anchor_size,
+			'num_anchors'       : self.num_anchors,
+			'allowed_border'    : self.allowed_border,
+			'clobber_positives' : self.clobber_positives,
+			'negative_overlap'  : self.negative_overlap,
+			'positive_overlap'  : self.positive_overlap,
+		}
