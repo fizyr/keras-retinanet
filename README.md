@@ -38,8 +38,6 @@ Execution time on NVidia Pascal Titan X is roughly 35msec for an image of shape 
 ### Todo's
 * Allow `batch_size > 1`.
 * Compare result w.r.t. paper results.
-* Disable parts of the network when in test mode.
-* Fix saving / loading of model (currently only saving / loading of weights works).
 
 ### Notes
 * This implementation currently uses the `softmax` activation to classify boxes. The paper mentions a `sigmoid` activation instead. Given the origin of parts of this code, the `softmax` activation method was easier to implement. A comparison between `sigmoid` and `softmax` would be interesting, but left as unexplored.
