@@ -1,5 +1,25 @@
 import keras
-import keras_retinanet.backend
+import keras_retinanet
+
+class TensorReshape(keras.layers.Layer):
+	""" Nearly identical to keras.layers.Reshape, but allows reshaping tensors of unknown shape.
+
+	# Arguments
+		target_shape: Target shape of the input.
+	"""
+	def __init__(self, target_shape, *args, **kwargs):
+		self.target_shape = tuple(target_shape)
+		super(TensorReshape, self).__init__(*args, **kwargs)
+
+	def call(self, inputs, **kwargs):
+		return keras.backend.reshape(inputs, (keras.backend.shape(inputs)[0],) + self.target_shape)
+
+	def get_config(self):
+		return { 'target_shape': self.target_shape }
+
+class Dimensions(keras.layers.Layer):
+	def call(self, inputs, **kwargs):
+		return keras.backend.shape(inputs)[1:3]
 
 class NonMaximumSuppression(keras.layers.Layer):
 	def __init__(self, num_classes, nms_threshold=0.4, max_boxes=300, *args, **kwargs):
@@ -38,3 +58,19 @@ class NonMaximumSuppression(keras.layers.Layer):
 	def compute_mask(self, inputs, mask=None):
 		return [None, None]
 
+	def get_config(self):
+		return {
+			'num_classes'   : self.num_classes,
+			'nms_threshold' : self.nms_threshold,
+			'max_boxes'     : self.max_boxes,
+		}
+
+class Upsampling(keras.layers.Layer):
+	def call(self, inputs, **kwargs):
+		data, size = inputs
+		return keras_retinanet.backend.resize_images(data, size)
+
+class RegressBoxes(keras.layers.Layer):
+	def call(self, inputs, **kwargs):
+		anchors, regression = inputs
+		return keras_retinanet.backend.bbox_transform_inv(anchors, regression)

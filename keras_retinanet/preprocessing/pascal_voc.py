@@ -66,6 +66,8 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		if seed is None:
 			seed = np.uint32(time.time() * 1000)
 
+		assert(batch_size == 1), "Currently only batch_size=1 is allowed."
+
 		super().__init__(len(self.image_names), batch_size, shuffle, seed)
 
 	def parse_annotations(self, filename):

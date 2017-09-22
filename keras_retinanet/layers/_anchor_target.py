@@ -20,8 +20,7 @@ class AnchorTarget(keras.layers.Layer):
 		(# of samples, ), (# of samples, 4)
 	"""
 
-	def __init__(self, features_shape, stride, anchor_size, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
-		self.features_shape = features_shape
+	def __init__(self, stride, anchor_size, num_anchors=9, allowed_border=0, clobber_positives=False, negative_overlap=0.4, positive_overlap=0.5, *args, **kwargs):
 		self.stride         = stride
 		self.anchor_size    = anchor_size
 
@@ -34,16 +33,16 @@ class AnchorTarget(keras.layers.Layer):
 		super(AnchorTarget, self).__init__(*args, **kwargs)
 
 	def call(self, inputs, **kwargs):
-		image_shape, gt_boxes = inputs
+		features_shape, image_shape, gt_boxes = inputs
 
 		# TODO: Fix usage of batch index
 		gt_boxes = gt_boxes[0]
 
-		total_anchors = self.features_shape[0] * self.features_shape[1] * self.num_anchors
+		total_anchors = features_shape[0] * features_shape[1] * self.num_anchors
 
 		# 1. Generate proposals from bbox deltas and shifted anchors
 		anchors = keras_retinanet.backend.anchor(base_size=self.anchor_size)
-		anchors = keras_retinanet.backend.shift(self.features_shape, self.stride, anchors)
+		anchors = keras_retinanet.backend.shift(features_shape, self.stride, anchors)
 
 		# label: 1 is positive, 0 is negative, -1 is dont care
 		foreground = keras_retinanet.backend.ones((total_anchors,))

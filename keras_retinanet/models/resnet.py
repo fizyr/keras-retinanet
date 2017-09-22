@@ -3,24 +3,7 @@ import keras_resnet.models
 
 import keras_retinanet.layers
 
-import math
-import numpy as np
-
 WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
-
-def prior_probability(num_classes=21, probability=0.1):
-	def f(shape, dtype=keras.backend.floatx()):
-		assert(shape[0] % num_classes == 0)
-
-		# set bias to -log((1 - p)/p) for foregound
-		result = np.ones(shape, dtype=dtype) * -math.log((1 - probability) / probability)
-
-		# set bias to -log(p/(1 - p)) for background
-		result[::num_classes] = -math.log(probability / (1 - probability))
-
-		return result
-
-	return f
 
 def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_pi=0.1):
 	options = {
@@ -50,7 +33,7 @@ def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_
 			padding='same',
 			name='pyramid_classification',
 			kernel_initializer=keras.initializers.zeros(),
-			bias_initializer=prior_probability(num_classes=num_classes, probability=prob_pi)
+			bias_initializer=keras_retinanet.initializers.PriorProbability(num_classes=num_classes, probability=prob_pi)
 		)
 	)
 
@@ -76,16 +59,14 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 
 	# upsample res5 to get P5 from the FPN paper
 	P5 = keras.layers.Conv2D(feature_size, (1, 1), strides=1, padding='same', name='P5')(res5)
-	#P5_upsampled = keras.layers.Conv2DTranspose(feature_size, kernel_size=kernel_size, strides=scale, padding='same', name='P5_upsampled')(P5)
-	#P5_upsampled = keras.layers.Lambda(lambda x: keras_retinanet.backend.resize_images(x, keras.backend.shape(res4)[1:3]), name='P5_upsampled')(P5)
-	P5_upsampled = keras_retinanet.layers.Upsampling(keras.backend.shape(res4)[1:3], name='P5_upsampled')(P5)
+	res4_shape = keras_retinanet.layers.Dimensions()(res4)
+	P5_upsampled = keras_retinanet.layers.Upsampling(name='P5_upsampled')([P5, res4_shape])
 
 	# add P5 elementwise to C4
 	P4 = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res4_reduced')(res4)
 	P4 = keras.layers.Add(name='P4')([P5_upsampled, P4])
-	#P4_upsampled = keras.layers.Conv2DTranspose(feature_size, kernel_size=kernel_size, strides=scale, padding='same', name='P4_upsampled')(P4)
-	#P4_upsampled = keras.layers.Lambda(lambda x: keras_retinanet.backend.resize_images(x, keras.backend.shape(res3)[1:3]), name='P4_upsampled')(P4)
-	P4_upsampled = keras_retinanet.layers.Upsampling(keras.backend.shape(res3)[1:3], name='P4_upsampled')(P4)
+	res3_shape = keras_retinanet.layers.Dimensions()(res3)
+	P4_upsampled = keras_retinanet.layers.Upsampling(name='P4_upsampled')([P4, res3_shape])
 
 	# add P4 elementwise to C3
 	P3 = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res3_reduced')(res3)
@@ -102,7 +83,7 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 
 def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet', nms=True, *args, **kwargs):
 	image, gt_boxes = inputs
-	image_shape = keras.layers.Lambda(lambda x: keras.backend.cast(keras.backend.shape(x)[1:3], keras.backend.floatx()))(image)
+	image_shape = keras_retinanet.layers.Dimensions()(image)
 
 	# TODO: Parametrize this
 	num_anchors = 9
@@ -130,18 +111,17 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 			cls = l(cls)
 
 		# compute labels and bbox_reg_targets
+		cls_shape = keras_retinanet.layers.Dimensions()(cls)
 		lb, r, a = keras_retinanet.layers.AnchorTarget(
-			features_shape=keras.backend.shape(cls)[1:3],
 			stride=stride,
 			anchor_size=size,
 			name='boxes_{}'.format(i)
-		)([image_shape, gt_boxes])
+		)([cls_shape, image_shape, gt_boxes])
 		anchors           = a  if anchors           == None else keras.layers.Concatenate(axis=1)([anchors, a])
 		labels            = lb if labels            == None else keras.layers.Concatenate(axis=1)([labels, lb])
 		regression_target = r  if regression_target == None else keras.layers.Concatenate(axis=1)([regression_target, r])
 
-		#cls            = keras.layers.Reshape((-1, num_classes), name='classification_{}'.format(i))(cls)
-		cls            = keras.layers.Lambda(lambda x: keras.backend.reshape(x, (keras.backend.shape(x)[0], -1, num_classes)), name='classification_{}'.format(i))(cls)
+		cls            = keras_retinanet.layers.TensorReshape((-1, num_classes), name='classification_{}'.format(i))(cls)
 		classification = cls if classification == None else keras.layers.Concatenate(axis=1)([classification, cls])
 
 		# run the regression subnet
@@ -149,8 +129,7 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights='imagenet
 		for l in regression_layers:
 			reg = l(reg)
 
-		#reg        = keras.layers.Reshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
-		reg        = keras.layers.Lambda(lambda x: keras.backend.reshape(x, (keras.backend.shape(x)[0], -1, 4)), name='boxes_reshaped_{}'.format(i))(reg)
+		reg        = keras_retinanet.layers.TensorReshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
 		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
 
 	# compute classification and regression losses
