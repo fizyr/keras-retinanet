@@ -17,6 +17,9 @@ class Anchors(keras.layers.Layer):
 
 		return anchors
 
+	def compute_output_shape(self, input_shape):
+		return (None, 4)
+
 	def get_config(self):
 		return {
 			'anchor_size': self.anchor_size,
@@ -36,12 +39,18 @@ class TensorReshape(keras.layers.Layer):
 	def call(self, inputs, **kwargs):
 		return keras.backend.reshape(inputs, (keras.backend.shape(inputs)[0],) + self.target_shape)
 
+	def compute_output_shape(self, input_shape):
+		return (input_shape[0],) + self.target_shape
+
 	def get_config(self):
 		return { 'target_shape': self.target_shape }
 
 class Dimensions(keras.layers.Layer):
 	def call(self, inputs, **kwargs):
 		return keras.backend.shape(inputs)[1:3]
+
+	def compute_output_shape(self, input_shape):
+		return (2,)
 
 class NonMaximumSuppression(keras.layers.Layer):
 	def __init__(self, num_classes, nms_threshold=0.4, max_boxes=300, *args, **kwargs):
@@ -87,12 +96,19 @@ class NonMaximumSuppression(keras.layers.Layer):
 			'max_boxes'     : self.max_boxes,
 		}
 
-class Upsampling(keras.layers.Layer):
+class UpsampleLike(keras.layers.Layer):
 	def call(self, inputs, **kwargs):
-		data, size = inputs
-		return keras_retinanet.backend.resize_images(data, size)
+		source, target = inputs
+		target_shape = keras.backend.shape(target)
+		return keras_retinanet.backend.resize_images(source, (target_shape[1], target_shape[2]))
+
+	def compute_output_shape(self, input_shape):
+		return (input_shape[0][0],) + input_shape[1][1:3] + (input_shape[0][-1],)
 
 class RegressBoxes(keras.layers.Layer):
 	def call(self, inputs, **kwargs):
 		anchors, regression = inputs
 		return keras_retinanet.backend.bbox_transform_inv(anchors, regression)
+
+	def compute_output_shape(self, input_shape):
+		return (None, 4)

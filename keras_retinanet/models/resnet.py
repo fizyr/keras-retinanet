@@ -58,15 +58,13 @@ def compute_pyramid_features(res3, res4, res5, feature_size=256):
 	kernel_size = (2 * scale - scale % 2)
 
 	# upsample res5 to get P5 from the FPN paper
-	P5 = keras.layers.Conv2D(feature_size, (1, 1), strides=1, padding='same', name='P5')(res5)
-	res4_shape = keras_retinanet.layers.Dimensions()(res4)
-	P5_upsampled = keras_retinanet.layers.Upsampling(name='P5_upsampled')([P5, res4_shape])
+	P5           = keras.layers.Conv2D(feature_size, (1, 1), strides=1, padding='same', name='P5')(res5)
+	P5_upsampled = keras_retinanet.layers.UpsampleLike(name='P5_upsampled')([P5, res4])
 
 	# add P5 elementwise to C4
-	P4 = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res4_reduced')(res4)
-	P4 = keras.layers.Add(name='P4')([P5_upsampled, P4])
-	res3_shape = keras_retinanet.layers.Dimensions()(res3)
-	P4_upsampled = keras_retinanet.layers.Upsampling(name='P4_upsampled')([P4, res3_shape])
+	P4           = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res4_reduced')(res4)
+	P4           = keras.layers.Add(name='P4')([P5_upsampled, P4])
+	P4_upsampled = keras_retinanet.layers.UpsampleLike(name='P4_upsampled')([P4, res3])
 
 	# add P4 elementwise to C3
 	P3 = keras.layers.Conv2D(feature_size, (3, 3), strides=1, padding='same', name='res3_reduced')(res3)
@@ -116,7 +114,7 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
 		# compute labels and bbox_reg_targets
 		cls_shape = keras_retinanet.layers.Dimensions()(cls)
 		a         = keras_retinanet.layers.Anchors(stride=stride, anchor_size=size, name='anchors_{}'.format(i))(cls_shape)
-		anchors   = a  if anchors == None else keras.layers.Concatenate(axis=1)([anchors, a])
+		anchors   = a if anchors == None else keras.layers.Concatenate(axis=1)([anchors, a])
 		if training:
 			lb, r  = keras_retinanet.layers.AnchorTarget(name='anchor_target_{}'.format(i))([a, image_shape, gt_boxes])
 
@@ -136,7 +134,7 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
 		regression = reg if regression == None else keras.layers.Concatenate(axis=1)([regression, reg])
 
 	# compute classification and regression losses
-	classification     = keras.layers.Activation('softmax', name='classification_softmax')(classification)
+	classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
 	if training:
 		cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
 
@@ -163,7 +161,7 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
 
 	return model
 
-def ResNet50RetinaNet(inputs, training=False, *args, **kwargs):
+def ResNet50RetinaNet(inputs, training=True, *args, **kwargs):
 	if training:
 		image, _ = inputs
 	else:
