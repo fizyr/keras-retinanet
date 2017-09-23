@@ -4,7 +4,7 @@ import keras.applications.imagenet_utils
 import keras.preprocessing.image
 import keras.backend
 
-from .image import random_transform_batch
+from .image import random_transform_batch, resize_image
 
 import cv2
 import xml.etree.ElementTree as ET
@@ -54,8 +54,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		batch_size=1,
 		shuffle=True,
 		seed=None,
-		img_min_side=600,
-		img_max_side=1024
 	):
 		self.data_dir             = data_dir
 		self.set_name             = set_name
@@ -65,8 +63,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		self.image_extension      = image_extension
 		self.skip_truncated       = skip_truncated
 		self.skip_difficult       = skip_difficult
-		self.img_min_side         = img_min_side
-		self.img_max_side         = img_max_side
 
 		if seed is None:
 			seed = np.uint32(time.time() * 1000)
@@ -74,25 +70,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		assert(batch_size == 1), "Currently only batch_size=1 is allowed."
 
 		super(PascalVocIterator, self).__init__(len(self.image_names), batch_size, shuffle, seed)
-
-	def resize_img(self, img):
-		(rows, cols, _) = img.shape
-
-		smallest_side = min(rows, cols)
-
-		# rescale the image so the smallest side is img_min_side
-		scale = self.img_min_side / smallest_side
-
-		# check if the largest side is now greater than img_max_side, wich can happen
-		# when images have a large aspect ratio
-		largest_side = max(rows, cols)
-		if largest_side * scale > self.img_max_side:
-			scale = self.img_max_side / largest_side
-
-		# resize the image with the computed scale
-		img = cv2.resize(img, None, fx=scale, fy=scale)
-
-		return img, scale
 
 	def parse_annotations(self, filename):
 		boxes = np.zeros((0, 5), dtype=keras.backend.floatx())
@@ -140,7 +117,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		for batch_index, image_index in enumerate(selection):
 			path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
 			image = cv2.imread(path, cv2.IMREAD_COLOR)
-			image, image_scale = self.resize_img(image)
+			image, image_scale = resize_image(image)
 
 			# copy image to image batch (currently only batch_size==1 is allowed)
 			image_batch = np.expand_dims(image, axis=0).astype(keras.backend.floatx())
