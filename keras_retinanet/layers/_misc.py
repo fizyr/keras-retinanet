@@ -1,6 +1,8 @@
 import keras
 import keras_retinanet
 
+import numpy as np
+
 class Anchors(keras.layers.Layer):
 	def __init__(self, anchor_size, stride, *args, **kwargs):
 		self.anchor_size = anchor_size
@@ -8,7 +10,8 @@ class Anchors(keras.layers.Layer):
 		super(Anchors, self).__init__(*args, **kwargs)
 
 	def call(self, inputs, **kwargs):
-		features_shape = inputs
+		features = inputs
+		features_shape = keras.backend.shape(features)[1:3]
 
 		# generate proposals from bbox deltas and shifted anchors
 		anchors = keras_retinanet.backend.anchor(base_size=self.anchor_size)
@@ -18,7 +21,11 @@ class Anchors(keras.layers.Layer):
 		return anchors
 
 	def compute_output_shape(self, input_shape):
-		return (None, 4)
+		if None not in input_shape[1:]:
+			total = np.prod(input_shape[1:]) // 4
+			return (input_shape[0], total, 4)
+		else:
+			return (input_shape[0], None, 4)
 
 	def get_config(self):
 		return {
@@ -39,8 +46,54 @@ class TensorReshape(keras.layers.Layer):
 	def call(self, inputs, **kwargs):
 		return keras.backend.reshape(inputs, (keras.backend.shape(inputs)[0],) + self.target_shape)
 
+	def _fix_unknown_dimension(self, input_shape, output_shape):
+		"""Finds and replaces a missing dimension in an output shape.
+
+		This is a near direct port of the internal Numpy function
+		`_fix_unknown_dimension` in `numpy/core/src/multiarray/shape.c`
+
+		# Arguments
+			input_shape: original shape of array being reshaped
+			output_shape: target shape of the array, with at most
+				a single -1 which indicates a dimension that should be
+				derived from the input shape.
+
+		# Returns
+			The new output shape with a `-1` replaced with its computed value.
+
+		# Raises
+			ValueError: if `input_shape` and `output_shape` do not match.
+		"""
+		output_shape = list(output_shape)
+		msg = 'total size of new array must be unchanged'
+
+		known, unknown = 1, None
+		for index, dim in enumerate(output_shape):
+			if dim < 0:
+				if unknown is None:
+					unknown = index
+				else:
+					raise ValueError('Can only specify one unknown dimension.')
+			else:
+				known *= dim
+
+		original = np.prod(input_shape, dtype=int)
+		if unknown is not None:
+			if known == 0 or original % known != 0:
+				raise ValueError(msg)
+			output_shape[unknown] = original // known
+		elif original != known:
+			raise ValueError(msg)
+
+		return tuple(output_shape)
+
 	def compute_output_shape(self, input_shape):
-		return (input_shape[0],) + self.target_shape
+		if None not in input_shape[1:]:
+			# compute target shape when possible
+			return (input_shape[0],) + self._fix_unknown_dimension(
+					input_shape[1:], self.target_shape)
+		else:
+			return (input_shape[0],) + tuple(s if s != -1 else None for s in self.target_shape)
 
 	def get_config(self):
 		return { 'target_shape': self.target_shape }
@@ -50,7 +103,7 @@ class Dimensions(keras.layers.Layer):
 		return keras.backend.shape(inputs)[1:3]
 
 	def compute_output_shape(self, input_shape):
-		return (2,)
+		return (input_shape[0], 2,)
 
 class NonMaximumSuppression(keras.layers.Layer):
 	def __init__(self, num_classes, nms_threshold=0.4, max_boxes=300, *args, **kwargs):
@@ -84,7 +137,7 @@ class NonMaximumSuppression(keras.layers.Layer):
 		return [boxes, classification]
 
 	def compute_output_shape(self, input_shape):
-		return [(None, 4), (None, self.num_classes)]
+		return [(input_shape[0][0], None, 4), (input_shape[1][0], None, self.num_classes)]
 
 	def compute_mask(self, inputs, mask=None):
 		return [None, None]
@@ -111,4 +164,4 @@ class RegressBoxes(keras.layers.Layer):
 		return keras_retinanet.backend.bbox_transform_inv(anchors, regression)
 
 	def compute_output_shape(self, input_shape):
-		return (None, 4)
+		return input_shape[0]

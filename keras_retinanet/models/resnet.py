@@ -112,9 +112,8 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
 			cls = l(cls)
 
 		# compute labels and bbox_reg_targets
-		cls_shape = keras_retinanet.layers.Dimensions()(cls)
-		a         = keras_retinanet.layers.Anchors(stride=stride, anchor_size=size, name='anchors_{}'.format(i))(cls_shape)
-		anchors   = a if anchors == None else keras.layers.Concatenate(axis=1)([anchors, a])
+		a       = keras_retinanet.layers.Anchors(stride=stride, anchor_size=size, name='anchors_{}'.format(i))(cls)
+		anchors = a if anchors == None else keras.layers.Concatenate(axis=1)([anchors, a])
 		if training:
 			lb, r  = keras_retinanet.layers.AnchorTarget(name='anchor_target_{}'.format(i))([a, image_shape, gt_boxes])
 

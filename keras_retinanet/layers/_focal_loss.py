@@ -82,6 +82,9 @@ class FocalLoss(keras.layers.Layer):
 
 		return [cls_loss, reg_loss]
 
+	def compute_output_shape(self, input_shape):
+		return [(1,), (1,)]
+
 	def compute_mask(self, inputs, mask=None):
 		return [None, None]
 
