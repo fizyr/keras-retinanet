@@ -51,6 +51,8 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		image_extension='.jpg',
 		skip_truncated=False,
 		skip_difficult=False,
+		image_min_side=600,
+		image_max_side=1024,
 		batch_size=1,
 		shuffle=True,
 		seed=None,
@@ -63,6 +65,8 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		self.image_extension      = image_extension
 		self.skip_truncated       = skip_truncated
 		self.skip_difficult       = skip_difficult
+		self.image_min_side       = image_min_side
+		self.image_max_side       = image_max_side
 
 		if seed is None:
 			seed = np.uint32(time.time() * 1000)
@@ -117,7 +121,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		for batch_index, image_index in enumerate(selection):
 			path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
 			image = cv2.imread(path, cv2.IMREAD_COLOR)
-			image, image_scale = resize_image(image)
+			image, image_scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
 			# copy image to image batch (currently only batch_size==1 is allowed)
 			image_batch = np.expand_dims(image, axis=0).astype(keras.backend.floatx())
