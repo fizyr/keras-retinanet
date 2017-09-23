@@ -1,8 +1,10 @@
+from __future__ import division
+
 import keras.applications.imagenet_utils
 import keras.preprocessing.image
 import keras.backend
 
-from .image import random_transform_batch
+from .image import random_transform_batch, resize_image
 
 import cv2
 import xml.etree.ElementTree as ET
@@ -58,7 +60,6 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 		self.classes              = classes
 		self.image_names          = [l.strip() for l in open(os.path.join(data_dir, 'ImageSets', 'Main', set_name + '.txt')).readlines()]
 		self.image_data_generator = image_data_generator
-		self.image_scale          = 1.0
 		self.image_extension      = image_extension
 		self.skip_truncated       = skip_truncated
 		self.skip_difficult       = skip_difficult
@@ -115,7 +116,8 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 
 		for batch_index, image_index in enumerate(selection):
 			path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
-			image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+			image = cv2.imread(path, cv2.IMREAD_COLOR)
+			image, image_scale = resize_image(image)
 
 			# copy image to image batch (currently only batch_size==1 is allowed)
 			image_batch = np.expand_dims(image, axis=0).astype(keras.backend.floatx())
@@ -125,7 +127,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 			boxes_batch = np.append(boxes_batch, boxes, axis=1)
 
 			# scale the ground truth boxes to the selected image scale
-			boxes_batch[batch_index, :, :4] *= self.image_scale
+			boxes_batch[batch_index, :, :4] *= image_scale
 
 		# randomly transform images and boxes simultaneously
 		image_batch, boxes_batch = random_transform_batch(image_batch, boxes_batch, self.image_data_generator)
