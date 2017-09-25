@@ -142,8 +142,3 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
         image_batch = self.image_data_generator.standardize(image_batch)
 
         return [image_batch, boxes_batch], None
-
-
-class ObjectDetectionGenerator:
-    def flow(self, data, classes):
-        return PascalVocIterator(data, classes, keras.preprocessing.image.ImageDataGenerator())

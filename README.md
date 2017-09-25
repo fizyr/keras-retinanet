@@ -2,12 +2,17 @@
 Keras implementation of RetinaNet object detection as described in [this paper](https://arxiv.org/abs/1708.02002) by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
 ## Training
-An example on how to train `keras-retinanet` can be found [here](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/train.py).
+An example on how to train `keras-retinanet` can be found [here](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/train_coco.py).
 
 ### Usage
 For training on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/), run:
 ```
-python examples/train.py <path to VOCdevkit/VOC2007>
+python examples/train_pascal.py <path to VOCdevkit/VOC2007>
+```
+
+For training on [MS COCO](http://cocodataset.org/#home), run:
+```
+python examples/train_coco.py <path to MS COCO>
 ```
 
 In general, the steps to train on your own datasets are:
@@ -15,7 +20,7 @@ In general, the steps to train on your own datasets are:
 ```
 model.compile(loss=None, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 ```
-2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a boxes batch (shaped `(batch_id, num_boxes, 5)`, where the last dimension is for `(x1, y1, x2, y2, label)`). Currently, a limitation is that `batch_size` must be equal to `1` and the image shape must be defined beforehand (ie. it does _not_ accept input images of shape `(None, None, 3)`).
+2) Create generators for training and testingdata (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a boxes batch (shaped `(batch_id, num_boxes, 5)`, where the last dimension is for `(x1, y1, x2, y2, label)`). Currently, a limitation is that `batch_size` must be equal to `1`.
 3) Use `model.fit_generator` to start training.
 
 ## Testing
@@ -26,7 +31,7 @@ boxes, classification, reg_loss, cls_loss = model.predict_on_batch(inputs)
 
 Where `boxes` are the resulting bounding boxes, shaped `(None, 4)` (for `(x1, y1, x2, y2)`). `classification` is the corresponding class scores for each box (shaped `(None, num_classes)`). `reg_loss` is the regression loss value and `cls_loss` is the classification loss value.
 
-Execution time on NVidia Pascal Titan X is roughly 35msec for an image of shape `512x512x3`.
+Execution time on NVidia Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
 
 ## Status
 * The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) data. An example output image is shown below.
