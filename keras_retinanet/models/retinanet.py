@@ -18,7 +18,7 @@ def classification_subnet(num_classes=91, num_anchors=9, feature_size=256, prob_
                 name='cls_{}'.format(i),
                 kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.01, seed=None),
                 bias_initializer='zeros',
-                **options,
+                **options
             )
         )
 
@@ -28,7 +28,7 @@ def classification_subnet(num_classes=91, num_anchors=9, feature_size=256, prob_
             kernel_initializer=keras.initializers.zeros(),
             bias_initializer=keras_retinanet.initializers.PriorProbability(num_classes=num_classes, probability=prob_pi),
             name='pyramid_classification',
-            **options,
+            **options
         )
     )
 
