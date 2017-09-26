@@ -22,8 +22,7 @@ keras.backend.tensorflow_backend.set_session(get_session())
 
 def create_model():
     image = keras.layers.Input((None, None, 3))
-    gt_boxes = keras.layers.Input((None, 5))
-    return ResNet50RetinaNet([image, gt_boxes], num_classes=91, weights='imagenet')
+    return ResNet50RetinaNet(image, num_classes=91, weights='snapshots/resnet50_coco_best.h5')
 
 
 def parse_args():
@@ -41,7 +40,7 @@ if __name__ == '__main__':
     model = create_model()
 
     # compile model (note: set loss to None since loss is added inside layer)
-    model.compile(loss=None, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
+    model.compile(loss={'predictions': keras_retinanet.losses.focal_loss()}, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 
     # print model summary
     print(model.summary())

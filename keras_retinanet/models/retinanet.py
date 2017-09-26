@@ -2,7 +2,7 @@ import keras
 import keras_retinanet
 
 
-def classification_subnet(num_classes=21, num_anchors=9, feature_size=256, prob_pi=0.1):
+def classification_subnet(num_classes=91, num_anchors=9, feature_size=256, prob_pi=0.1):
     options = {
         'kernel_size' : 3,
         'strides'     : 1,
@@ -79,12 +79,8 @@ def compute_pyramid_features(C3, C4, C5, feature_size=256):
     return P3, P4, P5, P6, P7
 
 
-def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, weights_path=None, nms=True, *args, **kwargs):
-    if training:
-        image, gt_boxes = inputs
-    else:
-        image = inputs
-    image_shape = keras_retinanet.layers.Dimensions()(image)
+def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights_path=None, nms=True, *args, **kwargs):
+    image = inputs
 
     # TODO: Parametrize this
     num_anchors = 9
@@ -100,11 +96,9 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
     regression_layers     = regression_subnet(num_anchors=num_anchors, feature_size=feature_size)
 
     # for all pyramid levels, run classification and regression branch and compute anchors
-    classification    = None
-    labels            = None
-    regression        = None
-    regression_target = None
-    anchors           = None
+    classification = None
+    regression     = None
+    anchors        = None
     for i, (p, stride, size) in enumerate(zip(pyramid_features, strides, sizes)):
         # run the classification subnet
         cls = p
@@ -114,11 +108,6 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
         # compute labels and bbox_reg_targets
         a       = keras_retinanet.layers.Anchors(stride=stride, anchor_size=size, name='anchors_{}'.format(i))(cls)
         anchors = a if anchors is None else keras.layers.Concatenate(axis=1)([anchors, a])
-        if training:
-            lb, r  = keras_retinanet.layers.AnchorTarget(name='anchor_target_{}'.format(i))([a, image_shape, gt_boxes])
-
-            labels            = lb if labels is None else keras.layers.Concatenate(axis=1)([labels, lb])
-            regression_target = r if regression_target is None else keras.layers.Concatenate(axis=1)([regression_target, r])
 
         # concatenate classification scores
         cls            = keras_retinanet.layers.TensorReshape((-1, num_classes), name='classification_{}'.format(i))(cls)
@@ -134,19 +123,19 @@ def RetinaNet(inputs, backbone, num_classes, training=True, feature_size=256, we
 
     # compute classification and regression losses
     classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
-    if training:
-        cls_loss, reg_loss = keras_retinanet.layers.FocalLoss(num_classes=num_classes, name='focal_loss')([classification, labels, regression, regression_target])
 
-    # compute resulting boxes
-    boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
+    # concatenate regression and classification
+    outputs = keras.layers.Concatenate(axis=2, name='predictions')([regression, classification])
+
+    # apply non maximum suppression?
     if nms:
+        boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
         boxes, classification = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification])
+        detections = keras.layers.Concatenate(axis=2, name='detections')([boxes, classification])
+        outputs = [outputs, detections]
 
     # construct the model
-    if training:
-        model = keras.models.Model(inputs=inputs, outputs=[boxes, classification, reg_loss, cls_loss], *args, **kwargs)
-    else:
-        model = keras.models.Model(inputs=inputs, outputs=[boxes, classification], *args, **kwargs)
+    model = keras.models.Model(inputs=inputs, outputs=outputs, *args, **kwargs)
 
     # if set, load pretrained weights
     if weights_path:

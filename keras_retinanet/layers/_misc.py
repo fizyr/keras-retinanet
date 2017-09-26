@@ -15,7 +15,7 @@ class Anchors(keras.layers.Layer):
         features_shape = keras.backend.shape(features)[1:3]
 
         # generate proposals from bbox deltas and shifted anchors
-        anchors = keras_retinanet.backend.anchor(base_size=self.anchor_size)
+        anchors = keras_retinanet.backend.anchors(base_size=self.anchor_size)
         anchors = keras_retinanet.backend.shift(features_shape, self.stride, anchors)
         anchors = keras.backend.expand_dims(anchors, axis=0)
 
@@ -98,14 +98,6 @@ class TensorReshape(keras.layers.Layer):
 
     def get_config(self):
         return {'target_shape': self.target_shape}
-
-
-class Dimensions(keras.layers.Layer):
-    def call(self, inputs, **kwargs):
-        return keras.backend.shape(inputs)[1:3]
-
-    def compute_output_shape(self, input_shape):
-        return (input_shape[0], 2,)
 
 
 class NonMaximumSuppression(keras.layers.Layer):
