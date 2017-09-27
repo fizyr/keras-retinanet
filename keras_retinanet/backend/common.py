@@ -36,8 +36,8 @@ def shift(shape, stride, anchors):
     """
     Produce shifted anchors based on shape of the map and stride size
     """
-    shift_x = keras.backend.arange(0, shape[1]) * stride
-    shift_y = keras.backend.arange(0, shape[0]) * stride
+    shift_x = (keras.backend.arange(0, shape[1], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
+    shift_y = (keras.backend.arange(0, shape[0], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
 
     shift_x, shift_y = keras_retinanet.backend.meshgrid(shift_x, shift_y)
     shift_x = keras.backend.reshape(shift_x, [-1])
@@ -61,34 +61,7 @@ def shift(shape, stride, anchors):
     return shifted_anchors
 
 
-def overlap(a, b):
-    """
-    Parameters
-    ----------
-    a: (N, 4) ndarray of float
-    b: (K, 4) ndarray of float
-    Returns
-    -------
-    overlaps: (N, K) ndarray of overlap between boxes and query_boxes
-    """
-    area = (b[:, 2] - b[:, 0] + 1) * (b[:, 3] - b[:, 1] + 1)
-
-    iw = keras.backend.minimum(keras.backend.expand_dims(a[:, 2], 1), b[:, 2]) - keras.backend.maximum(keras.backend.expand_dims(a[:, 0], 1), b[:, 0]) + 1
-    ih = keras.backend.minimum(keras.backend.expand_dims(a[:, 3], 1), b[:, 3]) - keras.backend.maximum(keras.backend.expand_dims(a[:, 1], 1), b[:, 1]) + 1
-
-    iw = keras.backend.maximum(iw, 0)
-    ih = keras.backend.maximum(ih, 0)
-
-    ua = keras.backend.expand_dims((a[:, 2] - a[:, 0] + 1) * (a[:, 3] - a[:, 1] + 1), 1) + area - iw * ih
-
-    ua = keras.backend.maximum(ua, 0.0001)
-
-    intersection = iw * ih
-
-    return intersection / ua
-
-
-def anchor(base_size=16, ratios=None, scales=None):
+def anchors(base_size=16, ratios=None, scales=None):
     """
     Generates a regular grid of multi-aspect and multi-scale anchor boxes.
     """
@@ -97,6 +70,7 @@ def anchor(base_size=16, ratios=None, scales=None):
 
     if scales is None:
         scales = keras.backend.cast([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx())
+
     base_anchor = keras.backend.cast([1, 1, base_size, base_size], keras.backend.floatx()) - 1
     base_anchor = keras.backend.expand_dims(base_anchor, 0)
 
