@@ -16,7 +16,7 @@ def get_session():
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
-#os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 keras.backend.tensorflow_backend.set_session(get_session())
 
 
