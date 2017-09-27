@@ -34,7 +34,7 @@ def anchors_for_image(image, pyramid_levels=5, anchor_ratios=None, anchor_scales
     sizes   = [2 ** x for x in range(5, 5 + pyramid_levels)]
     shape   = np.array(image.shape[:2])
     for i in range(2):
-        shape = (shape + 1) // 2 # skip the first two levels
+        shape = (shape + 1) // 2  # skip the first two levels
 
     all_anchors = np.zeros((0, 4))
     for i in range(pyramid_levels):
@@ -47,8 +47,8 @@ def anchors_for_image(image, pyramid_levels=5, anchor_ratios=None, anchor_scales
 
 
 def shift(shape, stride, anchors):
-    shift_x = np.arange(0, shape[1]) * stride
-    shift_y = np.arange(0, shape[0]) * stride
+    shift_x = (np.arange(0, shape[1]) + 0.5) * stride
+    shift_y = (np.arange(0, shape[0]) + 0.5) * stride
 
     shift_x, shift_y = np.meshgrid(shift_x, shift_y)
 
@@ -84,7 +84,7 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     base_anchor   = np.array([1, 1, base_size, base_size]) - 1
     ratio_anchors = _ratio_enum(base_anchor, ratios)
     anchors       = np.vstack([_scale_enum(ratio_anchors[i, :], scales)
-        for i in range(ratio_anchors.shape[0])])
+                              for i in range(ratio_anchors.shape[0])])
 
     return anchors
 
