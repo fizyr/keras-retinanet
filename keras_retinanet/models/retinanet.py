@@ -79,7 +79,19 @@ def compute_pyramid_features(C3, C4, C5, feature_size=256):
     return P3, P4, P5, P6, P7
 
 
-def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights_path=None, nms=True, *args, **kwargs):
+def RetinaNet(
+    inputs,
+    backbone,
+    num_classes,
+    feature_size=256,
+    weights_path=None,
+    nms=True,
+    anchor_sizes=None,
+    anchor_strides=None,
+    anchor_ratios=None,
+    anchor_scales=None,
+    *args, **kwargs
+):
     image = inputs
 
     # TODO: Parametrize this
@@ -88,8 +100,10 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights_path=None
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
     pyramid_features = compute_pyramid_features(C3, C4, C5)
-    strides          = [8,  16,  32,  64, 128]
-    sizes            = [32, 64, 128, 256, 512]
+    if anchor_strides is None:
+        anchor_strides = [8,  16,  32,  64, 128]
+    if anchor_sizes is None:
+        anchor_sizes = [32, 64, 128, 256, 512]
 
     # construct classification and regression subnets
     classification_layers = classification_subnet(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
@@ -99,7 +113,7 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights_path=None
     classification = None
     regression     = None
     anchors        = None
-    for i, (p, stride, size) in enumerate(zip(pyramid_features, strides, sizes)):
+    for i, (p, stride, size) in enumerate(zip(pyramid_features, anchor_strides, anchor_sizes)):
         # run the classification subnet
         cls = p
         for l in classification_layers:
@@ -107,7 +121,7 @@ def RetinaNet(inputs, backbone, num_classes, feature_size=256, weights_path=None
 
         # compute labels and bbox_reg_targets
         if nms:
-            a       = keras_retinanet.layers.Anchors(stride=stride, anchor_size=size, name='anchors_{}'.format(i))(cls)
+            a       = keras_retinanet.layers.Anchors(anchor_size=size, anchor_stride=stride, anchor_ratios=anchor_ratios, anchor_scales=anchor_scales, name='anchors_{}'.format(i))(cls)
             anchors = a if anchors is None else keras.layers.Concatenate(axis=1)([anchors, a])
 
         # concatenate classification scores

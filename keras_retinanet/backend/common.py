@@ -1,6 +1,8 @@
 import keras.backend
 import keras_retinanet.backend
 
+import numpy as np
+
 
 def bbox_transform_inv(boxes, deltas):
     boxes  = keras.backend.reshape(boxes, (-1, 4))
@@ -66,10 +68,10 @@ def anchors(base_size=16, ratios=None, scales=None):
     Generates a regular grid of multi-aspect and multi-scale anchor boxes.
     """
     if ratios is None:
-        ratios = keras.backend.cast([0.5, 1, 2], keras.backend.floatx())
+        ratios = np.array([0.5, 1, 2], keras.backend.floatx())
 
     if scales is None:
-        scales = keras.backend.cast([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx())
+        scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx())
 
     base_anchor = keras.backend.cast([1, 1, base_size, base_size], keras.backend.floatx()) - 1
     base_anchor = keras.backend.expand_dims(base_anchor, 0)

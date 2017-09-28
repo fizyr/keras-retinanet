@@ -1,9 +1,9 @@
 import numpy as np
 
 
-def anchor_targets(image, gt_boxes, negative_overlap=0.4, positive_overlap=0.5):
+def anchor_targets(image, gt_boxes, negative_overlap=0.4, positive_overlap=0.5, **kwargs):
     # first create the anchors for this image
-    anchors = anchors_for_image(image)
+    anchors = anchors_for_image(image, **kwargs)
 
     # label: 1 is positive, 0 is negative, -1 is dont care
     labels = np.ones((anchors.shape[0],)) * -1
@@ -29,18 +29,21 @@ def anchor_targets(image, gt_boxes, negative_overlap=0.4, positive_overlap=0.5):
     return labels, bbox_reg_targets
 
 
-def anchors_for_image(image, pyramid_levels=5, anchor_ratios=None, anchor_scales=None):
-    strides = [2 ** x for x in range(3, 3 + pyramid_levels)]
-    sizes   = [2 ** x for x in range(5, 5 + pyramid_levels)]
-    shape   = np.array(image.shape[:2])
-    for i in range(2):
+def anchors_for_image(image, pyramid_levels=[3, 4, 5, 6, 7], anchor_ratios=None, anchor_scales=None, anchor_strides=None, anchor_sizes=None):
+    if anchor_strides is None:
+        anchor_strides = [2 ** x for x in pyramid_levels]
+    if anchor_sizes is None:
+        anchor_sizes = [2 ** (x + 2) for x in pyramid_levels]
+
+    shape = np.array(image.shape[:2])
+    for i in range(pyramid_levels[0] - 1):
         shape = (shape + 1) // 2  # skip the first two levels
 
     all_anchors = np.zeros((0, 4))
-    for i in range(pyramid_levels):
+    for idx, p in enumerate(pyramid_levels):
         shape           = (shape + 1) // 2
-        anchors         = generate_anchors(base_size=sizes[i], ratios=anchor_ratios, scales=anchor_scales)
-        shifted_anchors = shift(shape, strides[i], anchors)
+        anchors         = generate_anchors(base_size=anchor_sizes[idx], ratios=anchor_ratios, scales=anchor_scales)
+        shifted_anchors = shift(shape, anchor_strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
     return all_anchors
