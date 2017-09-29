@@ -4,7 +4,7 @@ import keras_retinanet
 import numpy as np
 
 
-def classification_subnet(num_classes=91, num_anchors=9, feature_size=256, prob_pi=0.1):
+def classification_subnet(num_classes, num_anchors, feature_size=256, prob_pi=0.1):
     options = {
         'kernel_size' : 3,
         'strides'     : 1,
@@ -37,7 +37,18 @@ def classification_subnet(num_classes=91, num_anchors=9, feature_size=256, prob_
     return layers
 
 
-def regression_subnet(num_anchors=9, feature_size=256):
+def run_classification_subnet(num_classes, features, classification_layers, identifier):
+    # run the classification subnet
+    cls = features
+    for l in classification_layers:
+        cls = l(cls)
+
+    # reshape output and apply softmax
+    cls = keras_retinanet.layers.TensorReshape((-1, num_classes), name='classification_{}'.format(identifier))(cls)
+    return keras.layers.Activation('softmax', name='classification_softmax_{}'.format(identifier))(cls)
+
+
+def regression_subnet(num_classes, num_anchors, feature_size=256):
     # All new conv layers except the final one in the
     # RetinaNet (classification) subnets are initialized
     # with bias b = 0 and a Gaussian weight fill with stddev = 0.01.
@@ -55,6 +66,16 @@ def regression_subnet(num_anchors=9, feature_size=256):
     layers.append(keras.layers.Conv2D(num_anchors * 4, name='pyramid_regression', **options))
 
     return layers
+
+
+def run_regression_subnet(features, regression_layers, identifier):
+    # run the regression subnet
+    reg = features
+    for l in regression_layers:
+        reg = l(reg)
+
+    # reshape output
+    return keras_retinanet.layers.TensorReshape((-1, 4), name='boxes_reshaped_{}'.format(identifier))(reg)
 
 
 def pyramid_features(C3, C4, C5, feature_size=256):
@@ -85,15 +106,25 @@ def RetinaNet(
     inputs,
     backbone,
     num_classes,
-    feature_size=256,
-    weights_path=None,
-    nms=True,
-    anchor_sizes=None,
-    anchor_strides=None,
-    anchor_ratios=None,
-    anchor_scales=None,
+    feature_size                   = 256,
+    weights_path                   = None,
+    nms                            = True,
+    anchor_sizes                   = None,
+    anchor_strides                 = None,
+    anchor_ratios                  = None,
+    anchor_scales                  = None,
+    pyramid_features_func          = pyramid_features,
+    classification_subnet_func     = classification_subnet,
+    regression_subnet_func         = regression_subnet,
+    miscellaneous_subnet_func      = None,
+    run_classification_subnet_func = run_classification_subnet,
+    run_regression_subnet_func     = run_regression_subnet,
+    run_miscellaneous_subnet_func  = None,
     *args, **kwargs
 ):
+    assert((miscellaneous_subnet_func is None and run_miscellaneous_subnet_func is None) or
+            (miscellaneous_subnet_func and run_miscellaneous_subnet_func))
+
     image = inputs
 
     if anchor_ratios is None:
@@ -105,57 +136,60 @@ def RetinaNet(
     _, C3, C4, C5 = backbone.outputs  # we ignore C2
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
-    features = pyramid_features(C3, C4, C5)
+    features = pyramid_features_func(C3, C4, C5)
     if anchor_strides is None:
         anchor_strides = [8,  16,  32,  64, 128]
     if anchor_sizes is None:
         anchor_sizes = [32, 64, 128, 256, 512]
 
     # construct classification and regression subnets
-    classification_layers = classification_subnet(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
-    regression_layers     = regression_subnet(num_anchors=num_anchors, feature_size=feature_size)
+    classification_layers = classification_subnet_func(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
+    regression_layers     = regression_subnet_func(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
+
+    # construct other miscellaneous layers if possible
+    if miscellaneous_subnet_func:
+        miscellaneous_layers = miscellaneous_subnet_func(num_classes=num_classes, num_anchors=num_anchors, feature_size=feature_size)
+    else:
+        miscellaneous_layers = None
 
     # for all pyramid levels, run classification and regression branch and compute anchors
     classification = None
     regression     = None
     anchors        = None
-    for i, (f, stride, size) in enumerate(zip(features, anchor_strides, anchor_sizes)):
-        # run the classification subnet
-        cls = f
-        for l in classification_layers:
-            cls = l(cls)
+    miscellaneous  = None
+    for i, f in enumerate(features):
+        # run classification subnet
+        _classification = run_classification_subnet_func(num_classes, f, classification_layers, i)
+        classification  = _classification if classification is None else keras.layers.Concatenate(axis=1)([classification, _classification])
 
-        # compute labels and bbox_reg_targets
-        a       = keras_retinanet.layers.Anchors(anchor_size=size, anchor_stride=stride, anchor_ratios=anchor_ratios, anchor_scales=anchor_scales, name='anchors_{}'.format(i))(cls)
-        anchors = a if anchors is None else keras.layers.Concatenate(axis=1)([anchors, a])
+        # run regression subnet
+        _regression = run_regression_subnet_func(f, regression_layers, i)
+        regression  = _regression if regression is None else keras.layers.Concatenate(axis=1)([regression, _regression])
 
-        # concatenate classification scores
-        cls            = keras_retinanet.layers.TensorReshape((-1, num_classes), name='classification_{}'.format(i))(cls)
-        classification = cls if classification is None else keras.layers.Concatenate(axis=1)([classification, cls])
+        # compute anchors
+        _anchors = keras_retinanet.layers.Anchors(anchor_size=anchor_sizes[i], anchor_stride=anchor_strides[i], anchor_ratios=anchor_ratios, anchor_scales=anchor_scales, name='anchors_{}'.format(i))(f)
+        anchors  = _anchors if anchors is None else keras.layers.Concatenate(axis=1)([anchors, _anchors])
 
-        # run the regression subnet
-        reg = f
-        for l in regression_layers:
-            reg = l(reg)
+        # compute miscellaneous data
+        if miscellaneous_layers:
+            _miscellaneous = run_miscellaneous_subnet_func(f, miscellaneous_layers, i)
+            miscellaneous  = _miscellaneous if miscellaneous is None else keras.layers.Concatenate(axis=1)([miscellaneous, _miscellaneous])
 
-        reg        = keras_retinanet.layers.TensorReshape((-1, 4), name='boxes_reshaped_{}'.format(i))(reg)
-        regression = reg if regression is None else keras.layers.Concatenate(axis=1)([regression, reg])
-
-    # compute classification and regression losses
-    classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
-
-    # concatenate regression and classification
-    predictions = keras.layers.Concatenate(axis=2, name='predictions')([regression, classification])
+    # concatenate regression, classification and miscellaneous if it exists
+    predictions = keras.layers.Concatenate(axis=2, name='predictions')([regression, classification, miscellaneous] if miscellaneous else [regression, classification])
 
     # apply predicted regression to anchors
     boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
 
-    # apply non maximum suppression?
+    # additionally apply non maximum suppression
     if nms:
-        boxes, classification = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification])
+        if miscellaneous:
+            boxes, classification, miscellaneous = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification, miscellaneous])
+        else:
+            boxes, classification = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification])
 
-    # concatenate the classification scores to the boxes
-    detections = keras.layers.Concatenate(axis=2, name='detections')([boxes, classification])
+    # concatenate the classification and miscellaneous to the boxes
+    detections = keras.layers.Concatenate(axis=2, name='detections')([boxes, classification, miscellaneous] if miscellaneous else [boxes, classification])
 
     # construct the model
     model = keras.models.Model(inputs=inputs, outputs=[predictions, detections], *args, **kwargs)

@@ -113,34 +113,50 @@ class NonMaximumSuppression(keras.layers.Layer):
         super(NonMaximumSuppression, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
-        boxes, classification = inputs
+        if len(inputs) == 2:
+            boxes, classification = inputs
+            miscellaneous = None
+        else:
+            boxes, classification, miscellaneous = inputs
 
         boxes          = keras.backend.reshape(boxes, (-1, 4))
         classification = keras.backend.reshape(classification, (-1, self.num_classes))
+        if miscellaneous:
+            miscellaneous = keras.backend.reshape(miscellaneous, (keras.backend.shape(boxes)[0], -1))
 
-        scores = keras.backend.max(classification, axis=1)
-        labels = keras.backend.argmax(classification, axis=1)
+        scores  = keras.backend.max(classification, axis=1)
+        labels  = keras.backend.argmax(classification, axis=1)
         indices = keras_retinanet.backend.where(keras.backend.greater(labels, 0))
 
         boxes          = keras_retinanet.backend.gather_nd(boxes, indices)
         scores         = keras_retinanet.backend.gather_nd(scores, indices)
         classification = keras_retinanet.backend.gather_nd(classification, indices)
+        if miscellaneous:
+            miscellaneous = keras_retinanet.backend.gather_nd(miscellaneous, indices)
 
         nms_indices = keras_retinanet.backend.non_max_suppression(boxes, scores, max_output_size=self.max_boxes, iou_threshold=self.nms_threshold)
 
         boxes          = keras.backend.gather(boxes, nms_indices)
         classification = keras.backend.gather(classification, nms_indices)
+        if miscellaneous:
+            miscellaneous = keras.backend.gather(miscellaneous, nms_indices)
 
         boxes          = keras.backend.expand_dims(boxes, axis=0)
         classification = keras.backend.expand_dims(classification, axis=0)
+        if miscellaneous:
+            miscellaneous = keras.backend.expand_dims(miscellaneous, axis=0)
 
-        return [boxes, classification]
+        return [boxes, classification, miscellaneous] if miscellaneous else [boxes, classification]
 
     def compute_output_shape(self, input_shape):
-        return [(input_shape[0][0], None, 4), (input_shape[1][0], None, self.num_classes)]
+        if len(input_shape) == 2:
+            return [(input_shape[0][0], None, 4), (input_shape[1][0], None, self.num_classes)]
+        else:
+            return [(input_shape[0][0], None, 4), (input_shape[1][0], None, self.num_classes), (input_shape[2][0], None, None)]
+
 
     def compute_mask(self, inputs, mask=None):
-        return [None, None]
+        return [None] * len(inputs)
 
     def get_config(self):
         return {
