@@ -38,10 +38,6 @@ voc_classes = {
     'tvmonitor'      : 20
 }
 
-voc_labels = {}
-for key, value in voc_classes.items():
-    voc_labels[value] = key
-
 
 class PascalVocIterator(keras.preprocessing.image.Iterator):
     def __init__(
@@ -69,6 +65,10 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
         self.skip_difficult       = skip_difficult
         self.image_min_side       = image_min_side
         self.image_max_side       = image_max_side
+
+        self.labels = {}
+        for key, value in self.classes.items():
+            self.labels[value] = key
 
         if seed is None:
             seed = np.uint32(time.time() * 1000)
