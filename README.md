@@ -18,26 +18,28 @@ python examples/train_coco.py <path to MS COCO>
 In general, the steps to train on your own datasets are:
 1) Create a model by calling `keras_retinanet.models.ResNet50RetinaNet` and compile it. Empirically, the following compile arguments have been found to work well:
 ```
-model.compile(loss=None, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
+model.compile(loss={'predictions': keras_retinanet.losses.focal_loss()}, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 ```
-2) Create generators for training and testingdata (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a boxes batch (shaped `(batch_id, num_boxes, 5)`, where the last dimension is for `(x1, y1, x2, y2, label)`). Currently, a limitation is that `batch_size` must be equal to `1`.
+2) Create generators for training and testingdata (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a target batch (shaped `(batch_id, num_anchors, 5)`). Currently, a limitation is that `batch_size` must be equal to `1`.
 3) Use `model.fit_generator` to start training.
 
 ## Testing
-An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet%20-%20Pascal%20VOC.ipynb). In general, output can be retrieved from the network as follows:
+An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet%20-%20COCO%202017.ipynb). In general, output can be retrieved from the network as follows:
 ```
-boxes, classification, reg_loss, cls_loss = model.predict_on_batch(inputs)
+predictions, detections = model.predict_on_batch(inputs)
 ```
 
-Where `boxes` are the resulting bounding boxes, shaped `(None, 4)` (for `(x1, y1, x2, y2)`). `classification` is the corresponding class scores for each box (shaped `(None, num_classes)`). `reg_loss` is the regression loss value and `cls_loss` is the classification loss value.
+Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, bg, cls1, cls2, ...)`). `predictions` is the raw prediction for each anchor (shaped `(None, None, 4 + num_classes)`).
 
 Execution time on NVidia Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
 
 ## Status
-* The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) data. An example output image is shown below.
+* The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) and [MS COCO](http://cocodataset.org/). Example output images are shown below.
 
 <p align="center">
-  <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/pascal_voc.png" alt="Example result of RetinaNet on Pascal VOC"/>
+  <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco1.png" alt="Example result of RetinaNet on MS COCO"/>
+  <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco2.png" alt="Example result of RetinaNet on MS COCO"/>
+  <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco3.png" alt="Example result of RetinaNet on MS COCO"/>
 </p>
 
 ### Todo's
