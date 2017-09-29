@@ -120,9 +120,8 @@ def RetinaNet(
             cls = l(cls)
 
         # compute labels and bbox_reg_targets
-        if nms:
-            a       = keras_retinanet.layers.Anchors(anchor_size=size, anchor_stride=stride, anchor_ratios=anchor_ratios, anchor_scales=anchor_scales, name='anchors_{}'.format(i))(cls)
-            anchors = a if anchors is None else keras.layers.Concatenate(axis=1)([anchors, a])
+        a       = keras_retinanet.layers.Anchors(anchor_size=size, anchor_stride=stride, anchor_ratios=anchor_ratios, anchor_scales=anchor_scales, name='anchors_{}'.format(i))(cls)
+        anchors = a if anchors is None else keras.layers.Concatenate(axis=1)([anchors, a])
 
         # concatenate classification scores
         cls            = keras_retinanet.layers.TensorReshape((-1, num_classes), name='classification_{}'.format(i))(cls)
