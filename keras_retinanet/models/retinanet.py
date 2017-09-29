@@ -140,17 +140,20 @@ def RetinaNet(
     classification = keras.layers.Activation('softmax', name='classification_softmax')(classification)
 
     # concatenate regression and classification
-    outputs = keras.layers.Concatenate(axis=2, name='predictions')([regression, classification])
+    predictions = keras.layers.Concatenate(axis=2, name='predictions')([regression, classification])
+
+    # apply predicted regression to anchors
+    boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
 
     # apply non maximum suppression?
     if nms:
-        boxes = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
         boxes, classification = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification])
-        detections = keras.layers.Concatenate(axis=2, name='detections')([boxes, classification])
-        outputs = [outputs, detections]
+
+    # concatenate the classification scores to the boxes
+    detections = keras.layers.Concatenate(axis=2, name='detections')([boxes, classification])
 
     # construct the model
-    model = keras.models.Model(inputs=inputs, outputs=outputs, *args, **kwargs)
+    model = keras.models.Model(inputs=inputs, outputs=[predictions, detections], *args, **kwargs)
 
     # if set, load pretrained weights
     if weights_path:
