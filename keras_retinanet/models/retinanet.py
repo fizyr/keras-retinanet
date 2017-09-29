@@ -1,6 +1,8 @@
 import keras
 import keras_retinanet
 
+import numpy as np
+
 
 def classification_subnet(num_classes=91, num_anchors=9, feature_size=256, prob_pi=0.1):
     options = {
@@ -55,7 +57,7 @@ def regression_subnet(num_anchors=9, feature_size=256):
     return layers
 
 
-def compute_pyramid_features(C3, C4, C5, feature_size=256):
+def pyramid_features(C3, C4, C5, feature_size=256):
     # upsample C5 to get P5 from the FPN paper
     P5           = keras.layers.Conv2D(feature_size, (1, 1), strides=1, padding='same', name='P5')(C5)
     P5_upsampled = keras_retinanet.layers.UpsampleLike(name='P5_upsampled')([P5, C4])
@@ -94,12 +96,16 @@ def RetinaNet(
 ):
     image = inputs
 
-    # TODO: Parametrize this
-    num_anchors = 9
+    if anchor_ratios is None:
+        anchor_ratios = np.array([0.5, 1, 2], keras.backend.floatx())
+    if anchor_scales is None:
+        anchor_scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx())
+    num_anchors = len(anchor_ratios) * len(anchor_scales)
+
     _, C3, C4, C5 = backbone.outputs  # we ignore C2
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
-    pyramid_features = compute_pyramid_features(C3, C4, C5)
+    features = pyramid_features(C3, C4, C5)
     if anchor_strides is None:
         anchor_strides = [8,  16,  32,  64, 128]
     if anchor_sizes is None:
@@ -113,9 +119,9 @@ def RetinaNet(
     classification = None
     regression     = None
     anchors        = None
-    for i, (p, stride, size) in enumerate(zip(pyramid_features, anchor_strides, anchor_sizes)):
+    for i, (f, stride, size) in enumerate(zip(features, anchor_strides, anchor_sizes)):
         # run the classification subnet
-        cls = p
+        cls = f
         for l in classification_layers:
             cls = l(cls)
 
@@ -128,7 +134,7 @@ def RetinaNet(
         classification = cls if classification is None else keras.layers.Concatenate(axis=1)([classification, cls])
 
         # run the regression subnet
-        reg = p
+        reg = f
         for l in regression_layers:
             reg = l(reg)
 

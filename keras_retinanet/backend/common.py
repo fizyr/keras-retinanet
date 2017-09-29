@@ -63,16 +63,10 @@ def shift(shape, stride, anchors):
     return shifted_anchors
 
 
-def anchors(base_size=16, ratios=None, scales=None):
+def anchors(base_size, ratios, scales):
     """
     Generates a regular grid of multi-aspect and multi-scale anchor boxes.
     """
-    if ratios is None:
-        ratios = np.array([0.5, 1, 2], keras.backend.floatx())
-
-    if scales is None:
-        scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx())
-
     base_anchor = keras.backend.cast([1, 1, base_size, base_size], keras.backend.floatx()) - 1
     base_anchor = keras.backend.expand_dims(base_anchor, 0)
 

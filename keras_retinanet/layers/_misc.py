@@ -10,6 +10,7 @@ class Anchors(keras.layers.Layer):
         self.anchor_stride = anchor_stride
         self.anchor_ratios = anchor_ratios
         self.anchor_scales = anchor_scales
+        self.num_anchors   = len(anchor_ratios) * len(anchor_scales)
         super(Anchors, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
@@ -25,7 +26,7 @@ class Anchors(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         if None not in input_shape[1:]:
-            total = np.prod(input_shape[1:]) // 4
+            total = np.prod(input_shape[1:3]) * self.num_anchors
             return (input_shape[0], total, 4)
         else:
             return (input_shape[0], None, 4)
