@@ -22,7 +22,7 @@ keras.backend.tensorflow_backend.set_session(get_session())
 
 def create_model():
     image = keras.layers.Input((None, None, 3))
-    return ResNet50RetinaNet(image, num_classes=91, weights='snapshots/resnet50_coco_best.h5')
+    return ResNet50RetinaNet(image, num_classes=91, weights='imagenet')
 
 
 def parse_args():
