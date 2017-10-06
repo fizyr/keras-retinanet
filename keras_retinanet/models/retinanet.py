@@ -167,7 +167,7 @@ def retinanet_boxes(inputs, num_classes, nms=True, name='retinanet-boxes', *args
     predictions, anchors = model.outputs
     regression     = keras.layers.Lambda(lambda x: x[:, :, :4])(predictions)
     classification = keras.layers.Lambda(lambda x: x[:, :, 4:4 + num_classes])(predictions)
-    other          = keras.layers.Lambda(lambda x: x[:, :, 4:])(predictions)
+    other          = keras.layers.Lambda(lambda x: x[:, :, 4 + num_classes:])(predictions)
 
     # apply predicted regression to anchors
     boxes      = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
