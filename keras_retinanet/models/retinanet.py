@@ -171,7 +171,7 @@ def retinanet(
     return keras.models.Model(inputs=inputs, outputs=[predictions, anchors], name=name)
 
 
-def retinanet_boxes(inputs, num_classes, nms=True, name='retinanet-boxes', *args, **kwargs):
+def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, **kwargs):
     model = retinanet(inputs=inputs, num_classes=num_classes, *args, **kwargs)
 
     predictions, anchors = model.outputs
