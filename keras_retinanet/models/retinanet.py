@@ -175,8 +175,8 @@ def retinanet_boxes(inputs, num_classes, nms=True, name='retinanet-boxes', *args
     model = retinanet(inputs=inputs, num_classes=num_classes, *args, **kwargs)
 
     predictions, anchors = model.outputs
-    regression     = keras.layers.Lambda(lambda x: x[:, :, :4])(predictions)
-    classification = keras.layers.Lambda(lambda x: x[:, :, 4:4 + num_classes])(predictions)
+    regression     = keras.layers.Lambda(lambda x: x[:, :, :4], name='regression')(predictions)
+    classification = keras.layers.Lambda(lambda x: x[:, :, 4:4 + num_classes], name='classification')(predictions)
     other          = keras.layers.Lambda(lambda x: x[:, :, 4 + num_classes:])(predictions)
 
     # apply predicted regression to anchors
@@ -188,4 +188,4 @@ def retinanet_boxes(inputs, num_classes, nms=True, name='retinanet-boxes', *args
         detections = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification, detections])
 
     # construct the model
-    return keras.models.Model(inputs=inputs, outputs=[predictions, detections], name=name)
+    return keras.models.Model(inputs=inputs, outputs=[regression, classification, detections], name=name)
