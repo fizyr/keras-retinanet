@@ -3,6 +3,7 @@ import keras_retinanet
 
 import numpy as np
 
+
 def default_classification_model(
     num_classes,
     num_anchors,
@@ -43,6 +44,7 @@ def default_classification_model(
 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
+
 def default_regression_model(num_anchors, pyramid_feature_size=256, regression_feature_size=256, name='regression_submodel'):
     # All new conv layers except the final one in the
     # RetinaNet (classification) subnets are initialized
@@ -70,6 +72,7 @@ def default_regression_model(num_anchors, pyramid_feature_size=256, regression_f
 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
+
 def __create_pyramid_features(C3, C4, C5, feature_size=256):
     # upsample C5 to get P5 from the FPN paper
     P5           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='P5')(C5)
@@ -93,6 +96,7 @@ def __create_pyramid_features(C3, C4, C5, feature_size=256):
 
     return P3, P4, P5, P6, P7
 
+
 class AnchorParameters:
     def __init__(self, sizes, strides, ratios, scales):
         self.sizes   = sizes
@@ -103,6 +107,7 @@ class AnchorParameters:
     def num_anchors(self):
         return len(self.ratios) * len(self.scales)
 
+
 AnchorParameters.default = AnchorParameters(
     sizes   = [32, 64, 128, 256, 512],
     strides = [8, 16, 32, 64, 128],
@@ -110,17 +115,21 @@ AnchorParameters.default = AnchorParameters(
     scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
 )
 
+
 def default_submodels(num_classes, anchor_parameters):
     return [
         default_regression_model(anchor_parameters.num_anchors()),
         default_classification_model(num_classes, anchor_parameters.num_anchors())
     ]
 
+
 def __build_model_pyramid(model, features):
     return keras.layers.Concatenate(axis=1)([model(f) for f in features])
 
+
 def __build_pyramid(models, features):
     return [__build_model_pyramid(m, features) for m in models]
+
 
 def __build_anchors(anchor_parameters, features):
     anchors = []
@@ -133,6 +142,7 @@ def __build_anchors(anchor_parameters, features):
             name='anchors_{}'.format(i)
         )(f))
     return keras.layers.Concatenate(axis=1)(anchors)
+
 
 def retinanet(
     inputs,
@@ -179,4 +189,3 @@ def retinanet_boxes(inputs, num_classes, nms=True, name='retinanet-boxes', *args
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=[predictions, detections], name=name)
-
