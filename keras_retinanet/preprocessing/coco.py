@@ -102,14 +102,16 @@ class CocoIterator(keras.preprocessing.image.Iterator):
             image_batch, boxes_batch = random_transform_batch(image_batch, boxes_batch, self.image_data_generator)
 
             # generate the label and regression targets
-            labels, reg_targets = anchor_targets(image, boxes_batch[0])
-            target = np.append(reg_targets, np.expand_dims(labels, axis=1), axis=1)
+            labels, regression_targets = anchor_targets(image, boxes_batch[0])
+            regression_targets         = np.append(regression_targets, np.expand_dims(labels, axis=1), axis=1)
 
             # convert target to batch (currently only batch_size = 1 is allowed)
-            target_batch = np.expand_dims(target, axis=0)
+            regression_batch = np.expand_dims(regression_targets, axis=0)
+            labels_batch     = np.expand_dims(labels, axis=0)
+            labels_batch     = np.expand_dims(labels_batch, axis=2)
 
         # convert the image to zero-mean
         image_batch = keras.applications.imagenet_utils.preprocess_input(image_batch)
         image_batch = self.image_data_generator.standardize(image_batch)
 
-        return image_batch, target_batch
+        return image_batch, [regression_batch, labels_batch]
