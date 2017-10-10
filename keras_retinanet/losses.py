@@ -3,8 +3,10 @@ import keras_retinanet
 
 
 def focal_loss(alpha=0.25, gamma=2.0):
+    def _focal_loss(y_true, y_pred):
+        labels         = y_true[0, :, 0]
+        classification = y_pred[0, :, :]
 
-    def classification_loss(classification, labels):
         indices        = keras_retinanet.backend.where(keras.backend.not_equal(labels, -1))
         classification = keras_retinanet.backend.gather_nd(classification, indices)
         labels         = keras_retinanet.backend.gather_nd(labels, indices)
@@ -34,27 +36,33 @@ def focal_loss(alpha=0.25, gamma=2.0):
         cls_loss = cls_loss / (keras.backend.maximum(1.0, keras.backend.sum(assigned_boxes)))
         return cls_loss
 
-    def regression_loss(labels, regression, regression_target):
-        indices           = keras_retinanet.backend.where(keras.backend.greater(labels, 0))
-        regression        = keras_retinanet.backend.gather_nd(regression, indices)
-        regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
-
-        regression_diff = regression - regression_target
-        regression_diff = keras.backend.abs(regression_diff)
-        regression_diff = keras.backend.sum(regression_diff)
-        divisor         = keras.backend.maximum(keras.backend.shape(indices)[0], 1)
-        divisor         = keras.backend.cast(divisor, keras.backend.floatx())
-        return regression_diff / divisor
-
-    def _focal_loss(y_true, y_pred):
-        classification    = y_pred[0, :, 4:]
-        labels            = y_true[0, :, 4]
-        regression        = y_pred[0, :, :4]
-        regression_target = y_true[0, :, :4]
-
-        cls_loss = classification_loss(classification, labels)
-        reg_loss = regression_loss(labels, regression, regression_target)
-
-        return cls_loss + reg_loss
-
     return _focal_loss
+
+def regression_loss(y_true, y_pred):
+    regression        = y_pred
+    regression_target = y_true[:, :, :4]
+    labels            = y_true[:, :, 4]
+
+    indices           = keras_retinanet.backend.where(keras.backend.greater(labels, 0))
+    regression        = keras_retinanet.backend.gather_nd(regression, indices)
+    regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
+
+    regression_diff = regression - regression_target
+    regression_diff = keras.backend.abs(regression_diff)
+    regression_diff = keras.backend.sum(regression_diff)
+    divisor         = keras.backend.maximum(keras.backend.shape(indices)[0], 1)
+    divisor         = keras.backend.cast(divisor, keras.backend.floatx())
+    return regression_diff / divisor
+
+    #def _focal_loss(y_true, y_pred):
+    #    classification    = y_pred[0, :, 4:]
+    #    labels            = y_true[0, :, 4]
+    #    regression        = y_pred[0, :, :4]
+    #    regression_target = y_true[0, :, :4]
+
+    #    cls_loss = classification_loss(classification, labels)
+    #    reg_loss = regression_loss(labels, regression, regression_target)
+
+    #    return cls_loss + reg_loss
+
+    #return _focal_loss

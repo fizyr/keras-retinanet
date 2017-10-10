@@ -18,4 +18,7 @@ def ResNet50RetinaNet(inputs, weights='imagenet', *args, **kwargs):
         weights_path = weights
 
     resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
-    return keras_retinanet.models.RetinaNet(inputs, resnet, weights_path=weights_path, *args, **kwargs)
+
+    model = keras_retinanet.models.retinanet_bbox(inputs=inputs, backbone=resnet, *args, **kwargs)
+    model.load_weights(weights_path, by_name=True)
+    return model

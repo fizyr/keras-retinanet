@@ -40,7 +40,7 @@ if __name__ == '__main__':
     model = create_model()
 
     # compile model (note: set loss to None since loss is added inside layer)
-    model.compile(loss={'predictions': keras_retinanet.losses.focal_loss()}, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
+    model.compile(loss={'regression': keras_retinanet.losses.regression_loss, 'classification': keras_retinanet.losses.focal_loss()}, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 
     # print model summary
     print(model.summary())

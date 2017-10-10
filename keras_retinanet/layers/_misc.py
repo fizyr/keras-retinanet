@@ -113,34 +113,31 @@ class NonMaximumSuppression(keras.layers.Layer):
         super(NonMaximumSuppression, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
-        boxes, classification = inputs
+        boxes, classification, detections = inputs
 
         boxes          = keras.backend.reshape(boxes, (-1, 4))
         classification = keras.backend.reshape(classification, (-1, self.num_classes))
 
-        scores = keras.backend.max(classification, axis=1)
-        labels = keras.backend.argmax(classification, axis=1)
-        indices = keras_retinanet.backend.where(keras.backend.greater(labels, 0))
+        scores  = keras.backend.max(classification, axis=1)
+        labels  = keras.backend.argmax(classification, axis=1)
+        indices = keras_retinanet.backend.where(keras.backend.greater(labels, 0))[:, 0]
 
-        boxes          = keras_retinanet.backend.gather_nd(boxes, indices)
-        scores         = keras_retinanet.backend.gather_nd(scores, indices)
-        classification = keras_retinanet.backend.gather_nd(classification, indices)
+        boxes          = keras.backend.gather(boxes, indices)
+        scores         = keras.backend.gather(scores, indices)
+        classification = keras.backend.gather(classification, indices)
 
-        nms_indices = keras_retinanet.backend.non_max_suppression(boxes, scores, max_output_size=self.max_boxes, iou_threshold=self.nms_threshold)
+        # TODO: find a way to avoid reshaping the detections.
+        detections = keras.backend.reshape(detections, (-1, keras.backend.int_shape(detections)[2]))
+        detections = keras.backend.gather(detections, indices)
 
-        boxes          = keras.backend.gather(boxes, nms_indices)
-        classification = keras.backend.gather(classification, nms_indices)
+        indices = keras_retinanet.backend.non_max_suppression(boxes, scores, max_output_size=self.max_boxes, iou_threshold=self.nms_threshold)
 
-        boxes          = keras.backend.expand_dims(boxes, axis=0)
-        classification = keras.backend.expand_dims(classification, axis=0)
-
-        return [boxes, classification]
+        # TODO: support batch size > 1.
+        detections = keras.backend.gather(detections, indices)
+        return keras.backend.expand_dims(detections, axis=0)
 
     def compute_output_shape(self, input_shape):
-        return [(input_shape[0][0], None, 4), (input_shape[1][0], None, self.num_classes)]
-
-    def compute_mask(self, inputs, mask=None):
-        return [None, None]
+        return (input_shape[2][0], None, input_shape[2][2])
 
     def get_config(self):
         return {
