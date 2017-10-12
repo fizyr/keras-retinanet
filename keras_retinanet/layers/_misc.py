@@ -10,7 +10,14 @@ class Anchors(keras.layers.Layer):
         self.anchor_stride = anchor_stride
         self.anchor_ratios = anchor_ratios
         self.anchor_scales = anchor_scales
-        self.num_anchors   = len(anchor_ratios) * len(anchor_scales)
+
+        self.num_anchors = len(anchor_ratios) * len(anchor_scales)
+        self.anchors     = keras.backend.variable(keras_retinanet.preprocessing.anchors.generate_anchors(
+            base_size=anchor_size,
+            ratios=anchor_ratios,
+            scales=anchor_scales,
+        ))
+
         super(Anchors, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
@@ -18,8 +25,7 @@ class Anchors(keras.layers.Layer):
         features_shape = keras.backend.shape(features)[1:3]
 
         # generate proposals from bbox deltas and shifted anchors
-        anchors = keras_retinanet.backend.anchors(base_size=self.anchor_size, ratios=self.anchor_ratios, scales=self.anchor_scales)
-        anchors = keras_retinanet.backend.shift(features_shape, self.anchor_stride, anchors)
+        anchors = keras_retinanet.backend.shift(features_shape, self.anchor_stride, self.anchors)
         anchors = keras.backend.expand_dims(anchors, axis=0)
 
         return anchors
