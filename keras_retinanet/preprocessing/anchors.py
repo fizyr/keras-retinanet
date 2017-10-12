@@ -29,7 +29,9 @@ def anchor_targets(image, gt_boxes, negative_overlap=0.4, positive_overlap=0.5, 
     return labels, bbox_reg_targets
 
 
-def anchors_for_image(image, pyramid_levels=[3, 4, 5, 6, 7], anchor_ratios=None, anchor_scales=None, anchor_strides=None, anchor_sizes=None):
+def anchors_for_image(image, pyramid_levels=None, anchor_ratios=None, anchor_scales=None, anchor_strides=None, anchor_sizes=None):
+    if pyramid_levels is None:
+        pyramid_levels = [3, 4, 5, 6, 7]
     if anchor_strides is None:
         anchor_strides = [2 ** x for x in pyramid_levels]
     if anchor_sizes is None:
