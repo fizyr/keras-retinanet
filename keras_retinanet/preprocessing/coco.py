@@ -60,7 +60,7 @@ class CocoIterator(keras.preprocessing.image.Iterator):
 
     def load_image(self, image_index):
         coco_image         = self.coco.loadImgs(self.image_ids[image_index])[0]
-        path               = os.path.join(self.data_dir, self.set_name, coco_image['file_name'])
+        path               = os.path.join(self.data_dir, 'images', self.set_name, coco_image['file_name'])
         image              = cv2.imread(path, cv2.IMREAD_COLOR)
         image, image_scale = resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
