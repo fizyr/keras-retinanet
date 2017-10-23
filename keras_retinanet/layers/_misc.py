@@ -121,8 +121,10 @@ class NonMaximumSuppression(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         boxes, classification, detections = inputs
 
-        boxes          = keras.backend.reshape(boxes, (-1, 4))
-        classification = keras.backend.reshape(classification, (-1, self.num_classes))
+        # TODO: support batch size > 1.
+        boxes          = boxes[0]
+        classification = classification[0]
+        detections     = detections[0]
 
         scores  = keras.backend.max(classification, axis=1)
         labels  = keras.backend.argmax(classification, axis=1)
@@ -131,14 +133,10 @@ class NonMaximumSuppression(keras.layers.Layer):
         boxes          = keras.backend.gather(boxes, indices)
         scores         = keras.backend.gather(scores, indices)
         classification = keras.backend.gather(classification, indices)
-
-        # TODO: find a way to avoid reshaping the detections.
-        detections = keras.backend.reshape(detections, (-1, keras.backend.int_shape(detections)[2]))
-        detections = keras.backend.gather(detections, indices)
+        detections     = keras.backend.gather(detections, indices)
 
         indices = keras_retinanet.backend.non_max_suppression(boxes, scores, max_output_size=self.max_boxes, iou_threshold=self.nms_threshold)
 
-        # TODO: support batch size > 1.
         detections = keras.backend.gather(detections, indices)
         return keras.backend.expand_dims(detections, axis=0)
 
