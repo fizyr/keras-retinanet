@@ -18,7 +18,13 @@ python examples/train_coco.py <path to MS COCO>
 In general, the steps to train on your own datasets are:
 1) Create a model by calling `keras_retinanet.models.ResNet50RetinaNet` and compile it. Empirically, the following compile arguments have been found to work well:
 ```
-model.compile(loss={'predictions': keras_retinanet.losses.focal_loss()}, optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
+model.compile(
+    loss={
+        'regression'    : keras_retinanet.losses.regression_loss,
+        'classification': keras_retinanet.losses.focal_loss()
+    },
+    optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+)
 ```
 2) Create generators for training and testingdata (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a target batch (shaped `(batch_id, num_anchors, 5)`). Currently, a limitation is that `batch_size` must be equal to `1`.
 3) Use `model.fit_generator` to start training.
@@ -26,10 +32,10 @@ model.compile(loss={'predictions': keras_retinanet.losses.focal_loss()}, optimiz
 ## Testing
 An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet%20-%20COCO%202017.ipynb). In general, output can be retrieved from the network as follows:
 ```
-predictions, detections = model.predict_on_batch(inputs)
+_, _, detections = model.predict_on_batch(inputs)
 ```
 
-Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, bg, cls1, cls2, ...)`). `predictions` is the raw prediction for each anchor (shaped `(None, None, 4 + num_classes)`).
+Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, bg, cls1, cls2, ...)`).
 
 Execution time on NVidia Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
 
@@ -55,3 +61,6 @@ Execution time on NVidia Pascal Titan X is roughly 55msec for an image of shape 
 * This repository is tested using OpenCV 3.3 (3.0+ should be supported).
 
 Any and all contributions to this project are welcome.
+
+### Discussions
+Feel free to join the `#keras-retinanet` [Keras Slack](https://keras-slack-autojoin.herokuapp.com/) channel for discussions and questions.
