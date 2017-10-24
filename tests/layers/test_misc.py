@@ -110,10 +110,95 @@ class TestTensorReshape(object):
 
 class TestNonMaximumSuppression(object):
     def test_simple(self):
-        pass
+        # create simple NonMaximumSuppression layer
+        non_maximum_suppression_layer = keras_retinanet.layers.NonMaximumSuppression()
 
+        # create simple input
+        boxes = np.array([[
+            [0, 0, 10, 10],
+            [0, 0, 10, 10],
+        ]])
+        boxes = keras.backend.variable(boxes)
+
+        classification = np.array([[
+            [0, 0.9],
+            [0, 1],
+        ]])
+        classification = keras.backend.variable(classification)
+
+        detections = np.array([[
+            [1, 2, 3],
+            [4, 5, 6],
+        ]])
+        detections = keras.backend.variable(detections)
+
+        # compute output
+        actual = non_maximum_suppression_layer.call([boxes, classification, detections])
+        actual = keras.backend.eval(actual)
+
+        expected = np.array([[
+            [4, 5, 6],
+        ]])
+
+        np.testing.assert_array_equal(actual, expected)
+
+    # mark test to fail
+    @pytest.mark.xfail
     def test_mini_batch(self):
-        pass
+        # create simple NonMaximumSuppression layer
+        non_maximum_suppression_layer = keras_retinanet.layers.NonMaximumSuppression()
+
+        # create simple input
+        boxes = np.array([
+            [
+                [0, 0, 10, 10],
+                [0, 0, 10, 10],
+            ],
+            [
+                [100, 100, 150, 150],
+                [100, 100, 150, 150],
+            ],
+        ])
+        boxes = keras.backend.variable(boxes)
+
+        classification = np.array([
+            [
+                [0, 0.9],
+                [0, 1],
+            ],
+            [
+                [0, 1],
+                [0, 0.9],
+            ],
+        ])
+        classification = keras.backend.variable(classification)
+
+        detections = np.array([
+            [
+                [1, 2, 3],
+                [4, 5, 6],
+            ],
+            [
+                [7, 8, 9],
+                [10, 11, 12],
+            ],
+        ])
+        detections = keras.backend.variable(detections)
+
+        # compute output
+        actual = non_maximum_suppression_layer.call([boxes, classification, detections])
+        actual = keras.backend.eval(actual)
+
+        expected = np.array([
+            [
+                [4, 5, 6],
+            ],
+            [
+                [7, 8, 9],
+            ],
+        ])
+
+        np.testing.assert_array_equal(actual, expected)
 
 
 class TestUpsampleLike(object):
@@ -124,7 +209,7 @@ class TestUpsampleLike(object):
         pass
 
 
-class TestRegressBoxe(object):
+class TestRegressBoxes(object):
     def test_simple(self):
         pass
 
