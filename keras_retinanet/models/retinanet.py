@@ -151,10 +151,10 @@ def __build_anchors(anchor_parameters, features):
     anchors = []
     for i, f in enumerate(features):
         anchors.append(keras_retinanet.layers.Anchors(
-            anchor_size=anchor_parameters.sizes[i],
-            anchor_stride=anchor_parameters.strides[i],
-            anchor_ratios=anchor_parameters.ratios,
-            anchor_scales=anchor_parameters.scales,
+            size=anchor_parameters.sizes[i],
+            stride=anchor_parameters.strides[i],
+            ratios=anchor_parameters.ratios,
+            scales=anchor_parameters.scales,
             name='anchors_{}'.format(i)
         )(f))
     return keras.layers.Concatenate(axis=1)(anchors)
