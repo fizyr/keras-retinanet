@@ -133,8 +133,7 @@ class TensorReshape(keras.layers.Layer):
 
 
 class NonMaximumSuppression(keras.layers.Layer):
-    def __init__(self, num_classes, nms_threshold=0.4, top_k=1000, max_boxes=300, *args, **kwargs):
-        self.num_classes   = num_classes
+    def __init__(self, nms_threshold=0.4, top_k=1000, max_boxes=300, *args, **kwargs):
         self.nms_threshold = nms_threshold
         self.top_k         = top_k
         self.max_boxes     = max_boxes
@@ -165,7 +164,6 @@ class NonMaximumSuppression(keras.layers.Layer):
 
     def get_config(self):
         return {
-            'num_classes'   : self.num_classes,
             'nms_threshold' : self.nms_threshold,
             'top_k'         : self.top_k,
             'max_boxes'     : self.max_boxes,
