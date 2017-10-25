@@ -1,3 +1,19 @@
+"""
+Copyright 2017-2018 Fizyr (https://fizyr.com)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import keras
 import keras_retinanet.layers
 
@@ -12,8 +28,8 @@ class TestAnchors(object):
         anchors_layer = keras_retinanet.layers.Anchors(
             size=32,
             stride=8,
-            ratios=np.array([1,], keras.backend.floatx()),
-            scales=np.array([1,], keras.backend.floatx()),
+            ratios=np.array([1], keras.backend.floatx()),
+            scales=np.array([1], keras.backend.floatx()),
         )
 
         # create fake features input (only shape is used anyway)
@@ -42,8 +58,8 @@ class TestAnchors(object):
         anchors_layer = keras_retinanet.layers.Anchors(
             size=32,
             stride=8,
-            ratios=np.array([1,], dtype=keras.backend.floatx()),
-            scales=np.array([1,], dtype=keras.backend.floatx()),
+            ratios=np.array([1], dtype=keras.backend.floatx()),
+            scales=np.array([1], dtype=keras.backend.floatx()),
         )
 
         # create fake features input with batch_size=2
@@ -215,7 +231,7 @@ class TestUpsampleLike(object):
         target   = keras.backend.variable(target)
 
         # compute output
-        actual = upsample_like_layer.call([source,  target])
+        actual = upsample_like_layer.call([source, target])
         actual = keras.backend.eval(actual)
 
         np.testing.assert_array_equal(actual, expected)
@@ -233,7 +249,7 @@ class TestUpsampleLike(object):
         target   = keras.backend.variable(target)
 
         # compute output
-        actual = upsample_like_layer.call([source,  target])
+        actual = upsample_like_layer.call([source, target])
         actual = keras.backend.eval(actual)
 
         np.testing.assert_array_equal(actual, expected)
