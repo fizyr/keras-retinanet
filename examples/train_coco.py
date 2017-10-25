@@ -62,8 +62,8 @@ if __name__ == '__main__':
     # compile model (note: set loss to None since loss is added inside layer)
     model.compile(
         loss={
-            'regression'    : keras_retinanet.losses.regression_loss,
-            'classification': keras_retinanet.losses.focal_loss()
+            'regression'    : keras_retinanet.losses.smooth_l1(),
+            'classification': keras_retinanet.losses.focal()
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
     )

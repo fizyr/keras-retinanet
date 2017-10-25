@@ -69,7 +69,7 @@ class CocoIterator(keras.preprocessing.image.Iterator):
         categories = self.coco.loadCats(self.coco.getCatIds())
         self.classes = {}
         for c in categories:
-            self.classes[c['name']] = c['id'] - 1 # start from 0
+            self.classes[c['name']] = c['id'] - 1  # start from 0
 
         # also load the reverse (label -> name)
         self.labels = {}
@@ -95,7 +95,7 @@ class CocoIterator(keras.preprocessing.image.Iterator):
         for idx, a in enumerate(annotations):
             box        = np.zeros((1, 5), dtype=keras.backend.floatx())
             box[0, :4] = a['bbox']
-            box[0, 4]  = a['category_id'] - 1 # start from 0
+            box[0, 4]  = a['category_id'] - 1  # start from 0
             boxes      = np.append(boxes, box, axis=0)
 
         # transform from [x, y, w, h] to [x1, y1, x2, y2]
@@ -133,7 +133,6 @@ class CocoIterator(keras.preprocessing.image.Iterator):
             'regression_batch' : regression_batch,
             'labels_batch'     : labels_batch,
         }
-
 
     def next(self):
         # lock indexing to prevent race conditions
