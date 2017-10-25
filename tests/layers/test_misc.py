@@ -203,10 +203,38 @@ class TestNonMaximumSuppression(object):
 
 class TestUpsampleLike(object):
     def test_simple(self):
-        pass
+        # create simple UpsampleLike layer
+        upsample_like_layer = keras_retinanet.layers.UpsampleLike()
+
+        # create input source
+        source   = np.zeros((1, 2, 2, 1), keras.backend.floatx())
+        source   = keras.backend.variable(source)
+        target   = np.zeros((1, 5, 5, 1), keras.backend.floatx())
+        expected = target
+        target   = keras.backend.variable(target)
+
+        # compute output
+        actual = upsample_like_layer.call([source,  target])
+        actual = keras.backend.eval(actual)
+
+        np.testing.assert_array_equal(actual, expected)
 
     def test_mini_batch(self):
-        pass
+        # create simple UpsampleLike layer
+        upsample_like_layer = keras_retinanet.layers.UpsampleLike()
+
+        # create input source
+        source   = np.zeros((2, 2, 2, 1), keras.backend.floatx())
+        source   = keras.backend.variable(source)
+        target   = np.zeros((2, 5, 5, 1), keras.backend.floatx())
+        expected = target
+        target   = keras.backend.variable(target)
+
+        # compute output
+        actual = upsample_like_layer.call([source,  target])
+        actual = keras.backend.eval(actual)
+
+        np.testing.assert_array_equal(actual, expected)
 
 
 class TestRegressBoxes(object):
