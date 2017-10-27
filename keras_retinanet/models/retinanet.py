@@ -151,10 +151,10 @@ def __build_anchors(anchor_parameters, features):
     anchors = []
     for i, f in enumerate(features):
         anchors.append(keras_retinanet.layers.Anchors(
-            anchor_size=anchor_parameters.sizes[i],
-            anchor_stride=anchor_parameters.strides[i],
-            anchor_ratios=anchor_parameters.ratios,
-            anchor_scales=anchor_parameters.scales,
+            size=anchor_parameters.sizes[i],
+            stride=anchor_parameters.strides[i],
+            ratios=anchor_parameters.ratios,
+            scales=anchor_parameters.scales,
             name='anchors_{}'.format(i)
         )(f))
     return keras.layers.Concatenate(axis=1)(anchors)
@@ -201,7 +201,7 @@ def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, 
 
     # additionally apply non maximum suppression
     if nms:
-        detections = keras_retinanet.layers.NonMaximumSuppression(num_classes=num_classes, name='nms')([boxes, classification, detections])
+        detections = keras_retinanet.layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=[regression, classification, detections], name=name)

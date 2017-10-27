@@ -21,17 +21,22 @@ import numpy as np
 
 
 class Anchors(keras.layers.Layer):
-    def __init__(self, anchor_size, anchor_stride, anchor_ratios=None, anchor_scales=None, *args, **kwargs):
-        self.anchor_size   = anchor_size
-        self.anchor_stride = anchor_stride
-        self.anchor_ratios = anchor_ratios
-        self.anchor_scales = anchor_scales
+    def __init__(self, size, stride, ratios=None, scales=None, *args, **kwargs):
+        self.size   = size
+        self.stride = stride
+        self.ratios = ratios
+        self.scales = scales
 
-        self.num_anchors = len(anchor_ratios) * len(anchor_scales)
+        if ratios is None:
+            self.ratios  = np.array([0.5, 1, 2], keras.backend.floatx()),
+        if scales is None:
+            self.scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
+
+        self.num_anchors = len(ratios) * len(scales)
         self.anchors     = keras.backend.variable(keras_retinanet.preprocessing.anchors.generate_anchors(
-            base_size=anchor_size,
-            ratios=anchor_ratios,
-            scales=anchor_scales,
+            base_size=size,
+            ratios=ratios,
+            scales=scales,
         ))
 
         super(Anchors, self).__init__(*args, **kwargs)
@@ -41,7 +46,7 @@ class Anchors(keras.layers.Layer):
         features_shape = keras.backend.shape(features)[1:3]
 
         # generate proposals from bbox deltas and shifted anchors
-        anchors = keras_retinanet.backend.shift(features_shape, self.anchor_stride, self.anchors)
+        anchors = keras_retinanet.backend.shift(features_shape, self.stride, self.anchors)
         anchors = keras.backend.expand_dims(anchors, axis=0)
 
         return anchors
@@ -55,10 +60,10 @@ class Anchors(keras.layers.Layer):
 
     def get_config(self):
         return {
-            'anchor_size': self.anchor_size,
-            'anchor_stride' : self.anchor_stride,
-            'anchor_ratios' : self.anchor_ratios,
-            'anchor_scales' : self.anchor_scales,
+            'size'   : self.size,
+            'stride' : self.stride,
+            'ratios' : self.ratios,
+            'scales' : self.scales,
         }
 
 
@@ -128,8 +133,7 @@ class TensorReshape(keras.layers.Layer):
 
 
 class NonMaximumSuppression(keras.layers.Layer):
-    def __init__(self, num_classes, nms_threshold=0.4, top_k=1000, max_boxes=300, *args, **kwargs):
-        self.num_classes   = num_classes
+    def __init__(self, nms_threshold=0.4, top_k=1000, max_boxes=300, *args, **kwargs):
         self.nms_threshold = nms_threshold
         self.top_k         = top_k
         self.max_boxes     = max_boxes
@@ -160,7 +164,6 @@ class NonMaximumSuppression(keras.layers.Layer):
 
     def get_config(self):
         return {
-            'num_classes'   : self.num_classes,
             'nms_threshold' : self.nms_threshold,
             'top_k'         : self.top_k,
             'max_boxes'     : self.max_boxes,
