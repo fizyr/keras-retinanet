@@ -35,7 +35,7 @@ def get_session():
 
 def create_model(weights='imagenet'):
     image = keras.layers.Input((None, None, 3))
-    return ResNet50RetinaNet(image, num_classes=21, weights=weights)
+    return ResNet50RetinaNet(image, num_classes=20, weights=weights)
 
 
 def parse_args():

@@ -24,7 +24,7 @@ def default_classification_model(
     num_classes,
     num_anchors,
     pyramid_feature_size=256,
-    prior_probability=0.1,
+    prior_probability=0.01,
     classification_feature_size=256,
     name='classification_submodel'
 ):
@@ -49,14 +49,14 @@ def default_classification_model(
     outputs = keras.layers.Conv2D(
         filters=num_classes * num_anchors,
         kernel_initializer=keras.initializers.zeros(),
-        bias_initializer=keras_retinanet.initializers.PriorProbability(num_classes=num_classes, probability=prior_probability),
+        bias_initializer=keras_retinanet.initializers.PriorProbability(probability=prior_probability),
         name='pyramid_classification',
         **options
     )(outputs)
 
-    # reshape output and apply softmax
+    # reshape output and apply sigmoid
     outputs = keras_retinanet.layers.TensorReshape((-1, num_classes), name='pyramid_classification_reshape')(outputs)
-    outputs = keras.layers.Activation('softmax', name='pyramid_classification_softmax')(outputs)
+    outputs = keras.layers.Activation('sigmoid', name='pyramid_classification_sigmoid')(outputs)
 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 

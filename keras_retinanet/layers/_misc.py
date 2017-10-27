@@ -128,9 +128,10 @@ class TensorReshape(keras.layers.Layer):
 
 
 class NonMaximumSuppression(keras.layers.Layer):
-    def __init__(self, num_classes, nms_threshold=0.4, max_boxes=300, *args, **kwargs):
+    def __init__(self, num_classes, nms_threshold=0.4, top_k=1000, max_boxes=300, *args, **kwargs):
         self.num_classes   = num_classes
         self.nms_threshold = nms_threshold
+        self.top_k         = top_k
         self.max_boxes     = max_boxes
         super(NonMaximumSuppression, self).__init__(*args, **kwargs)
 
@@ -142,12 +143,10 @@ class NonMaximumSuppression(keras.layers.Layer):
         classification = classification[0]
         detections     = detections[0]
 
-        scores  = keras.backend.max(classification, axis=1)
-        labels  = keras.backend.argmax(classification, axis=1)
-        indices = keras_retinanet.backend.where(keras.backend.greater(labels, 0))[:, 0]
+        scores          = keras.backend.max(classification, axis=1)
+        scores, indices = keras_retinanet.backend.top_k(scores, self.top_k, sorted=False)
 
         boxes          = keras.backend.gather(boxes, indices)
-        scores         = keras.backend.gather(scores, indices)
         classification = keras.backend.gather(classification, indices)
         detections     = keras.backend.gather(detections, indices)
 
@@ -163,6 +162,7 @@ class NonMaximumSuppression(keras.layers.Layer):
         return {
             'num_classes'   : self.num_classes,
             'nms_threshold' : self.nms_threshold,
+            'top_k'         : self.top_k,
             'max_boxes'     : self.max_boxes,
         }
 

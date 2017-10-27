@@ -19,6 +19,10 @@ import keras
 import keras_retinanet.backend
 
 
+def top_k(*args, **kwargs):
+    return tensorflow.nn.top_k(*args, **kwargs)
+
+
 def resize_images(*args, **kwargs):
     return tensorflow.image.resize_images(*args, **kwargs)
 
