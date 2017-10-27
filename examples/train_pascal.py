@@ -73,12 +73,9 @@ if __name__ == '__main__':
 
     # create image data generator objects
     train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
-        rescale=1.0 / 255.0,
         horizontal_flip=True,
     )
-    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
-        rescale=1.0 / 255.0,
-    )
+    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for training data
     train_generator = PascalVocIterator(
