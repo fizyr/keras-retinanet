@@ -26,7 +26,7 @@ model.compile(
     optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
 )
 ```
-2) Create generators for training and testingdata (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a target batch (shaped `(batch_id, num_anchors, 5)`). Currently, a limitation is that `batch_size` must be equal to `1`.
+2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a target batch (shaped `(batch_id, num_anchors, 5)`). Currently, a limitation is that `batch_size` must be equal to `1`.
 3) Use `model.fit_generator` to start training.
 
 ## Testing
@@ -37,7 +37,7 @@ _, _, detections = model.predict_on_batch(inputs)
 
 Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, bg, cls1, cls2, ...)`).
 
-Execution time on NVidia Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
+Execution time on NVIDIA Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
 
 ## Status
 * The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) and [MS COCO](http://cocodataset.org/). Example output images are shown below.
@@ -51,16 +51,13 @@ Execution time on NVidia Pascal Titan X is roughly 55msec for an image of shape 
 ### Todo's
 * Allow `batch_size > 1`.
 * Compare result w.r.t. paper results.
-* Add unit tests
 * Configure CI
 
 ### Notes
-* This implementation currently uses the `softmax` activation to classify boxes. The paper mentions a `sigmoid` activation instead. Given the origin of parts of this code, the `softmax` activation method was easier to implement. A comparison between `sigmoid` and `softmax` would be interesting, but left as unexplored.
-* This repository depends on an unmerged PR of `keras-resnet`. For now, it can be installed by manually installing [this](https://github.com/delftrobotics-forks/keras-resnet/tree/bn-freeze) branch.
 * This repository is tested on Keras version 2.0.8, but should also work on 2.0.7.
 * This repository is tested using OpenCV 3.3 (3.0+ should be supported).
 
-Any and all contributions to this project are welcome.
+Contributions to this project are welcome.
 
 ### Discussions
 Feel free to join the `#keras-retinanet` [Keras Slack](https://keras-slack-autojoin.herokuapp.com/) channel for discussions and questions.
