@@ -18,12 +18,14 @@ import keras
 import keras_retinanet
 
 
-def focal_loss(alpha=0.25, gamma=2.0):
-    def _focal_loss(y_true, y_pred):
+def focal(alpha=0.25, gamma=2.0):
+    def _focal(y_true, y_pred):
+        # TODO: Remove constraint of batch_size == 1
         labels         = y_true[0, :, :]
         classification = y_pred[0, :, :]
 
-        anchor_state   = keras.backend.max(labels, axis=1) # -1 for ignore, 0 for background, 1 for object
+        # filter out "ignore" anchors
+        anchor_state   = keras.backend.max(labels, axis=1)  # -1 for ignore, 0 for background, 1 for object
         indices        = keras_retinanet.backend.where(keras.backend.not_equal(anchor_state, -1))
         classification = keras_retinanet.backend.gather_nd(classification, indices)
         labels         = keras_retinanet.backend.gather_nd(labels, indices)
@@ -44,21 +46,38 @@ def focal_loss(alpha=0.25, gamma=2.0):
         cls_loss = cls_loss / (keras.backend.maximum(1.0, keras.backend.sum(anchor_state)))
         return cls_loss
 
-    return _focal_loss
+    return _focal
 
-def regression_loss(y_true, y_pred):
-    regression        = y_pred[0, :, :]
-    regression_target = y_true[0, :, :4]
-    labels            = y_true[0, :, 4:]
 
-    anchor_state      = keras.backend.max(labels, axis=1) # -1 for ignore, 0 for background, 1 for object
-    indices           = keras_retinanet.backend.where(keras.backend.equal(anchor_state, 1))
-    regression        = keras_retinanet.backend.gather_nd(regression, indices)
-    regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
+def smooth_l1(sigma=3.0):
+    sigma_squared = sigma ** 2
 
-    regression_diff = regression - regression_target
-    regression_diff = keras.backend.abs(regression_diff)
-    regression_diff = keras.backend.sum(regression_diff)
-    divisor         = keras.backend.maximum(keras.backend.shape(indices)[0], 1)
-    divisor         = keras.backend.cast(divisor, keras.backend.floatx())
-    return regression_diff / divisor
+    def _smooth_l1(y_true, y_pred):
+        # TODO: Remove constraint of batch_size == 1
+        regression        = y_pred[0, :, :]
+        regression_target = y_true[0, :, :4]
+        labels            = y_true[0, :, 4:]
+
+        # filter out "ignore" anchors
+        anchor_state      = keras.backend.max(labels, axis=1)  # -1 for ignore, 0 for background, 1 for object
+        indices           = keras_retinanet.backend.where(keras.backend.equal(anchor_state, 1))
+        regression        = keras_retinanet.backend.gather_nd(regression, indices)
+        regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
+
+        # compute smooth L1 loss
+        # f(x) = 0.5 * (sigma * x)^2          if |x| < 1 / sigma / sigma
+        #        |x| - 0.5 / sigma / sigma    otherwise
+        regression_diff = regression - regression_target
+        regression_diff = keras.backend.abs(regression_diff)
+        regression_loss = keras_retinanet.backend.where(
+            keras.backend.less(regression_diff, 1.0 / sigma_squared),
+            0.5 * sigma_squared * keras.backend.pow(regression_diff, 2),
+            regression_diff - 0.5 / sigma_squared
+        )
+        regression_loss = keras.backend.sum(regression_loss)
+
+        divisor         = keras.backend.maximum(keras.backend.shape(indices)[0], 1)
+        divisor         = keras.backend.cast(divisor, keras.backend.floatx())
+        return regression_loss / divisor
+
+    return _smooth_l1
