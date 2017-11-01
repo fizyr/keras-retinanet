@@ -1,6 +1,12 @@
 # Keras RetinaNet
 Keras implementation of RetinaNet object detection as described in [this paper](https://arxiv.org/abs/1708.02002) by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
+## Installation
+
+1) Clone this repository.
+2) In the repository, execute `pip install .`. Note that on Arch linux, CUDA 9.0 is the default, while `tensorflow` from pip uses CUDA 8.0. Install your own `tensorflow-cuda` if necessary.
+3) As of writing, this repository requires the `master` version of `keras-resnet` for freezing `BatchNormalization` layers (ie. clone [this](https://github.com/broadinstitute/keras-resnet) repository and run `pip install .` in that repository).
+
 ## Training
 An example on how to train `keras-retinanet` can be found [here](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/train_coco.py).
 
