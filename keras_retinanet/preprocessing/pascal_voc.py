@@ -146,12 +146,11 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
 
         # generate the label and regression targets
         labels, regression_targets = anchor_targets(image, boxes_batch[0], len(self.classes))
-        regression_targets         = np.append(regression_targets, np.expand_dims(labels, axis=1), axis=1)
+        regression_targets         = np.append(regression_targets, labels, axis=1)
 
         # convert target to batch (currently only batch_size = 1 is allowed)
         regression_batch = np.expand_dims(regression_targets, axis=0)
         labels_batch     = np.expand_dims(labels, axis=0)
-        labels_batch     = np.expand_dims(labels_batch, axis=2)
 
         # convert the image to zero-mean
         image_batch = keras_retinanet.preprocessing.image.preprocess_input(image_batch)

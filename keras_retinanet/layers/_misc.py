@@ -62,8 +62,8 @@ class Anchors(keras.layers.Layer):
         return {
             'size'   : self.size,
             'stride' : self.stride,
-            'ratios' : self.ratios,
-            'scales' : self.scales,
+            'ratios' : self.ratios.tolist(),
+            'scales' : self.scales.tolist(),
         }
 
 
