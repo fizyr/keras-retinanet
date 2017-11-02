@@ -10,6 +10,5 @@ custom_objects = {
     'PriorProbability'      : initializers.PriorProbability,
     'RegressBoxes'          : layers.RegressBoxes,
     'NonMaximumSuppression' : layers.NonMaximumSuppression,
-    'TensorReshape'         : layers.TensorReshape,
     'Anchors'               : layers.Anchors,
 }

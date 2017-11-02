@@ -83,48 +83,6 @@ class TestAnchors(object):
         np.testing.assert_array_equal(anchors, expected)
 
 
-class TestTensorReshape(object):
-    def test_simple(self):
-        # create simple TensorReshape layer
-        tensor_reshape_layer = keras_retinanet.layers.TensorReshape(
-            target_shape=(-1, 4)
-        )
-
-        # create random tensor
-        features = np.zeros((1, 2, 2, 1024), dtype=keras.backend.floatx())
-        features = keras.backend.variable(features)
-
-        # compute output
-        actual = tensor_reshape_layer.call(features)
-        actual = keras.backend.eval(actual)
-
-        # compute expected output
-        expected = np.zeros((1, 2 * 2 * 1024 // 4, 4), dtype=keras.backend.floatx())
-
-        # assert equality
-        np.testing.assert_array_equal(actual, expected)
-
-    def test_mini_batch(self):
-        # create simple TensorReshape layer
-        tensor_reshape_layer = keras_retinanet.layers.TensorReshape(
-            target_shape=(-1, 4)
-        )
-
-        # create random tensor
-        features = np.zeros((2, 2, 2, 1024), dtype=keras.backend.floatx())
-        features = keras.backend.variable(features)
-
-        # compute output
-        actual = tensor_reshape_layer.call(features)
-        actual = keras.backend.eval(actual)
-
-        # compute expected output
-        expected = np.zeros((2, 2 * 2 * 1024 // 4, 4), dtype=keras.backend.floatx())
-
-        # assert equality
-        np.testing.assert_array_equal(actual, expected)
-
-
 class TestNonMaximumSuppression(object):
     def test_simple(self):
         # create simple NonMaximumSuppression layer

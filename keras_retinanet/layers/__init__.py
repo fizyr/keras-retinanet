@@ -1,1 +1,1 @@
-from ._misc import NonMaximumSuppression, RegressBoxes, UpsampleLike, TensorReshape, Anchors
+from ._misc import NonMaximumSuppression, RegressBoxes, UpsampleLike, Anchors
