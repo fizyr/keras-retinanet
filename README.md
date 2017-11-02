@@ -32,7 +32,7 @@ model.compile(
     optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
 )
 ```
-2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a target batch (shaped `(batch_id, num_anchors, 5)`). Currently, a limitation is that `batch_size` must be equal to `1`.
+2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.PascalVocIterator`](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)). These generators should generate an image batch (shaped `(batch_id, height, width, channels)`) and a target batch (shaped `(batch_id, num_anchors, 4 + num_classes)`). Currently, a limitation is that `batch_size` must be equal to `1`.
 3) Use `model.fit_generator` to start training.
 
 ## Testing
@@ -41,7 +41,7 @@ An example of testing the network can be seen in [this Notebook](https://github.
 _, _, detections = model.predict_on_batch(inputs)
 ```
 
-Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, bg, cls1, cls2, ...)`).
+Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, cls1, cls2, ...)`).
 
 Execution time on NVIDIA Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
 
@@ -76,7 +76,6 @@ The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.c
 
 ### Todo's
 * Allow `batch_size > 1`.
-* Compare result w.r.t. paper results.
 * Configure CI
 
 ### Notes
