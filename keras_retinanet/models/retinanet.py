@@ -96,12 +96,14 @@ def __create_pyramid_features(C3, C4, C5, feature_size=256):
 
     # add P5 elementwise to C4
     P4           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C4_reduced')(C4)
-    P4           = keras.layers.Add(name='P4')([P5_upsampled, P4])
+    P4           = keras.layers.Add(name='P4_merged')([P5_upsampled, P4])
+    P4           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P4')(P4)
     P4_upsampled = keras_retinanet.layers.UpsampleLike(name='P4_upsampled')([P4, C3])
 
     # add P4 elementwise to C3
     P3 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C3_reduced')(C3)
-    P3 = keras.layers.Add(name='P3')([P4_upsampled, P3])
+    P3 = keras.layers.Add(name='P3_merged')([P4_upsampled, P3])
+    P3 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P3')(P3)
 
     # "P6 is obtained via a 3x3 stride-2 conv on C5"
     P6 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P6')(C5)
