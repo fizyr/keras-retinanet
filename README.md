@@ -4,7 +4,7 @@ Keras implementation of RetinaNet object detection as described in [this paper](
 ## Installation
 
 1) Clone this repository.
-2) In the repository, execute `pip install .`. Note that on Arch linux, CUDA 9.0 is the default, while `tensorflow-gpu` from pypi seems to use CUDA 8.0. Install your own `tensorflow-gpu` / `tensorflow-cuda` if necessary.
+2) In the repository, execute `pip install .`. Note that due to inconsistencies with how `tensorflow` should be installed, this package does not define a dependency on `tensorflow` as it will try to install that through `pip` (which at least on Arch linux results in an incorrect installation). Please make sure `tensorflow` is installed as per your systems requirements. Also, make sure Keras 2.0.9 or above is installed as this package uses some features of 2.0.9.
 3) As of writing, this repository requires the `master` version of `keras-resnet` for freezing `BatchNormalization` layers (ie. clone [this](https://github.com/broadinstitute/keras-resnet) repository and run `pip install .` in that repository).
 
 ## Training
@@ -79,7 +79,7 @@ The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.c
 * Configure CI
 
 ### Notes
-* This repository is tested on Keras version 2.0.8, but should also work on 2.0.7.
+* This repository requires Keras 2.0.9 or above.
 * This repository is tested using OpenCV 3.3 (3.0+ should be supported).
 
 Contributions to this project are welcome.

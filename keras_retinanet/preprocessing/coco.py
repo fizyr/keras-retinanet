@@ -134,17 +134,23 @@ class CocoIterator(keras.preprocessing.image.Iterator):
             'labels_batch'     : labels_batch,
         }
 
+    def _get_batches_of_transformed_samples(self, indices):
+        assert(len(indices) == 1), "Currently only batch_size=1 is allowed."
+
+        image_data = self.load_image(indices[0])
+
+        if image_data is None:
+            return None
+
+        return image_data['image_batch'], [image_data['regression_batch'], image_data['labels_batch']]
+
     def next(self):
         # lock indexing to prevent race conditions
         with self.lock:
             selection, _, batch_size = next(self.index_generator)
 
-        assert(batch_size == 1), "Currently only batch_size=1 is allowed."
-        assert(len(selection) == 1), "Currently only batch_size=1 is allowed."
-
-        image_data = self.load_image(selection[0])
-
-        if image_data is None:
+        result = self._get_batches_of_transformed_samples(selection)
+        if result is None:
             return self.next()
 
-        return image_data['image_batch'], [image_data['regression_batch'], image_data['labels_batch']]
+        return result
