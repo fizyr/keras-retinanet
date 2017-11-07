@@ -6,6 +6,7 @@ Keras implementation of RetinaNet object detection as described in [this paper](
 1) Clone this repository.
 2) In the repository, execute `pip install .`. Note that due to inconsistencies with how `tensorflow` should be installed, this package does not define a dependency on `tensorflow` as it will try to install that through `pip` (which at least on Arch linux results in an incorrect installation). Please make sure `tensorflow` is installed as per your systems requirements. Also, make sure Keras 2.0.9 or above is installed as this package uses some features of 2.0.9.
 3) As of writing, this repository requires the `master` version of `keras-resnet` for freezing `BatchNormalization` layers (ie. clone [this](https://github.com/broadinstitute/keras-resnet) repository and run `pip install .` in that repository).
+4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset. Clone the [`cocoapi` repository](https://github.com/cocodataset/cocoapi) and inside the `PythonAPI` folder, execute `pip install .`.
 
 ## Training
 An example on how to train `keras-retinanet` can be found [here](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/train_coco.py).
