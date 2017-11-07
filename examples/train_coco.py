@@ -23,7 +23,7 @@ import keras.preprocessing.image
 import tensorflow as tf
 
 from keras_retinanet.models import ResNet50RetinaNet
-from keras_retinanet.preprocessing import CocoIterator
+from keras_retinanet.preprocessing.coco import CocoIterator
 import keras_retinanet
 
 
