@@ -33,7 +33,7 @@ class Anchors(keras.layers.Layer):
             self.scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
 
         self.num_anchors = len(ratios) * len(scales)
-        self.anchors     = keras.backend.variable(keras_retinanet.preprocessing.anchors.generate_anchors(
+        self.anchors     = keras.backend.variable(keras_retinanet.utils.anchors.generate_anchors(
             base_size=size,
             ratios=ratios,
             scales=scales,

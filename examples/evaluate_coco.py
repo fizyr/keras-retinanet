@@ -17,7 +17,9 @@ limitations under the License.
 """
 
 import keras
+import keras.preprocessing.image
 import keras_retinanet
+import keras_retinanet.preprocessing.coco
 
 from keras_retinanet.preprocessing.coco import CocoIterator
 

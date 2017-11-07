@@ -1,2 +1,1 @@
-from . import image
-from . import anchors
+from .generator import Generator
