@@ -71,7 +71,7 @@ if __name__ == '__main__':
     test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for testing data
-    test_generator = keras_retinanet.preprocessing.coco.CocoIterator(
+    test_generator = CocoIterator(
         args.coco_path,
         args.set,
         test_image_data_generator,
