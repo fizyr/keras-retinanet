@@ -136,17 +136,17 @@ AnchorParameters.default = AnchorParameters(
 
 def default_submodels(num_classes, anchor_parameters):
     return [
-        default_regression_model(anchor_parameters.num_anchors()),
-        default_classification_model(num_classes, anchor_parameters.num_anchors())
+        ('regression', default_regression_model(anchor_parameters.num_anchors())),
+        ('classification', default_classification_model(num_classes, anchor_parameters.num_anchors()))
     ]
 
 
-def __build_model_pyramid(model, features):
-    return keras.layers.Concatenate(axis=1)([model(f) for f in features])
+def __build_model_pyramid(name, model, features):
+    return keras.layers.Concatenate(axis=1, name=name)([model(f) for f in features])
 
 
 def __build_pyramid(models, features):
-    return [__build_model_pyramid(m, features) for m in models]
+    return [__build_model_pyramid(n, m, features) for n, m in models]
 
 
 def __build_anchors(anchor_parameters, features):
@@ -181,25 +181,28 @@ def retinanet(
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
     features = create_pyramid_features(C3, C4, C5)
 
-    # for all pyramid levels, run classification and regression branch and compute anchors
+    # for all pyramid levels, run available submodels
     pyramid = __build_pyramid(submodels, features)
     anchors = __build_anchors(anchor_parameters, features)
 
-    predictions = keras.layers.Concatenate(axis=2, name='predictions')(pyramid)
-    return keras.models.Model(inputs=inputs, outputs=[predictions, anchors], name=name)
+    return keras.models.Model(inputs=inputs, outputs=[anchors,] + pyramid, name=name)
 
 
 def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, **kwargs):
     model = retinanet(inputs=inputs, num_classes=num_classes, *args, **kwargs)
 
-    predictions, anchors = model.outputs
-    regression     = keras.layers.Lambda(lambda x: x[:, :, :4], name='regression')(predictions)
-    classification = keras.layers.Lambda(lambda x: x[:, :, 4:4 + num_classes], name='classification')(predictions)
-    other          = keras.layers.Lambda(lambda x: x[:, :, 4 + num_classes:])(predictions)
+    # we expect the anchors, regression and classification values as first output
+    anchors        = model.outputs[0]
+    regression     = model.outputs[1]
+    classification = model.outputs[2]
+    if len(model.outputs) > 3:
+        other = keras.layers.Concatenate(axis=2, name='other')(model.outputs[2:])
+    else:
+        other = None
 
     # apply predicted regression to anchors
     boxes      = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
-    detections = keras.layers.Concatenate(axis=2)([boxes, classification, other])
+    detections = keras.layers.Concatenate(axis=2)([boxes, classification] + ([other,] if other is not None else []))
 
     # additionally apply non maximum suppression
     if nms:

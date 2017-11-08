@@ -23,7 +23,7 @@ import keras.preprocessing.image
 import tensorflow as tf
 
 from keras_retinanet.models import ResNet50RetinaNet
-from keras_retinanet.preprocessing.coco import CocoIterator
+from keras_retinanet.preprocessing.coco import CocoGenerator
 import keras_retinanet
 
 
@@ -35,13 +35,14 @@ def get_session():
 
 def create_model(weights='imagenet'):
     image = keras.layers.Input((None, None, 3))
-    return ResNet50RetinaNet(image, num_classes=90, weights=weights)
+    return ResNet50RetinaNet(image, num_classes=80, weights=weights)
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Simple training script for COCO object detection.')
     parser.add_argument('coco_path', help='Path to COCO directory (ie. /tmp/COCO).')
     parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
+    parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
 
     return parser.parse_args()
@@ -78,29 +79,30 @@ if __name__ == '__main__':
     test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for training data
-    train_generator = CocoIterator(
+    train_generator = CocoGenerator(
         args.coco_path,
         'train2017',
         train_image_data_generator,
+        batch_size=args.batch_size
     )
 
     # create a generator for testing data
-    test_generator = CocoIterator(
+    test_generator = CocoGenerator(
         args.coco_path,
         'val2017',
         test_image_data_generator,
+        batch_size=args.batch_size
     )
 
     # start training
-    batch_size = 1
     model.fit_generator(
         generator=train_generator,
-        steps_per_epoch=len(train_generator.image_ids) // batch_size,
+        steps_per_epoch=len(train_generator.image_ids) // args.batch_size,
         epochs=20,
         verbose=1,
         max_queue_size=20,
         validation_data=test_generator,
-        validation_steps=len(test_generator.image_ids) // batch_size,
+        validation_steps=len(test_generator.image_ids) // args.batch_size,
         callbacks=[
             keras.callbacks.ModelCheckpoint('snapshots/resnet50_coco_best.h5', monitor='loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
