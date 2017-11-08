@@ -147,7 +147,7 @@ class CocoIterator(keras.preprocessing.image.Iterator):
     def next(self):
         # lock indexing to prevent race conditions
         with self.lock:
-            selection, _, batch_size = next(self.index_generator)
+            selection = next(self.index_generator)
 
         result = self._get_batches_of_transformed_samples(selection)
         if result is None:
