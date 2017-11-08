@@ -19,6 +19,8 @@ limitations under the License.
 import keras
 import keras_retinanet
 
+from keras_retinanet.preprocessing.coco import CocoIterator
+
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
