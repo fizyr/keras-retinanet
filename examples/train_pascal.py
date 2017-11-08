@@ -21,7 +21,7 @@ import keras
 import keras.preprocessing.image
 
 from keras_retinanet.models import ResNet50RetinaNet
-from keras_retinanet.preprocessing import PascalVocIterator
+from keras_retinanet.preprocessing.pascal_voc import PascalVocIterator
 import keras_retinanet
 
 import tensorflow as tf
