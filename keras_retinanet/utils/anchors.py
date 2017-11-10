@@ -31,22 +31,26 @@ def anchor_targets(
     # label: 1 is positive, 0 is negative, -1 is dont care
     labels = np.ones((anchors.shape[0], num_classes)) * -1
 
-    # obtain indices of gt boxes with the greatest overlap
-    overlaps             = compute_overlap(anchors, boxes[:, :4])
-    argmax_overlaps_inds = np.argmax(overlaps, axis=1)
-    max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
+    if boxes.shape[0]:
+        # obtain indices of gt boxes with the greatest overlap
+        overlaps             = compute_overlap(anchors, boxes[:, :4])
+        argmax_overlaps_inds = np.argmax(overlaps, axis=1)
+        max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
-    # assign bg labels first so that positive labels can clobber them
-    labels[max_overlaps < negative_overlap, :] = 0
+        # assign bg labels first so that positive labels can clobber them
+        labels[max_overlaps < negative_overlap, :] = 0
 
-    # compute box regression targets
-    boxes            = boxes[argmax_overlaps_inds]
-    bbox_reg_targets = bbox_transform(anchors, boxes)
+        # compute box regression targets
+        boxes            = boxes[argmax_overlaps_inds]
+        bbox_reg_targets = bbox_transform(anchors, boxes)
 
-    # fg label: above threshold IOU
-    positive_indices = max_overlaps >= positive_overlap
-    labels[positive_indices, :] = 0
-    labels[positive_indices, boxes[positive_indices, 4].astype(int)] = 1
+        # fg label: above threshold IOU
+        positive_indices = max_overlaps >= positive_overlap
+        labels[positive_indices, :] = 0
+        labels[positive_indices, boxes[positive_indices, 4].astype(int)] = 1
+    else:
+        # no annotations? then everything is background
+        labels[:] = 0
 
     # ignore boxes outside of image
     mask_shape         = image_shape if mask_shape is None else mask_shape
