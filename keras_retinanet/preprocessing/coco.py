@@ -24,14 +24,11 @@ from pycocotools.coco import COCO
 
 
 class CocoGenerator(keras_retinanet.preprocessing.Generator):
-    def __init__(self, data_dir, set_name, *args, filter_empty_images=True, **kwargs):
+    def __init__(self, data_dir, set_name, *args, **kwargs):
         self.data_dir  = data_dir
         self.set_name  = set_name
         self.coco      = COCO(os.path.join(data_dir, 'annotations', 'instances_' + set_name + '.json'))
         self.image_ids = self.coco.getImgIds()
-
-        if filter_empty_images:
-            self.image_ids = [idx for idx in self.image_ids if len(self.coco.getAnnIds(idx, iscrowd=False))]
 
         self.load_classes()
 
