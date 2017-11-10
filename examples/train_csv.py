@@ -100,12 +100,12 @@ if __name__ == '__main__':
     # start training
     model.fit_generator(
         generator=train_generator,
-        steps_per_epoch= 20, #train_generator.size() // args.batch_size,
+        steps_per_epoch= train_generator.size() // args.batch_size,
         epochs=20,
         verbose=1,
         max_queue_size=20,
         validation_data=test_generator,
-        validation_steps= 10, #test_generator.size() // args.batch_size,
+        validation_steps= test_generator.size() // args.batch_size,
         callbacks=[
             keras.callbacks.ModelCheckpoint('snapshots/resnet50_csv_best.h5', monitor='loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
