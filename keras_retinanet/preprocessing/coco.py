@@ -74,7 +74,7 @@ class CocoGenerator(keras_retinanet.preprocessing.Generator):
         return self.label_to_name(self.coco_label_to_label(coco_label))
 
     def label_to_coco_label(self, label):
-        return self.coco_labels[coco_label]
+        return self.coco_labels[label]
 
     def image_aspect_ratio(self, image_index):
         image = self.coco.loadImgs(self.image_ids[image_index])[0]
