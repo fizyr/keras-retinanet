@@ -85,14 +85,14 @@ class CocoGenerator(keras_retinanet.preprocessing.Generator):
     def load_annotations(self, image_index):
         # get ground truth annotations
         annotations_ids = self.coco.getAnnIds(imgIds=self.image_ids[image_index], iscrowd=False)
+        annotations     = np.zeros((0, 5))
 
         # some images appear to miss annotations (like image with id 257034)
         if len(annotations_ids) == 0:
-            raise ValueError("image with index {} (coco_id: {}) has no annotations".format(image_index, self.image_ids[image_index]))
+            return annotations
 
         # parse annotations
         coco_annotations = self.coco.loadAnns(annotations_ids)
-        annotations      = np.zeros((0, 5))
         for idx, a in enumerate(coco_annotations):
             annotation        = np.zeros((1, 5))
             annotation[0, :4] = a['bbox']

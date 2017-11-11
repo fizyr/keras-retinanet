@@ -51,6 +51,7 @@ def anchor_targets(
     else:
         # no annotations? then everything is background
         labels[:] = 0
+        bbox_reg_targets = np.zeros_like(anchors)
 
     # ignore boxes outside of image
     mask_shape         = image_shape if mask_shape is None else mask_shape
