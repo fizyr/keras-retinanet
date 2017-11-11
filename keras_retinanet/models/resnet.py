@@ -16,7 +16,7 @@ limitations under the License.
 
 import keras
 import keras_resnet.models
-import keras_retinanet.models
+import keras_retinanet.models.retinanet
 
 WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
@@ -35,6 +35,6 @@ def ResNet50RetinaNet(inputs, weights='imagenet', *args, **kwargs):
 
     resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
 
-    model = keras_retinanet.models.retinanet_bbox(inputs=inputs, backbone=resnet, *args, **kwargs)
+    model = keras_retinanet.models.retinanet.retinanet_bbox(inputs=inputs, backbone=resnet, *args, **kwargs)
     model.load_weights(weights_path, by_name=True)
     return model

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras_retinanet
+from keras_retinanet.preprocessing.generator import Generator
 
 import cv2
 import os
@@ -23,7 +23,7 @@ import numpy as np
 from pycocotools.coco import COCO
 
 
-class CocoGenerator(keras_retinanet.preprocessing.Generator):
+class CocoGenerator(Generator):
     def __init__(self, data_dir, set_name, *args, **kwargs):
         self.data_dir  = data_dir
         self.set_name  = set_name

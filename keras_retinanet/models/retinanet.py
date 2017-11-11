@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 import keras
-import keras_retinanet
+import keras_retinanet.initializers
+import keras_retinanet.layers
 
 import numpy as np
 
