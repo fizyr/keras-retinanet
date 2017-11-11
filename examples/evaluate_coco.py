@@ -18,9 +18,9 @@ limitations under the License.
 
 import keras
 import keras.preprocessing.image
-from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.coco import CocoGenerator
 from keras_retinanet.utils.coco_eval import evaluate_coco
+from keras_retinanet.custom_objects import custom_objects
 
 import tensorflow as tf
 
@@ -31,11 +31,6 @@ def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
-
-
-def create_model(weights='imagenet'):
-    image = keras.layers.Input((None, None, 3))
-    return ResNet50RetinaNet(image, num_classes=80, weights=weights)
 
 
 def parse_args():
@@ -58,8 +53,8 @@ if __name__ == '__main__':
     keras.backend.tensorflow_backend.set_session(get_session())
 
     # create the model
-    print('Creating model, this may take a second...')
-    model = create_model(weights=args.model)
+    print('Loading model, this may take a second...')
+    model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
     # create image data generator object
     test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
