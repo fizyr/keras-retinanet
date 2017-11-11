@@ -75,6 +75,9 @@ class Generator(object):
     def resize_image(self, image):
         return resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
+    def preprocess_image(self, image):
+        return preprocess_image(image)
+
     def preprocess_group(self, image_group, annotations_group):
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             # preprocess the image (subtract imagenet mean)

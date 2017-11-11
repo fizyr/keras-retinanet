@@ -22,9 +22,10 @@ import keras.preprocessing.image
 
 import tensorflow as tf
 
-from keras_retinanet.models import ResNet50RetinaNet
+import keras_retinanet.callbacks
+import keras_retinanet.losses
+from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.coco import CocoGenerator
-import keras_retinanet
 
 
 def get_session():
@@ -76,7 +77,7 @@ if __name__ == '__main__':
     train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
         horizontal_flip=True,
     )
-    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
+    val_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for training data
     train_generator = CocoGenerator(
@@ -87,25 +88,23 @@ if __name__ == '__main__':
     )
 
     # create a generator for testing data
-    test_generator = CocoGenerator(
+    val_generator = CocoGenerator(
         args.coco_path,
         'val2017',
-        test_image_data_generator,
+        val_image_data_generator,
         batch_size=args.batch_size
     )
 
     # start training
     model.fit_generator(
         generator=train_generator,
-        steps_per_epoch=len(train_generator.image_ids) // args.batch_size,
-        epochs=20,
+        steps_per_epoch=20000 // args.batch_size,  # len(train_generator.image_ids) // args.batch_size,
+        epochs=50,
         verbose=1,
-        max_queue_size=20,
-        validation_data=test_generator,
-        validation_steps=len(test_generator.image_ids) // args.batch_size,
         callbacks=[
             keras.callbacks.ModelCheckpoint('snapshots/resnet50_coco_best.h5', monitor='loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
+            keras_retinanet.callbacks.CocoEval(val_generator),
         ],
     )
 

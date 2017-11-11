@@ -20,9 +20,10 @@ import os
 import keras
 import keras.preprocessing.image
 
-from keras_retinanet.models import ResNet50RetinaNet
+import keras_retinanet.losses
+import keras_retinanet.callbacks
+from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
-import keras_retinanet
 
 import tensorflow as tf
 
@@ -76,7 +77,7 @@ if __name__ == '__main__':
     train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
         horizontal_flip=True,
     )
-    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
+    val_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for training data
     train_generator = PascalVocGenerator(
@@ -87,10 +88,10 @@ if __name__ == '__main__':
     )
 
     # create a generator for testing data
-    test_generator = PascalVocGenerator(
+    val_generator = PascalVocGenerator(
         args.voc_path,
         'test',
-        test_image_data_generator,
+        val_image_data_generator,
         batch_size=args.batch_size
     )
 
@@ -100,8 +101,8 @@ if __name__ == '__main__':
         steps_per_epoch=len(train_generator.image_names) // args.batch_size,
         epochs=50,
         verbose=1,
-        validation_data=test_generator,
-        validation_steps=3000,  # len(test_generator.image_names) // args.batch_size,
+        validation_data=val_generator,
+        validation_steps=3000,  # len(val_generator.image_names) // args.batch_size,
         callbacks=[
             keras.callbacks.ModelCheckpoint('snapshots/resnet50_voc_best.h5', monitor='val_loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=10, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras_retinanet
+from keras_retinanet.preprocessing.generator import Generator
 
 import cv2
 import os
@@ -48,7 +48,7 @@ voc_classes = {
 }
 
 
-class PascalVocGenerator(keras_retinanet.preprocessing.Generator):
+class PascalVocGenerator(Generator):
     def __init__(
         self,
         data_dir,

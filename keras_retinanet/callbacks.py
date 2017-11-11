@@ -18,7 +18,7 @@ import keras
 from keras_retinanet.utils.coco_eval import evaluate_coco
 
 
-class COCOEval(keras.callbacks.Callback):
+class CocoEval(keras.callbacks.Callback):
     def __init__(self, generator, threshold=0.05):
         self.generator = generator
         self.threshold = threshold
