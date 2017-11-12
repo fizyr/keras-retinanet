@@ -17,8 +17,19 @@ limitations under the License.
 import keras
 import keras_retinanet.initializers
 import keras_retinanet.layers
+import keras_retinanet.losses
 
 import numpy as np
+
+custom_objects = {
+    'UpsampleLike'          : keras_retinanet.layers.UpsampleLike,
+    'PriorProbability'      : keras_retinanet.initializers.PriorProbability,
+    'RegressBoxes'          : keras_retinanet.layers.RegressBoxes,
+    'NonMaximumSuppression' : keras_retinanet.layers.NonMaximumSuppression,
+    'Anchors'               : keras_retinanet.layers.Anchors,
+    '_smooth_l1'            : keras_retinanet.losses.smooth_l1(),
+    '_focal'                : keras_retinanet.losses.focal(),
+}
 
 
 def default_classification_model(

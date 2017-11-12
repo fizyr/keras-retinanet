@@ -15,10 +15,16 @@ limitations under the License.
 """
 
 import keras
+import keras_resnet
 import keras_resnet.models
 import keras_retinanet.models.retinanet
 
 WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+
+custom_objects = {
+    **keras_retinanet.models.retinanet.custom_objects,
+    **keras_resnet.custom_objects,
+}
 
 
 def ResNet50RetinaNet(inputs, weights='imagenet', *args, **kwargs):

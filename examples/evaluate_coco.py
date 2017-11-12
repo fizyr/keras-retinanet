@@ -20,7 +20,7 @@ import keras
 import keras.preprocessing.image
 from keras_retinanet.preprocessing.coco import CocoGenerator
 from keras_retinanet.utils.coco_eval import evaluate_coco
-from keras_retinanet.custom_objects import custom_objects
+from keras_retinanet.models.resnet import custom_objects
 
 import tensorflow as tf
 
