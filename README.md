@@ -22,6 +22,22 @@ For training on [MS COCO](http://cocodataset.org/#home), run:
 python examples/train_coco.py <path to MS COCO>
 ```
 
+For training on a custom dataset, a simple CSV file can be used as a way to pass the data. For an example, see:
+```
+python examples/train_csv.py <path to csv file>
+```
+
+The expected format of each line of the CSV is:
+```
+filepath,x1,y1,x2,y2,class_name,dataset`
+```
+
+For example:
+```
+/data/imgs/img_001.jpg,837,346,981,456,cow,train
+/data/imgs/img_002.jpg,215,312,279,391,cat,val
+```
+
 In general, the steps to train on your own datasets are:
 1) Create a model by calling `keras_retinanet.models.ResNet50RetinaNet` and compile it. Empirically, the following compile arguments have been found to work well:
 ```
