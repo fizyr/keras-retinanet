@@ -16,8 +16,6 @@ limitations under the License.
 
 import keras_retinanet
 
-import cv2
-import os
 import numpy as np
 from PIL import Image
 
@@ -38,7 +36,7 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
         self.image_names          = []
         self.image_data           = {}
 
-        #parse the provided class file
+        # parse the provided class file
         self.classes = {}
         with open(csv_class_file, 'rb') as f_class_in:
             csvreader = csv.reader(f_class_in, delimiter=',')
@@ -60,7 +58,8 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
                     self.image_names.append(img_filepath)
                     self.image_data[img_filepath] = []
 
-                self.image_data[img_filepath].append({'x1':int(x1), 'x2':int(x2), 'y1': int(y1), 'y2':int(y2), 'class':classname})
+                self.image_data[img_filepath].append(
+                    {'x1': int(x1), 'x2': int(x2), 'y1': int(y1), 'y2': int(y2), 'class': classname})
 
         self.labels = {}
         for key, value in self.classes.items():
@@ -81,7 +80,7 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
         return self.labels[label]
 
     def image_aspect_ratio(self, image_index):
-        path  = self.image_names[image_index]
+        path = self.image_names[image_index]
         # PIL is fast for metadata
         image = Image.open(path)
         return float(image.width) / float(image.height)
@@ -93,11 +92,7 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
     def load_annotations(self, image_index):
         boxes = np.zeros((0, 5))
 
-        path  = self.image_names[image_index]
-        image = Image.open(path)
-
-        width = float(image.width)
-        height = float(image.height)
+        path = self.image_names[image_index]
 
         annots = self.image_data[path]
 
