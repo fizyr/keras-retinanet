@@ -40,8 +40,9 @@ def create_model(num_classes, weights='imagenet'):
 
 def parse_args():
     parser = argparse.ArgumentParser(description='Simple training script for object detection from a CSV file.')
-    parser.add_argument('csv_path', help='Path to CSV file')
-    parser.add_argument('--classes', help='Path to a CSV file containing class label mapping.')
+    parser.add_argument('train_path', help='Path to CSV file for training (required)')
+    parser.add_argument('classes', help='Path to a CSV file containing class label mapping (required)')
+    parser.add_argument('--val_path', help='Path to CSV file for validation (optional')
     parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
     parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
@@ -61,26 +62,26 @@ if __name__ == '__main__':
     train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
         horizontal_flip=True,
     )
-    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
 
     # create a generator for training data
     train_generator = CSVGenerator(
-        csv_data_file=args.csv_path,
-        set_name='train',
+        csv_data_file=args.train_path,
         csv_class_file=args.classes,
         image_data_generator=train_image_data_generator,
         batch_size=args.batch_size
     )
+    if args.val_path is not None:
 
-    # create a generator for testing data
-    test_generator = CSVGenerator(
-        csv_data_file=args.csv_path,
-        set_name='val',
-        csv_class_file=args.classes,
-        image_data_generator=test_image_data_generator,
-        batch_size=args.batch_size
-    )
+        test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
+
+        # create a generator for testing data
+        test_generator = CSVGenerator(
+            csv_data_file=args.val_path,
+            csv_class_file=args.classes,
+            image_data_generator=test_image_data_generator,
+            batch_size=args.batch_size
+        )
 
     num_classes = train_generator.num_classes()
 
@@ -102,19 +103,32 @@ if __name__ == '__main__':
 
 
     # start training
-    model.fit_generator(
-        generator=train_generator,
-        steps_per_epoch= train_generator.size() // args.batch_size,
-        epochs=20,
-        verbose=1,
-        max_queue_size=20,
-        validation_data=test_generator,
-        validation_steps= test_generator.size() // args.batch_size,
-        callbacks=[
-            keras.callbacks.ModelCheckpoint('snapshots/resnet50_csv_best.h5', monitor='loss', verbose=1, save_best_only=True),
-            keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
-        ],
-    )
+    if args.val_path is not None:
+        model.fit_generator(
+            generator=train_generator,
+            steps_per_epoch= train_generator.size() // args.batch_size,
+            epochs=20,
+            verbose=1,
+            max_queue_size=20,
+            validation_data=test_generator,
+            validation_steps= test_generator.size() // args.batch_size,
+            callbacks=[
+                keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='val_loss', verbose=1, save_best_only=True),
+                keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
+            ],
+        )
+    else:
+         model.fit_generator(
+            generator=train_generator,
+            steps_per_epoch= train_generator.size() // args.batch_size,
+            epochs=20,
+            verbose=1,
+            max_queue_size=20,
+            callbacks=[
+                keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='loss', verbose=1, save_best_only=True),
+                keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
+            ],
+        )
 
     # store final result too
     model.save('snapshots/resnet50_csv_final.h5')

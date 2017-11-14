@@ -29,57 +29,38 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
     def __init__(
         self,
         csv_data_file,
-        set_name,
-        csv_class_file=None,
+        csv_class_file,
         *args,
         **kwargs
     ):
         self.csv_data_file        = csv_data_file
-        self.set_name             = set_name
 
         self.image_names          = []
         self.image_data           = {}
 
+        #parse the provided class file
+        self.classes = {}
+        with open(csv_class_file, 'rb') as f_class_in:
+            csvreader = csv.reader(f_class_in, delimiter=',')
+            for classname, class_id in csvreader:
+                self.classes[classname] = int(class_id)
 
-        if csv_class_file is not None:
-            #parse the provided class file
-            autogen_classes = False
-            self.classes = {}
-            with open(csv_class_file, 'rb') as f_class_in:
-                csvreader = csv.reader(f_class_in, delimiter=',')
-                for classname, class_id in csvreader:
-                    self.classes[classname] = int(class_id)
-        else:
-            autogen_classes = True
-            self.classes = []
-
-        # csv with img_filepath, x1, y1, x2, y2, class_name, dataset
+        # csv with img_filepath, x1, y1, x2, y2, class_name
         with open(csv_data_file, 'rb') as f_in:
             csvreader = csv.reader(f_in, delimiter=',')
             for row in csvreader:
 
-                img_filepath, x1, y1, x2, y2, classname, dataset = row
-
-                # populate the classes from the CSV automatically if needed
-                if autogen_classes and classname not in self.classes:
-                    self.classes.append(classname)
+                img_filepath, x1, y1, x2, y2, classname = row
 
                 # if a class file was input, check if the current class name is correctly present
-                if not autogen_classes and classname not in self.classes:
-                        raise ValueError('found class name in data file not present in class file: {}'.format(classname))
-
-                if dataset != set_name:
-                    continue
+                if classname not in self.classes:
+                    raise ValueError('found class name in data file not present in class file: {}'.format(classname))
 
                 if img_filepath not in self.image_names:
                     self.image_names.append(img_filepath)
                     self.image_data[img_filepath] = []
+
                 self.image_data[img_filepath].append({'x1':int(x1), 'x2':int(x2), 'y1': int(y1), 'y2':int(y2), 'class':classname})
-
-        # sort the list of classes and convert to a dict
-
-        if autogen_classes:
-            self.classes = dict([(classname,ix) for ix, classname in enumerate(sorted(self.classes))])
 
         self.labels = {}
         for key, value in self.classes.items():
