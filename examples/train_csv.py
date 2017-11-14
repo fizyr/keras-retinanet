@@ -43,7 +43,7 @@ def parse_args():
     parser.add_argument('csv_path', help='Path to CSV file')
     parser.add_argument('--classes', help='Path to a CSV file containing class label mapping.')
     parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
-    parser.add_argument('--batch-size', help='Size of the batches.', default=2, type=int)
+    parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
 
     return parser.parse_args()

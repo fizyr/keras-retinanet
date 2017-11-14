@@ -47,12 +47,11 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
             self.classes = {}
             with open(csv_class_file, 'rb') as f_class_in:
                 csvreader = csv.reader(f_class_in, delimiter=',')
-                for row in csvreader:
-                    classname, class_id = row
+                for classname, class_id in csvreader:
                     self.classes[classname] = int(class_id)
         else:
             autogen_classes = True
-            self.classes              = []
+            self.classes = []
 
         # csv with img_filepath, x1, y1, x2, y2, class_name, dataset
         with open(csv_data_file, 'rb') as f_in:
@@ -81,8 +80,6 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
 
         if autogen_classes:
             self.classes = dict([(classname,ix) for ix, classname in enumerate(sorted(self.classes))])
-
-        print(self.classes)
 
         self.labels = {}
         for key, value in self.classes.items():
@@ -132,10 +129,10 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
             box[0, 4] = self.name_to_label(class_name)
 
             bndbox = [annot['x1'], annot['y1'], annot['x2'], annot['y2']]
-            box[0, 0] = float(bndbox[0])-1
-            box[0, 1] = float(bndbox[1])-1
-            box[0, 2] = float(bndbox[2])-1
-            box[0, 3] = float(bndbox[3])-1
+            box[0, 0] = float(bndbox[0]) - 1
+            box[0, 1] = float(bndbox[1]) - 1
+            box[0, 2] = float(bndbox[2]) - 1
+            box[0, 3] = float(bndbox[3]) - 1
 
             boxes = np.append(boxes, box, axis=0)
 
