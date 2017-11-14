@@ -52,7 +52,7 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
 
                 img_filepath, x1, y1, x2, y2, classname = row
 
-                # if a class file was input, check if the current class name is correctly present
+                # check if the current class name is correctly present
                 if classname not in self.classes:
                     raise ValueError('found class name in data file not present in class file: {}'.format(classname))
 
