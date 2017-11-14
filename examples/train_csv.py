@@ -72,8 +72,6 @@ if __name__ == '__main__':
         image_data_generator=train_image_data_generator,
         batch_size=args.batch_size
     )
-    while True:
-        X, Y = train_generator.next()
 
     # create a generator for testing data
     test_generator = CSVGenerator(
