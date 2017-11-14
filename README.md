@@ -22,14 +22,14 @@ For training on [MS COCO](http://cocodataset.org/#home), run:
 python examples/train_coco.py <path to MS COCO>
 ```
 
-For training on a custom dataset, a CSV file can be used as a way to pass the data. For an example, see:
+For training on a custom dataset, a CSV file can be used as a way to pass the data. To train using your CSV, run:
 ```
 python examples/train_csv.py <path to csv file containing annotations> <path to csv file containing classes>
 ```
 
 The expected format of each line of the annotations CSV is:
 ```
-filepath,x1,y1,x2,y2,class_name`
+filepath,x1,y1,x2,y2,class_name
 ```
 
 For example:
@@ -40,7 +40,7 @@ For example:
 
 The expected format of each line of the classes CSV is:
 ```
-class_name,id`
+class_name,id
 ```
 
 For example:
