@@ -1,4 +1,6 @@
 """
+Copyright 2017-2018 yhenon (https://github.com/yhenon/)
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -39,8 +41,9 @@ def create_model(num_classes, weights='imagenet'):
 def parse_args():
     parser = argparse.ArgumentParser(description='Simple training script for object detection from a CSV file.')
     parser.add_argument('csv_path', help='Path to CSV file')
+    parser.add_argument('--classes', help='Path to a CSV file containing class label mapping.')
     parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
-    parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
+    parser.add_argument('--batch-size', help='Size of the batches.', default=2, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
 
     return parser.parse_args()
@@ -60,19 +63,24 @@ if __name__ == '__main__':
     )
     test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
+
     # create a generator for training data
     train_generator = CSVGenerator(
-        args.csv_path,
-        'train',
-        train_image_data_generator,
+        csv_data_file=args.csv_path,
+        set_name='train',
+        csv_class_file=args.classes,
+        image_data_generator=train_image_data_generator,
         batch_size=args.batch_size
     )
+    while True:
+        X, Y = train_generator.next()
 
     # create a generator for testing data
     test_generator = CSVGenerator(
-        args.csv_path,
-        'val',
-        test_image_data_generator,
+        csv_data_file=args.csv_path,
+        set_name='val',
+        csv_class_file=args.classes,
+        image_data_generator=test_image_data_generator,
         batch_size=args.batch_size
     )
 
