@@ -22,7 +22,7 @@ import keras.preprocessing.image
 
 import tensorflow as tf
 
-import keras_retinanet.callbacks
+import keras_retinanet.callbacks.coco
 import keras_retinanet.losses
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.coco import CocoGenerator
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         callbacks=[
             keras.callbacks.ModelCheckpoint('snapshots/resnet50_coco_best.h5', monitor='loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
-            keras_retinanet.callbacks.CocoEval(val_generator),
+            keras_retinanet.callbacks.coco.CocoEval(val_generator),
         ],
     )
 
