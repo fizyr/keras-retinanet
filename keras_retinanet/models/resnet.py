@@ -19,7 +19,7 @@ import keras_resnet
 import keras_resnet.models
 import keras_retinanet.models.retinanet
 
-WEIGHTS_PATH_NO_TOP = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.2/resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5'
+WEIGHTS_PATH_NO_TOP = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-50-model.keras.h5'
 
 custom_objects = keras_retinanet.models.retinanet.custom_objects.copy()
 custom_objects.update(keras_resnet.custom_objects)
@@ -31,8 +31,8 @@ def ResNet50RetinaNet(inputs, weights='imagenet', *args, **kwargs):
     # load pretrained imagenet weights?
     if weights == 'imagenet':
         weights_path = keras.applications.imagenet_utils.get_file(
-            'resnet50_weights_tf_dim_ordering_tf_kernels_notop.h5',
-            WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='a268eb855778b3df3c7506639542a6af'
+            'ResNet-50-model.keras.h5',
+            WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='1e511c75e9ab5c16900652ad1f6044ce'
         )
     else:
         weights_path = weights
