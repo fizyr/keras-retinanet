@@ -70,7 +70,7 @@ class PascalVocGenerator(Generator):
         self,
         data_dir,
         set_name,
-        *args,
+        image_data_generator,
         classes=voc_classes,
         image_extension='.jpg',
         skip_truncated=False,
@@ -89,7 +89,7 @@ class PascalVocGenerator(Generator):
         for key, value in self.classes.items():
             self.labels[value] = key
 
-        super(PascalVocGenerator, self).__init__(*args, **kwargs)
+        super(PascalVocGenerator, self).__init__(image_data_generator, **kwargs)
 
     def size(self):
         return len(self.image_names)

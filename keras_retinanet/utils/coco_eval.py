@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import print_function
+
 from keras_retinanet.utils.image import preprocess_image, resize_image
 
 from pycocotools.coco import COCO
