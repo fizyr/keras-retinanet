@@ -9,5 +9,5 @@ setuptools.setup(
     maintainer='Hans Gaiser',
     maintainer_email='j.c.gaiser@delftrobotics.com',
     packages=setuptools.find_packages(),
-    install_requires=['keras', 'tensorflow-gpu', 'keras-resnet']
+    install_requires=['keras', 'tensorflow-gpu', 'keras-resnet', 'future']
 )

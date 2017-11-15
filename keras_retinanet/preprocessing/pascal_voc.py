@@ -19,10 +19,14 @@ from keras_retinanet.preprocessing.generator import Generator
 import cv2
 import os
 import numpy as np
+from future.utils import raise_from
 from PIL import Image
 
 import cv2
-import xml.etree.ElementTree as ET
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 voc_classes = {
     'aeroplane'   : 0,
@@ -46,6 +50,19 @@ voc_classes = {
     'train'       : 18,
     'tvmonitor'   : 19
 }
+
+
+def _findNode(parent, name, debug_name = None, parse = None):
+    if debug_name is None: debug_name = name
+    result = parent.find(name)
+    if result is None:
+        raise ValueError('missing element \'{}\''.format(debug_name))
+    if parse is not None:
+        try:
+            return parse(result.text)
+        except ValueError as e:
+            raise_from(ValueError('illegal value for \'{}\': {}'.format(debug_name, e)), None)
+    return result
 
 
 class PascalVocGenerator(Generator):
@@ -95,36 +112,51 @@ class PascalVocGenerator(Generator):
         path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
         return cv2.imread(path)
 
-    def load_annotations(self, image_index):
+    def __parse_annotation(self, element):
+        truncated = _findNode(element, 'truncated', parse=int)
+        difficult = _findNode(element, 'difficult', parse=int)
+
+        class_name = _findNode(element, 'name').text
+        if class_name not in self.classes:
+            raise ValueError('class name \'{}\' not found in classes: {}'.format(class_name, list(self.classes.keys())))
+
+        box = np.zeros((1, 5))
+        box[0, 4] = self.name_to_label(class_name)
+
+        bndbox    = _findNode(element, 'bndbox')
+        box[0, 0] = _findNode(bndbox, 'xmin', 'bndbox.xmin', parse=float) - 1
+        box[0, 1] = _findNode(bndbox, 'ymin', 'bndbox.ymin', parse=float) - 1
+        box[0, 2] = _findNode(bndbox, 'xmax', 'bndbox.xmax', parse=float) - 1
+        box[0, 3] = _findNode(bndbox, 'ymax', 'bndbox.ymax', parse=float) - 1
+
+        return truncated, difficult, box
+
+    def __parse_annotations(self, xml_root):
+        size_node = _findNode(xml_root, 'size')
+        width     = _findNode(size_node, 'width',  'size.width',  parse=float)
+        height    = _findNode(size_node, 'height', 'size.height', parse=float)
+
         boxes = np.zeros((0, 5))
+        for i, element in enumerate(xml_root.iter('object')):
+            try:
+                truncated, difficult, box = self.__parse_annotation(element)
+            except ValueError as e:
+                raise_from(ValueError('could not parse object #{}: {}'.format(i, e)), None)
 
-        tree = ET.parse(os.path.join(self.data_dir, 'Annotations', self.image_names[image_index] + '.xml'))
-        root = tree.getroot()
-
-        width = float(root.find('size').find('width').text)
-        height = float(root.find('size').find('height').text)
-
-        for o in root.iter('object'):
-            if int(o.find('truncated').text) and self.skip_truncated:
+            if truncated and self.skip_truncated:
                 continue
-
-            if int(o.find('difficult').text) and self.skip_difficult:
+            if difficult and self.skip_difficult:
                 continue
-
-            box = np.zeros((1, 5))
-
-            class_name = o.find('name').text
-            if class_name not in self.classes:
-                raise Exception('Class name "{}" not found in classes "{}"'.format(class_name, self.classes))
-
-            box[0, 4] = self.name_to_label(class_name)
-
-            bndbox = o.find('bndbox')
-            box[0, 0] = float(bndbox.find('xmin').text) - 1
-            box[0, 1] = float(bndbox.find('ymin').text) - 1
-            box[0, 2] = float(bndbox.find('xmax').text) - 1
-            box[0, 3] = float(bndbox.find('ymax').text) - 1
-
             boxes = np.append(boxes, box, axis=0)
 
         return boxes
+
+    def load_annotations(self, image_index):
+        filename = self.image_names[image_index] + '.xml'
+        try:
+            tree = ET.parse(os.path.join(self.data_dir, 'Annotations', filename))
+            return self.__parse_annotations(tree.getroot())
+        except ET.ParseError as e:
+            raise_from(ValueError('invalid annotations file: {}: {}'.format(filename, e)), None)
+        except ValueError as e:
+            raise_from(ValueError('invalid annotations file: {}: {}'.format(filename, e)), None)
