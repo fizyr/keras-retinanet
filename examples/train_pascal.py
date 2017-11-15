@@ -21,7 +21,6 @@ import keras
 import keras.preprocessing.image
 
 import keras_retinanet.losses
-import keras_retinanet.callbacks
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
 
