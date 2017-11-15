@@ -37,8 +37,7 @@ For example:
 /data/imgs/img_001.jpg,837,346,981,456,cow
 /data/imgs/img_002.jpg,215,312,279,391,cat
 ```
-
-The expected format of each line of the classes CSV is:
+Note that indexing for pixel values starts at 0. The expected format of each line of the classes CSV is:
 ```
 class_name,id
 ```

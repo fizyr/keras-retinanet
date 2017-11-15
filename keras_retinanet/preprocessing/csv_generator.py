@@ -90,26 +90,22 @@ class CSVGenerator(keras_retinanet.preprocessing.Generator):
         return cv2.imread(path)
 
     def load_annotations(self, image_index):
-        boxes = np.zeros((0, 5))
 
         path = self.image_names[image_index]
 
         annots = self.image_data[path]
 
-        for annot in annots:
+        boxes = np.zeros((len(annots), 5))
 
-            box = np.zeros((1, 5))
+        for idx, annot in enumerate(annots):
 
             class_name = annot['class']
 
-            box[0, 4] = self.name_to_label(class_name)
+            boxes[idx, 0] = float(annot['x1'])
+            boxes[idx, 1] = float(annot['y1'])
+            boxes[idx, 2] = float(annot['x2'])
+            boxes[idx, 3] = float(annot['y2'])
 
-            bndbox = [annot['x1'], annot['y1'], annot['x2'], annot['y2']]
-            box[0, 0] = float(bndbox[0]) - 1
-            box[0, 1] = float(bndbox[1]) - 1
-            box[0, 2] = float(bndbox[2]) - 1
-            box[0, 3] = float(bndbox[3]) - 1
-
-            boxes = np.append(boxes, box, axis=0)
+            boxes[idx, 4] = self.name_to_label(class_name)
 
         return boxes
