@@ -29,6 +29,7 @@ import xml.etree.ElementTree as ET
 import os
 import numpy as np
 import time
+import platform
 
 voc_classes = {
     'aeroplane'      : 0,
@@ -86,7 +87,10 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
             self.labels[value] = key
 
         if seed is None:
-            seed = np.uint32(time.time() * 1000)
+            if platform.system() == 'Windows':
+                seed = np.uint32(time.time())
+            else
+                seed = np.uint32(time.time() * 1000)
 
         assert(batch_size == 1), "Currently only batch_size=1 is allowed."
 
