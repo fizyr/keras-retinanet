@@ -19,7 +19,7 @@ from keras_retinanet.preprocessing.generator import Generator
 import cv2
 import os
 import numpy as np
-from future.utils import raise_from
+from six import raise_from
 from PIL import Image
 
 import cv2
