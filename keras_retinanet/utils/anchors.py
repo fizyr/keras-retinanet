@@ -17,50 +17,81 @@ limitations under the License.
 import numpy as np
 
 
-def anchor_targets(image, gt_boxes, num_classes, negative_overlap=0.4, positive_overlap=0.5, **kwargs):
-    # first create the anchors for this image
-    anchors = anchors_for_image(image, **kwargs)
+def anchor_targets(
+    image_shape,
+    boxes,
+    num_classes,
+    mask_shape=None,
+    negative_overlap=0.4,
+    positive_overlap=0.5,
+    **kwargs
+):
+    anchors = anchors_for_shape(image_shape, **kwargs)
 
     # label: 1 is positive, 0 is negative, -1 is dont care
     labels = np.ones((anchors.shape[0], num_classes)) * -1
 
-    # obtain indices of gt boxes with the greatest overlap
-    overlaps             = compute_overlap(anchors, gt_boxes[:, :4])
-    argmax_overlaps_inds = np.argmax(overlaps, axis=1)
-    max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
+    if boxes.shape[0]:
+        # obtain indices of gt boxes with the greatest overlap
+        overlaps             = compute_overlap(anchors, boxes[:, :4])
+        argmax_overlaps_inds = np.argmax(overlaps, axis=1)
+        max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
-    # assign bg labels first so that positive labels can clobber them
-    labels[max_overlaps < negative_overlap, :] = 0
+        # assign bg labels first so that positive labels can clobber them
+        labels[max_overlaps < negative_overlap, :] = 0
 
-    # compute box regression targets
-    gt_boxes         = gt_boxes[argmax_overlaps_inds]
-    bbox_reg_targets = bbox_transform(anchors, gt_boxes)
+        # compute box regression targets
+        boxes            = boxes[argmax_overlaps_inds]
+        bbox_reg_targets = bbox_transform(anchors, boxes)
 
-    # fg label: above threshold IOU
-    positive_indices = max_overlaps >= positive_overlap
-    labels[positive_indices, :] = 0
-    labels[positive_indices, gt_boxes[positive_indices, 4].astype(int)] = 1
+        # fg label: above threshold IOU
+        positive_indices = max_overlaps >= positive_overlap
+        labels[positive_indices, :] = 0
+        labels[positive_indices, boxes[positive_indices, 4].astype(int)] = 1
+    else:
+        # no annotations? then everything is background
+        labels[:] = 0
+        bbox_reg_targets = np.zeros_like(anchors)
+
+    # ignore boxes outside of image
+    mask_shape         = image_shape if mask_shape is None else mask_shape
+    anchors_centers    = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
+    indices            = np.logical_or(anchors_centers[:, 0] >= mask_shape[1], anchors_centers[:, 1] >= mask_shape[0])
+    labels[indices, :] = -1
 
     return labels, bbox_reg_targets
 
 
-def anchors_for_image(image, pyramid_levels=None, anchor_ratios=None, anchor_scales=None, anchor_strides=None, anchor_sizes=None):
+def anchors_for_shape(
+    image_shape,
+    pyramid_levels=None,
+    ratios=None,
+    scales=None,
+    strides=None,
+    sizes=None
+):
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
-    if anchor_strides is None:
-        anchor_strides = [2 ** x for x in pyramid_levels]
-    if anchor_sizes is None:
-        anchor_sizes = [2 ** (x + 2) for x in pyramid_levels]
+    if strides is None:
+        strides = [2 ** x for x in pyramid_levels]
+    if sizes is None:
+        sizes = [2 ** (x + 2) for x in pyramid_levels]
+    if ratios is None:
+        ratios = np.array([0.5, 1, 2])
+    if scales is None:
+        scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
 
-    shape = np.array(image.shape[:2])
+    # skip the first two levels
+    image_shape = np.array(image_shape[:2])
     for i in range(pyramid_levels[0] - 1):
-        shape = (shape + 1) // 2  # skip the first two levels
+        image_shape = (image_shape + 1) // 2
 
+    # compute anchors over all pyramid levels
     all_anchors = np.zeros((0, 4))
     for idx, p in enumerate(pyramid_levels):
-        shape           = (shape + 1) // 2
-        anchors         = generate_anchors(base_size=anchor_sizes[idx], ratios=anchor_ratios, scales=anchor_scales)
-        shifted_anchors = shift(shape, anchor_strides[idx], anchors)
+        image_shape     = (image_shape + 1) // 2
+        anchors         = generate_anchors(base_size=sizes[idx], ratios=ratios, scales=scales)
+        shifted_anchors = shift(image_shape, strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
     return all_anchors

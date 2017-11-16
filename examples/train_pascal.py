@@ -20,8 +20,9 @@ import os
 import keras
 import keras.preprocessing.image
 
-from keras_retinanet.models import ResNet50RetinaNet
-from keras_retinanet.preprocessing.pascal_voc import PascalVocIterator
+import keras_retinanet.losses
+from keras_retinanet.models.resnet import ResNet50RetinaNet
+from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
 from keras_retinanet.utils.keras_version import check_keras_version
 
 import tensorflow as tf
@@ -42,6 +43,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Simple training script for Pascal VOC object detection.')
     parser.add_argument('voc_path', help='Path to Pascal VOC directory (ie. /tmp/VOCdevkit/VOC2007).')
     parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
+    parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
 
     return parser.parse_args()
@@ -78,31 +80,32 @@ if __name__ == '__main__':
     train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
         horizontal_flip=True,
     )
-    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
+    val_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for training data
-    train_generator = PascalVocIterator(
+    train_generator = PascalVocGenerator(
         args.voc_path,
         'trainval',
-        train_image_data_generator
+        train_image_data_generator,
+        batch_size=args.batch_size
     )
 
     # create a generator for testing data
-    test_generator = PascalVocIterator(
+    val_generator = PascalVocGenerator(
         args.voc_path,
         'test',
-        test_image_data_generator
+        val_image_data_generator,
+        batch_size=args.batch_size
     )
 
     # start training
-    batch_size = 1
     model.fit_generator(
         generator=train_generator,
-        steps_per_epoch=len(train_generator.image_names) // batch_size,
+        steps_per_epoch=len(train_generator.image_names) // args.batch_size,
         epochs=50,
         verbose=1,
-        validation_data=test_generator,
-        validation_steps=3000,  # len(test_generator.image_names) // batch_size,
+        validation_data=val_generator,
+        validation_steps=3000,  # len(val_generator.image_names) // args.batch_size,
         callbacks=[
             keras.callbacks.ModelCheckpoint('snapshots/resnet50_voc_best.h5', monitor='val_loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=10, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),

@@ -14,47 +14,60 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
-
-import keras.applications.imagenet_utils
-import keras.preprocessing.image
-import keras.backend
-from .anchors import anchors_for_image, anchor_targets
-
-import keras_retinanet
+from keras_retinanet.preprocessing.generator import Generator
 
 import cv2
-import xml.etree.ElementTree as ET
-
 import os
 import numpy as np
-import time
+from six import raise_from
+from PIL import Image
+
+import cv2
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
 
 voc_classes = {
-    'aeroplane'      : 0,
-    'bicycle'        : 1,
-    'bird'           : 2,
-    'boat'           : 3,
-    'bottle'         : 4,
-    'bus'            : 5,
-    'car'            : 6,
-    'cat'            : 7,
-    'chair'          : 8,
-    'cow'            : 9,
-    'diningtable'    : 10,
-    'dog'            : 11,
-    'horse'          : 12,
-    'motorbike'      : 13,
-    'person'         : 14,
-    'pottedplant'    : 15,
-    'sheep'          : 16,
-    'sofa'           : 17,
-    'train'          : 18,
-    'tvmonitor'      : 19
+    'aeroplane'   : 0,
+    'bicycle'     : 1,
+    'bird'        : 2,
+    'boat'        : 3,
+    'bottle'      : 4,
+    'bus'         : 5,
+    'car'         : 6,
+    'cat'         : 7,
+    'chair'       : 8,
+    'cow'         : 9,
+    'diningtable' : 10,
+    'dog'         : 11,
+    'horse'       : 12,
+    'motorbike'   : 13,
+    'person'      : 14,
+    'pottedplant' : 15,
+    'sheep'       : 16,
+    'sofa'        : 17,
+    'train'       : 18,
+    'tvmonitor'   : 19
 }
 
 
-class PascalVocIterator(keras.preprocessing.image.Iterator):
+def _findNode(parent, name, debug_name = None, parse = None):
+    if debug_name is None:
+        debug_name = name
+
+    result = parent.find(name)
+    if result is None:
+        raise ValueError('missing element \'{}\''.format(debug_name))
+    if parse is not None:
+        try:
+            return parse(result.text)
+        except ValueError as e:
+            raise_from(ValueError('illegal value for \'{}\': {}'.format(debug_name, e)), None)
+    return result
+
+
+class PascalVocGenerator(Generator):
     def __init__(
         self,
         data_dir,
@@ -64,124 +77,88 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
         image_extension='.jpg',
         skip_truncated=False,
         skip_difficult=False,
-        image_min_side=600,
-        image_max_side=1024,
-        batch_size=1,
-        shuffle=True,
-        seed=None,
+        **kwargs
     ):
         self.data_dir             = data_dir
         self.set_name             = set_name
         self.classes              = classes
         self.image_names          = [l.strip() for l in open(os.path.join(data_dir, 'ImageSets', 'Main', set_name + '.txt')).readlines()]
-        self.image_data_generator = image_data_generator
         self.image_extension      = image_extension
         self.skip_truncated       = skip_truncated
         self.skip_difficult       = skip_difficult
-        self.image_min_side       = image_min_side
-        self.image_max_side       = image_max_side
 
         self.labels = {}
         for key, value in self.classes.items():
             self.labels[value] = key
 
-        if seed is None:
-            seed = np.uint32(time.time() * 1000)
+        super(PascalVocGenerator, self).__init__(image_data_generator, **kwargs)
 
-        assert(batch_size == 1), "Currently only batch_size=1 is allowed."
+    def size(self):
+        return len(self.image_names)
 
-        super(PascalVocIterator, self).__init__(len(self.image_names), batch_size, shuffle, seed)
+    def num_classes(self):
+        return len(self.classes)
 
-    def parse_annotations(self, filename):
-        boxes = np.zeros((0, 5), dtype=keras.backend.floatx())
+    def name_to_label(self, name):
+        return self.classes[name]
 
-        tree = ET.parse(os.path.join(self.data_dir, 'Annotations', filename + '.xml'))
-        root = tree.getroot()
+    def label_to_name(self, label):
+        return self.labels[label]
 
-        width = float(root.find('size').find('width').text)
-        height = float(root.find('size').find('height').text)
+    def image_aspect_ratio(self, image_index):
+        path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
+        image = Image.open(path)
+        return float(image.width) / float(image.height)
 
-        for o in root.iter('object'):
-            if int(o.find('truncated').text) and self.skip_truncated:
+    def load_image(self, image_index):
+        path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
+        return cv2.imread(path)
+
+    def __parse_annotation(self, element):
+        truncated = _findNode(element, 'truncated', parse=int)
+        difficult = _findNode(element, 'difficult', parse=int)
+
+        class_name = _findNode(element, 'name').text
+        if class_name not in self.classes:
+            raise ValueError('class name \'{}\' not found in classes: {}'.format(class_name, list(self.classes.keys())))
+
+        box = np.zeros((1, 5))
+        box[0, 4] = self.name_to_label(class_name)
+
+        bndbox    = _findNode(element, 'bndbox')
+        box[0, 0] = _findNode(bndbox, 'xmin', 'bndbox.xmin', parse=float) - 1
+        box[0, 1] = _findNode(bndbox, 'ymin', 'bndbox.ymin', parse=float) - 1
+        box[0, 2] = _findNode(bndbox, 'xmax', 'bndbox.xmax', parse=float) - 1
+        box[0, 3] = _findNode(bndbox, 'ymax', 'bndbox.ymax', parse=float) - 1
+
+        return truncated, difficult, box
+
+    def __parse_annotations(self, xml_root):
+        size_node = _findNode(xml_root, 'size')
+        width     = _findNode(size_node, 'width',  'size.width',  parse=float)
+        height    = _findNode(size_node, 'height', 'size.height', parse=float)
+
+        boxes = np.zeros((0, 5))
+        for i, element in enumerate(xml_root.iter('object')):
+            try:
+                truncated, difficult, box = self.__parse_annotation(element)
+            except ValueError as e:
+                raise_from(ValueError('could not parse object #{}: {}'.format(i, e)), None)
+
+            if truncated and self.skip_truncated:
                 continue
-
-            if int(o.find('difficult').text) and self.skip_difficult:
+            if difficult and self.skip_difficult:
                 continue
-
-            box = np.zeros((1, 5), dtype=keras.backend.floatx())
-
-            class_name = o.find('name').text
-            if class_name not in self.classes:
-                raise Exception('Class name "{}" not found in classes "{}"'.format(class_name, self.classes))
-            box[0, 4] = self.classes[class_name]
-
-            bndbox = o.find('bndbox')
-            box[0, 0] = float(bndbox.find('xmin').text) - 1
-            box[0, 1] = float(bndbox.find('ymin').text) - 1
-            box[0, 2] = float(bndbox.find('xmax').text) - 1
-            box[0, 3] = float(bndbox.find('ymax').text) - 1
-
             boxes = np.append(boxes, box, axis=0)
 
         return boxes
 
-    def load_image(self, image_index):
-        path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
-        image = cv2.imread(path, cv2.IMREAD_COLOR)
-        image, image_scale = keras_retinanet.preprocessing.image.resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
-
-        # set ground truth boxes
-        boxes_batch = np.zeros((1, 0, 5), dtype=keras.backend.floatx())
-        boxes       = np.expand_dims(self.parse_annotations(self.image_names[image_index]), axis=0)
-        boxes_batch = np.append(boxes_batch, boxes, axis=1)
-
-        # scale the ground truth boxes to the selected image scale
-        boxes_batch[0, :, :4] *= image_scale
-
-        # convert to batches (currently only batch_size = 1 is allowed)
-        image_batch = np.expand_dims(image, axis=0).astype(keras.backend.floatx())
-
-        # randomly transform images and boxes simultaneously
-        image_batch, boxes_batch = keras_retinanet.preprocessing.image.random_transform_batch(image_batch, boxes_batch, self.image_data_generator)
-
-        # generate the label and regression targets
-        labels, regression_targets = anchor_targets(image, boxes_batch[0], len(self.classes))
-        regression_targets         = np.append(regression_targets, labels, axis=1)
-
-        # convert target to batch (currently only batch_size = 1 is allowed)
-        regression_batch = np.expand_dims(regression_targets, axis=0)
-        labels_batch     = np.expand_dims(labels, axis=0)
-
-        # convert the image to zero-mean
-        image_batch = keras_retinanet.preprocessing.image.preprocess_input(image_batch)
-        image_batch = self.image_data_generator.standardize(image_batch)
-
-        return {
-            'image'            : image,
-            'image_scale'      : image_scale,
-            'boxes_batch'      : boxes_batch,
-            'image_batch'      : image_batch,
-            'regression_batch' : regression_batch,
-            'labels_batch'     : labels_batch,
-        }
-
-    def _get_batches_of_transformed_samples(self, indices):
-        assert(len(indices) == 1), "Currently only batch_size=1 is allowed."
-
-        image_data = self.load_image(indices[0])
-
-        if image_data is None:
-            return None
-
-        return image_data['image_batch'], [image_data['regression_batch'], image_data['labels_batch']]
-
-    def next(self):
-        # lock indexing to prevent race conditions
-        with self.lock:
-            selection = next(self.index_generator)
-
-        result = self._get_batches_of_transformed_samples(selection)
-        if result is None:
-            return self.next()
-
-        return result
+    def load_annotations(self, image_index):
+        filename = self.image_names[image_index] + '.xml'
+        try:
+            tree = ET.parse(os.path.join(self.data_dir, 'Annotations', filename))
+            return self.__parse_annotations(tree.getroot())
+        except ET.ParseError as e:
+            raise_from(ValueError('invalid annotations file: {}: {}'.format(filename, e)), None)
+        except ValueError as e:
+            raise_from(ValueError('invalid annotations file: {}: {}'.format(filename, e)), None)

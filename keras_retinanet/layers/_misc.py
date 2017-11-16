@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 import keras
-import keras_retinanet
+import keras_retinanet.backend
+import keras_retinanet.utils.anchors
 
 import numpy as np
 
@@ -33,7 +34,7 @@ class Anchors(keras.layers.Layer):
             self.scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
 
         self.num_anchors = len(ratios) * len(scales)
-        self.anchors     = keras.backend.variable(keras_retinanet.preprocessing.anchors.generate_anchors(
+        self.anchors     = keras.backend.variable(keras_retinanet.utils.anchors.generate_anchors(
             base_size=size,
             ratios=ratios,
             scales=scales,
@@ -68,7 +69,7 @@ class Anchors(keras.layers.Layer):
 
 
 class NonMaximumSuppression(keras.layers.Layer):
-    def __init__(self, nms_threshold=0.4, top_k=1000, max_boxes=300, *args, **kwargs):
+    def __init__(self, nms_threshold=0.4, top_k=None, max_boxes=300, *args, **kwargs):
         self.nms_threshold = nms_threshold
         self.top_k         = top_k
         self.max_boxes     = max_boxes
@@ -83,11 +84,13 @@ class NonMaximumSuppression(keras.layers.Layer):
         detections     = detections[0]
 
         scores          = keras.backend.max(classification, axis=1)
-        scores, indices = keras_retinanet.backend.top_k(scores, self.top_k, sorted=False)
 
-        boxes          = keras.backend.gather(boxes, indices)
-        classification = keras.backend.gather(classification, indices)
-        detections     = keras.backend.gather(detections, indices)
+        # selecting best anchors theoretically improves speed at the cost of minor performance
+        if self.top_k:
+            scores, indices = keras_retinanet.backend.top_k(scores, self.top_k, sorted=False)
+            boxes           = keras.backend.gather(boxes, indices)
+            classification  = keras.backend.gather(classification, indices)
+            detections      = keras.backend.gather(detections, indices)
 
         indices = keras_retinanet.backend.non_max_suppression(boxes, scores, max_output_size=self.max_boxes, iou_threshold=self.nms_threshold)
 

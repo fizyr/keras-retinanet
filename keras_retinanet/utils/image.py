@@ -21,9 +21,10 @@ import numpy as np
 import cv2
 
 
-def preprocess_input(x):
+def preprocess_image(x):
     # mostly identical to "https://github.com/fchollet/keras/blob/master/keras/applications/imagenet_utils.py"
     # except for converting RGB -> BGR since we assume BGR already
+    x = x.astype(keras.backend.floatx())
     if keras.backend.image_data_format() == 'channels_first':
         if x.ndim == 3:
             x[0, :, :] -= 103.939
@@ -41,43 +42,40 @@ def preprocess_input(x):
     return x
 
 
-def random_transform_batch(
-    image_batch,
-    boxes_batch,
+def random_transform(
+    image,
+    boxes,
     image_data_generator,
     seed=None
 ):
     if seed is None:
-        seed = np.uint32(time.time() * 1000)
+        seed = np.random.randint(10000)
 
-    for batch in range(image_batch.shape[0]):
-        image_batch[batch] = image_data_generator.random_transform(image_batch[0], seed=seed)
+    image = image_data_generator.random_transform(image, seed=seed)
 
-        # set fill mode so that masks are not enlarged
-        fill_mode = image_data_generator.fill_mode
-        image_data_generator.fill_mode = 'constant'
+    # set fill mode so that masks are not enlarged
+    fill_mode = image_data_generator.fill_mode
+    image_data_generator.fill_mode = 'constant'
 
-        for idx in range(boxes_batch.shape[1]):
-            # generate box mask and randomly transform it
-            mask = np.zeros_like(image_batch[batch], dtype=np.uint8)
-            b = boxes_batch[batch, idx, :4].astype(int)
-            cv2.rectangle(mask, (b[0], b[1]), (b[2], b[3]), (255,) * image_batch[batch].shape[-1], -1)
-            mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
-            mask = mask.copy()  # to force contiguous arrays
+    for index in range(boxes.shape[0]):
+        # generate box mask and randomly transform it
+        mask = np.zeros_like(image, dtype=np.uint8)
+        b = boxes[index, :4].astype(int)
+        cv2.rectangle(mask, (b[0], b[1]), (b[2], b[3]), (255,) * image.shape[-1], -1)
+        mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
+        mask = mask.copy()  # to force contiguous arrays
 
-            # find bounding box again in augmented image
-            contours = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-            contour = contours[0]
-            x, y, w, h = cv2.boundingRect(contour)
-            boxes_batch[batch, idx, 0] = x
-            boxes_batch[batch, idx, 1] = y
-            boxes_batch[batch, idx, 2] = x + w
-            boxes_batch[batch, idx, 3] = y + h
+        # find bounding box again in augmented image
+        [i, j] = np.where(mask == 255)
+        boxes[index, 0] = float(min(j))
+        boxes[index, 1] = float(min(i))
+        boxes[index, 2] = float(max(j))
+        boxes[index, 3] = float(max(i))
 
-        # restore fill_mode
-        image_data_generator.fill_mode = fill_mode
+    # restore fill_mode
+    image_data_generator.fill_mode = fill_mode
 
-    return image_batch, boxes_batch
+    return image, boxes
 
 
 def resize_image(img, min_side=600, max_side=1024):

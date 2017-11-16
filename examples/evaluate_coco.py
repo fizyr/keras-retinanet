@@ -17,32 +17,21 @@ limitations under the License.
 """
 
 import keras
-import keras_retinanet
+import keras.preprocessing.image
+from keras_retinanet.preprocessing.coco import CocoGenerator
+from keras_retinanet.utils.coco_eval import evaluate_coco
+from keras_retinanet.models.resnet import custom_objects
 from keras_retinanet.utils.keras_version import check_keras_version
 
-from keras_retinanet.preprocessing.coco import CocoIterator
-
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
-
-import json
-import cv2
-import numpy as np
-import os
-import argparse
-
 import tensorflow as tf
+
+import argparse
 
 
 def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
-
-
-def create_model(weights='imagenet'):
-    image = keras.layers.Input((None, None, 3))
-    return keras_retinanet.models.ResNet50RetinaNet(image, num_classes=90, weights=weights)
 
 
 def parse_args():
@@ -68,77 +57,17 @@ if __name__ == '__main__':
     keras.backend.tensorflow_backend.set_session(get_session())
 
     # create the model
-    print('Creating model, this may take a second...')
-    model = create_model(weights=args.model)
+    print('Loading model, this may take a second...')
+    model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
     # create image data generator object
     test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
     # create a generator for testing data
-    test_generator = CocoIterator(
+    test_generator = CocoGenerator(
         args.coco_path,
         args.set,
         test_image_data_generator,
     )
 
-    # start collecting results
-    results = []
-    image_ids = []
-    for i in range(len(test_generator.image_ids)):
-        image_data = test_generator.load_image(i)
-        if image_data is None:
-            # some images fail to load due to missing annotations
-            continue
-
-        # run network
-        _, _, detections = model.predict_on_batch(image_data['image_batch'])
-
-        # clip to image shape
-        detections[:, :, 0] = np.maximum(0, detections[:, :, 0])
-        detections[:, :, 1] = np.maximum(0, detections[:, :, 1])
-        detections[:, :, 2] = np.minimum(image_data['image'].shape[1], detections[:, :, 2])
-        detections[:, :, 3] = np.minimum(image_data['image'].shape[0], detections[:, :, 3])
-
-        # correct boxes for image scale
-        detections[0, :, :4] /= image_data['image_scale']
-
-        # change to (x, y, w, h) (MS COCO standard)
-        detections[:, :, 2] -= detections[:, :, 0]
-        detections[:, :, 3] -= detections[:, :, 1]
-
-        # compute predicted labels and scores
-        for detection in detections[0, ...]:
-            positive_labels = np.where(detection[4:] > args.score_threshold)[0]
-
-            # append detections for each positively labeled class
-            for label in positive_labels:
-                image_result = {
-                    'image_id'    : image_data['coco_index'],
-                    'category_id' : int(label) + 1,  # MS COCO starts labels from 1, we start from 0
-                    'score'       : float(detection[4 + label]),
-                    'bbox'        : (detection[:4]).tolist(),
-                }
-
-                # append detection to results
-                results.append(image_result)
-
-        # append image to list of processed images
-        image_ids.append(image_data['coco_index'])
-
-        # print progress
-        print('{}/{}'.format(i, len(test_generator.image_ids)), end='\r')
-
-    # write output
-    json.dump(results, open('{}_bbox_results.json'.format(args.set), 'w'), indent=4)
-    json.dump(image_ids, open('{}_processed_image_ids.json'.format(args.set), 'w'), indent=4)
-
-    # load results in COCO evaluation tool
-    coco_true = test_generator.coco
-    coco_pred = coco_true.loadRes('{}_bbox_results.json'.format(args.set))
-
-    # run COCO evaluation
-    coco_eval = COCOeval(coco_true, coco_pred, 'bbox')
-    coco_eval.params.imgIds = image_ids
-    coco_eval.evaluate()
-    coco_eval.accumulate()
-    coco_eval.summarize()
+    evaluate_coco(test_generator, model, args.score_threshold)

@@ -20,9 +20,9 @@ import keras_retinanet
 
 def focal(alpha=0.25, gamma=2.0):
     def _focal(y_true, y_pred):
-        # TODO: Remove constraint of batch_size == 1
-        labels         = y_true[0, :, :]
-        classification = y_pred[0, :, :]
+        # discard batches, throw all labels / classifications on one big blob
+        labels         = keras.backend.reshape(y_true, (-1, keras.backend.shape(y_true)[2]))
+        classification = keras.backend.reshape(y_pred, (-1, keras.backend.shape(y_pred)[2]))
 
         # filter out "ignore" anchors
         anchor_state   = keras.backend.max(labels, axis=1)  # -1 for ignore, 0 for background, 1 for object
@@ -53,13 +53,12 @@ def smooth_l1(sigma=3.0):
     sigma_squared = sigma ** 2
 
     def _smooth_l1(y_true, y_pred):
-        # TODO: Remove constraint of batch_size == 1
-        regression        = y_pred[0, :, :]
-        regression_target = y_true[0, :, :4]
-        labels            = y_true[0, :, 4:]
+        # discard batches, throw all regression / anchor states on one big blob
+        regression        = keras.backend.reshape(y_pred, (-1, 4))
+        regression_target = keras.backend.reshape(y_true[:, :, :4], (-1, 4))
+        anchor_state      = keras.backend.reshape(y_true[:, :, 4], (-1,))
 
         # filter out "ignore" anchors
-        anchor_state      = keras.backend.max(labels, axis=1)  # -1 for ignore, 0 for background, 1 for object
         indices           = keras_retinanet.backend.where(keras.backend.equal(anchor_state, 1))
         regression        = keras_retinanet.backend.gather_nd(regression, indices)
         regression_target = keras_retinanet.backend.gather_nd(regression_target, indices)
