@@ -49,7 +49,7 @@ def random_transform(
     seed=None
 ):
     if seed is None:
-        seed = np.uint32(time.time() * 1000)
+        seed = np.random.randint(10000)
 
     image = image_data_generator.random_transform(image, seed=seed)
 

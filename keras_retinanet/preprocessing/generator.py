@@ -17,6 +17,8 @@ limitations under the License.
 import numpy as np
 import random
 import threading
+import time
+
 import keras
 
 from keras_retinanet.utils.image import preprocess_image, resize_image, random_transform
@@ -32,6 +34,7 @@ class Generator(object):
         shuffle_groups=True,
         image_min_side=600,
         image_max_side=1024,
+        seed=None
     ):
         self.image_data_generator = image_data_generator
         self.batch_size           = int(batch_size)
@@ -39,6 +42,10 @@ class Generator(object):
         self.shuffle_groups       = shuffle_groups
         self.image_min_side       = image_min_side
         self.image_max_side       = image_max_side
+
+        if seed is None:
+            seed = np.uint32((time.time() % 1)) * 1000
+        np.random.seed(seed)
 
         self.group_index = 0
         self.lock        = threading.Lock()
