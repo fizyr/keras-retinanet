@@ -26,6 +26,7 @@ import keras_retinanet.callbacks.coco
 import keras_retinanet.losses
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.coco import CocoGenerator
+from keras_retinanet.utils.keras_version import check_keras_version
 
 
 def get_session():
@@ -51,6 +52,9 @@ def parse_args():
 if __name__ == '__main__':
     # parse arguments
     args = parse_args()
+
+    # make sure keras is the minimum required version
+    check_keras_version()
 
     # optionally choose specific GPU
     if args.gpu:

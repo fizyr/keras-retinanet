@@ -23,6 +23,7 @@ import keras.preprocessing.image
 import keras_retinanet.losses
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
+from keras_retinanet.utils.keras_version import check_keras_version
 
 import tensorflow as tf
 
@@ -50,6 +51,9 @@ def parse_args():
 if __name__ == '__main__':
     # parse arguments
     args = parse_args()
+
+    # make sure keras is the minimum required version
+    check_keras_version()
 
     # optionally choose specific GPU
     if args.gpu:

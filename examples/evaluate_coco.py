@@ -21,6 +21,7 @@ import keras.preprocessing.image
 from keras_retinanet.preprocessing.coco import CocoGenerator
 from keras_retinanet.utils.coco_eval import evaluate_coco
 from keras_retinanet.models.resnet import custom_objects
+from keras_retinanet.utils.keras_version import check_keras_version
 
 import tensorflow as tf
 
@@ -46,6 +47,9 @@ def parse_args():
 if __name__ == '__main__':
     # parse arguments
     args = parse_args()
+
+    # make sure keras is the minimum required version
+    check_keras_version()
 
     # optionally choose specific GPU
     if args.gpu:
