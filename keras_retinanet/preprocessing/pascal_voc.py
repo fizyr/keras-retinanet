@@ -89,7 +89,7 @@ class PascalVocIterator(keras.preprocessing.image.Iterator):
         if seed is None:
             if platform.system() == 'Windows':
                 seed = np.uint32(time.time())
-            else
+            else:
                 seed = np.uint32(time.time() * 1000)
 
         assert(batch_size == 1), "Currently only batch_size=1 is allowed."

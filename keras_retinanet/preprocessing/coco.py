@@ -59,7 +59,7 @@ class CocoIterator(keras.preprocessing.image.Iterator):
         if seed is None:
             if platform.system() == 'Windows':
                 seed = np.uint32(time.time())
-            else
+            else:
                 seed = np.uint32(time.time() * 1000)
 
         self.load_classes()
