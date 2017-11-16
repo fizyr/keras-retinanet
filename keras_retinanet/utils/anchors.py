@@ -61,6 +61,7 @@ def anchor_targets(
 
     return labels, bbox_reg_targets
 
+
 def anchors_for_shape(
     image_shape,
     pyramid_levels=None,

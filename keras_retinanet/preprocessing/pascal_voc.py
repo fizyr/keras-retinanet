@@ -53,7 +53,9 @@ voc_classes = {
 
 
 def _findNode(parent, name, debug_name = None, parse = None):
-    if debug_name is None: debug_name = name
+    if debug_name is None:
+        debug_name = name
+
     result = parent.find(name)
     if result is None:
         raise ValueError('missing element \'{}\''.format(debug_name))

@@ -66,7 +66,7 @@ def random_transform(
         mask = mask.copy()  # to force contiguous arrays
 
         # find bounding box again in augmented image
-        [i,j] = np.where(mask == 255)
+        [i, j] = np.where(mask == 255)
         boxes[index, 0] = float(min(j))
         boxes[index, 1] = float(min(i))
         boxes[index, 2] = float(max(j))

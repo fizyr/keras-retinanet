@@ -30,7 +30,7 @@ class Generator(object):
         self,
         image_data_generator,
         batch_size=1,
-        group_method='ratio', # one of 'none', 'random', 'ratio'
+        group_method='ratio',  # one of 'none', 'random', 'ratio'
         shuffle_groups=True,
         image_min_side=600,
         image_max_side=1024,
@@ -166,6 +166,5 @@ class Generator(object):
         for index, (labels, regression) in enumerate(zip(labels_group, regression_group)):
             labels_batch[index, ...]     = labels
             regression_batch[index, ...] = regression
-
 
         return image_batch, [regression_batch, labels_batch]
