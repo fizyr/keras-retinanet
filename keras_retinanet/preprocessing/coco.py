@@ -27,6 +27,7 @@ import cv2
 import os
 import numpy as np
 import time
+import platform
 
 from pycocotools.coco import COCO
 
@@ -56,7 +57,10 @@ class CocoIterator(keras.preprocessing.image.Iterator):
         self.num_classes          = num_classes
 
         if seed is None:
-            seed = np.uint32(time.time() * 1000)
+            if platform.system() == 'Windows':
+                seed = np.uint32(time.time())
+            else:
+                seed = np.uint32(time.time() * 1000)
 
         self.load_classes()
 
