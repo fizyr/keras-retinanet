@@ -71,8 +71,8 @@ if __name__ == '__main__':
         image_data_generator=train_image_data_generator,
         batch_size=args.batch_size
     )
-    if args.val_path is not None:
 
+    if args.val_path:
         test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
 
         # create a generator for testing data
@@ -82,6 +82,8 @@ if __name__ == '__main__':
             image_data_generator=test_image_data_generator,
             batch_size=args.batch_size
         )
+    else:
+        test_generator = None
 
     num_classes = train_generator.num_classes()
 
@@ -102,32 +104,19 @@ if __name__ == '__main__':
     print(model.summary())
 
     # start training
-    if args.val_path is not None:
-        model.fit_generator(
-            generator=train_generator,
-            steps_per_epoch=train_generator.size() // args.batch_size,
-            epochs=20,
-            verbose=1,
-            max_queue_size=20,
-            validation_data=test_generator,
-            validation_steps=test_generator.size() // args.batch_size,
-            callbacks=[
-                keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='val_loss', verbose=1, save_best_only=True),
-                keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
-            ],
-        )
-    else:
-         model.fit_generator(
-            generator=train_generator,
-            steps_per_epoch=train_generator.size() // args.batch_size,
-            epochs=20,
-            verbose=1,
-            max_queue_size=20,
-            callbacks=[
-                keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='loss', verbose=1, save_best_only=True),
-                keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
-            ],
-        )
+    model.fit_generator(
+        generator=train_generator,
+        steps_per_epoch=train_generator.size() // args.batch_size,
+        epochs=20,
+        verbose=1,
+        max_queue_size=20,
+        validation_data=test_generator,
+        validation_steps=test_generator.size() // args.batch_size if test_generator else: 0,
+        callbacks=[
+            keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='val_loss', verbose=1, save_best_only=True),
+            keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
+        ],
+    )
 
     # store final result too
     model.save('snapshots/resnet50_csv_final.h5')
