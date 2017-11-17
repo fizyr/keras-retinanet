@@ -25,7 +25,7 @@ custom_objects = keras_retinanet.models.retinanet.custom_objects.copy()
 custom_objects.update(keras_resnet.custom_objects)
 
 
-def ResNet50RetinaNet(inputs, weights='imagenet', *args, **kwargs):
+def ResNet50RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
     image = inputs
 
     # load pretrained imagenet weights?
@@ -39,6 +39,6 @@ def ResNet50RetinaNet(inputs, weights='imagenet', *args, **kwargs):
 
     resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
 
-    model = keras_retinanet.models.retinanet.retinanet_bbox(inputs=inputs, backbone=resnet, *args, **kwargs)
+    model = keras_retinanet.models.retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
     model.load_weights(weights_path, by_name=True)
     return model
