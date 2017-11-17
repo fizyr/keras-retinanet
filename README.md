@@ -4,8 +4,8 @@ Keras implementation of RetinaNet object detection as described in [this paper](
 ## Installation
 
 1) Clone this repository.
-2) In the repository, execute `pip install . --user`. Note that due to inconsistencies with how `tensorflow` should be installed, this package does not define a dependency on `tensorflow` as it will try to install that through `pip` (which at least on Arch linux results in an incorrect installation). Please make sure `tensorflow` is installed as per your systems requirements. Also, make sure Keras 2.0.9 is installed.
-3) As of writing, this repository requires the branch `disable-biases` of `keras-resnet` (clone [this](https://github.com/fizyr-forks/keras-resnet/tree/disable-bias) repository and run `pip install . --user` in that repository).
+2) In the repository, execute `python setup.py install --user`. Note that due to inconsistencies with how `tensorflow` should be installed, this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch linux results in an incorrect installation). Please make sure `tensorflow` is installed as per your systems requirements. Also, make sure Keras 2.0.9 is installed.
+3) As of writing, this repository requires the branch `disable-biases` of `keras-resnet` (clone [this](https://github.com/fizyr-forks/keras-resnet/tree/disable-bias) repository and run `python setup.py install --user` in that repository).
 4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset. Clone the [`cocoapi` repository](https://github.com/cocodataset/cocoapi) and inside the `PythonAPI` folder, execute `python setup.py install --user`.
 
 ## Training
