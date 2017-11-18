@@ -38,13 +38,13 @@ class CSVGenerator(Generator):
 
         # parse the provided class file
         self.classes = {}
-        with open(csv_class_file, 'rb') as f_class_in:
+        with open(csv_class_file, 'r') as f_class_in:
             csvreader = csv.reader(f_class_in, delimiter=',')
             for classname, class_id in csvreader:
                 self.classes[classname] = int(class_id)
 
         # csv with img_filepath, x1, y1, x2, y2, class_name
-        with open(csv_data_file, 'rb') as f_in:
+        with open(csv_data_file, 'r') as f_in:
             csvreader = csv.reader(f_in, delimiter=',')
             for row in csvreader:
 
