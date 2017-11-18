@@ -22,7 +22,7 @@ import keras.preprocessing.image
 
 import tensorflow as tf
 
-from keras_retinanet.models import ResNet50RetinaNet
+from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.csv_generator import CSVGenerator
 import keras_retinanet
 

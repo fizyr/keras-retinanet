@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras_retinanet
+from keras_retinanet.preprocessing.generator import Generator
 
 import numpy as np
 from PIL import Image
@@ -23,7 +23,7 @@ import cv2
 import csv
 
 
-class CSVGenerator(keras_retinanet.preprocessing.Generator):
+class CSVGenerator(Generator):
     def __init__(
         self,
         csv_data_file,
