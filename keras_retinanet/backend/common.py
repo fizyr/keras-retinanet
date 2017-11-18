@@ -20,7 +20,12 @@ import keras_retinanet.backend
 import numpy as np
 
 
-def bbox_transform_inv(boxes, deltas):
+def bbox_transform_inv(boxes, deltas, mean=None, std=None):
+    if mean is None:
+        mean = [0, 0, 0, 0]
+    if std is None:
+        std = [0.1, 0.1, 0.2, 0.2]
+
     boxes  = keras.backend.reshape(boxes, (-1, 4))
     deltas = keras.backend.reshape(deltas, (-1, 4))
 
@@ -29,10 +34,10 @@ def bbox_transform_inv(boxes, deltas):
     ctr_x   = boxes[:, 0] + 0.5 * widths
     ctr_y   = boxes[:, 1] + 0.5 * heights
 
-    dx = deltas[:, 0]
-    dy = deltas[:, 1]
-    dw = deltas[:, 2]
-    dh = deltas[:, 3]
+    dx = deltas[:, 0] * std[0] + mean[0]
+    dy = deltas[:, 1] * std[1] + mean[1]
+    dw = deltas[:, 2] * std[2] + mean[2]
+    dh = deltas[:, 3] * std[3] + mean[3]
 
     pred_ctr_x = ctr_x + dx * widths
     pred_ctr_y = ctr_y + dy * heights

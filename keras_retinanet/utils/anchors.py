@@ -154,8 +154,14 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     return anchors
 
 
-def bbox_transform(anchors, gt_boxes):
+def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     """Compute bounding-box regression targets for an image."""
+
+    if mean is None:
+        mean = [0, 0, 0, 0]
+    if std is None:
+        std = [0.1, 0.1, 0.2, 0.2]
+
     anchor_widths  = anchors[:, 2] - anchors[:, 0] + 1.0
     anchor_heights = anchors[:, 3] - anchors[:, 1] + 1.0
     anchor_ctr_x   = anchors[:, 0] + 0.5 * anchor_widths
@@ -173,6 +179,9 @@ def bbox_transform(anchors, gt_boxes):
 
     targets = np.stack((targets_dx, targets_dy, targets_dw, targets_dh))
     targets = targets.T
+
+    for i in range(4):
+        targets[:, i] = (targets[:, i] - mean[i]) / std[i]
 
     return targets
 
