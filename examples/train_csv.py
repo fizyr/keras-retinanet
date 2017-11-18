@@ -111,7 +111,7 @@ if __name__ == '__main__':
         verbose=1,
         max_queue_size=20,
         validation_data=test_generator,
-        validation_steps=test_generator.size() // args.batch_size if test_generator else: 0,
+        validation_steps=test_generator.size() // args.batch_size if test_generator else 0,
         callbacks=[
             keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='val_loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
