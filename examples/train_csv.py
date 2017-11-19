@@ -119,4 +119,4 @@ if __name__ == '__main__':
     )
 
     # store final result too
-    model.save('snapshots/resnet50_csv_final.h5')
+    model.save(os.path.join('snapshots', 'resnet50_csv_final.h5'))
