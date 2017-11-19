@@ -106,11 +106,11 @@ if __name__ == '__main__':
         epochs=50,
         verbose=1,
         callbacks=[
-            keras.callbacks.ModelCheckpoint('snapshots/resnet50_coco_best.h5', monitor='loss', verbose=1, save_best_only=True),
+            keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_coco_best.h5'), monitor='loss', verbose=1, save_best_only=True),
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
             keras_retinanet.callbacks.coco.CocoEval(val_generator),
         ],
     )
 
     # store final result too
-    model.save('snapshots/resnet50_coco_final.h5')
+    model.save(os.path.join('snapshots', 'resnet50_coco_final.h5'))
