@@ -90,7 +90,7 @@ def smooth_l1(sigma=3.0):
         regression_loss = regression_loss /divisor
 
         # filter out "ignore" anchors
-        indices           = keras_retinanet.backend.where(keras.backend.equal(anchor_state, 1))
+        indices         = keras_retinanet.backend.where(keras.backend.equal(anchor_state, 1))
         regression_loss = keras_retinanet.backend.gather_nd(regression_loss, indices)
 
         # divide loss by the batch size
