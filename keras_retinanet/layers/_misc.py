@@ -83,7 +83,7 @@ class NonMaximumSuppression(keras.layers.Layer):
         classification = classification[0]
         detections     = detections[0]
 
-        scores          = keras.backend.max(classification, axis=1)
+        scores = keras.backend.max(classification, axis=1)
 
         # selecting best anchors theoretically improves speed at the cost of minor performance
         if self.top_k:
