@@ -22,7 +22,7 @@ import time
 import keras
 
 from keras_retinanet.utils.image import preprocess_image, resize_image, random_transform
-from keras_retinanet.utils.anchors import anchor_targets
+from keras_retinanet.utils.anchors import anchor_targets_bbox
 
 
 class Generator(object):
@@ -120,25 +120,7 @@ class Generator(object):
         if self.shuffle_groups:
             random.shuffle(self.groups)
 
-    def __next__(self):
-        return self.next()
-
-    def next(self):
-        # advance the group index
-        with self.lock:
-            group_index = self.group_index
-            self.group_index = (self.group_index + 1) % len(self.groups)
-            if self.group_index == 0 and self.shuffle_groups:
-                # shuffle groups at end of epoch
-                random.shuffle(self.groups)
-
-        # load images and annotations
-        image_group       = self.load_image_group(group_index)
-        annotations_group = self.load_annotations_group(group_index)
-
-        # perform preprocessing steps
-        image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
-
+    def compute_inputs(self, image_group):
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
 
@@ -149,11 +131,29 @@ class Generator(object):
         for image_index, image in enumerate(image_group):
             image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
 
+        return image_batch
+
+    def anchor_targets(
+        self,
+        image_shape,
+        boxes,
+        num_classes,
+        mask_shape=None,
+        negative_overlap=0.4,
+        positive_overlap=0.5,
+        **kwargs
+    ):
+        return anchor_targets_bbox(image_shape, boxes, num_classes, mask_shape, negative_overlap, positive_overlap)
+
+    def compute_targets(self, image_group, annotations_group):
+        # get the max image shape
+        max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
+
         # compute labels and regression targets
-        labels_group      = [None] * self.batch_size
+        labels_group     = [None] * self.batch_size
         regression_group = [None] * self.batch_size
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
-            labels_group[index], regression_group[index] = anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
+            labels_group[index], regression_group[index] = self.anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
 
             # append anchor states to regression targets (necessary for filtering 'ignore', 'positive' and 'negative' anchors)
             anchor_states           = np.max(labels_group[index], axis=1, keepdims=True)
@@ -167,4 +167,34 @@ class Generator(object):
             labels_batch[index, ...]     = labels
             regression_batch[index, ...] = regression
 
-        return image_batch, [regression_batch, labels_batch]
+        return [regression_batch, labels_batch]
+
+    def compute_input_output(self, group_index):
+        # load images and annotations
+        image_group       = self.load_image_group(group_index)
+        annotations_group = self.load_annotations_group(group_index)
+
+        # perform preprocessing steps
+        image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
+
+        # compute network inputs
+        inputs = self.compute_inputs(image_group)
+
+        # compute network targets
+        targets = self.compute_targets(image_group, annotations_group)
+
+        return inputs, targets
+
+    def __next__(self):
+        return self.next()
+
+    def next(self):
+        # advance the group index
+        with self.lock:
+            group_index = self.group_index
+            self.group_index = (self.group_index + 1) % len(self.groups)
+            if self.group_index == 0 and self.shuffle_groups:
+                # shuffle groups at end of epoch
+                random.shuffle(self.groups)
+
+        return self.compute_input_output(group_index)

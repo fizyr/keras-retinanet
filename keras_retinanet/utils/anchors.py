@@ -17,7 +17,7 @@ limitations under the License.
 import numpy as np
 
 
-def anchor_targets(
+def anchor_targets_bbox(
     image_shape,
     boxes,
     num_classes,
