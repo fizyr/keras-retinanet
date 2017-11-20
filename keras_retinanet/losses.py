@@ -20,22 +20,21 @@ import keras_retinanet
 
 def focal(alpha=0.25, gamma=2.0):
     def _focal(y_true, y_pred):
+        labels         = y_true
+        classification = y_pred
 
         # compute the divisor: for each image in the batch, we want the number of positive anchors
 
         # override the -1 labels, since we treat values -1 and 0 the same way for determining the divisor
-        divisor   = keras_retinanet.backend.where(keras.backend.less_equal(y_true, 0), keras.backend.zeros_like(y_true), y_true)
-        divisor   = keras.backend.max(divisor, axis=2, keepdims=True)
-        divisor   = keras.backend.cast(divisor, keras.backend.floatx())
+        divisor = keras_retinanet.backend.where(keras.backend.less_equal(labels, 0), keras.backend.zeros_like(labels), labels)
+        divisor = keras.backend.max(divisor, axis=2, keepdims=True)
+        divisor = keras.backend.cast(divisor, keras.backend.floatx())
 
         # compute the number of positive anchors
-        divisor   = keras.backend.sum(divisor, axis=1, keepdims=True)
+        divisor = keras.backend.sum(divisor, axis=1, keepdims=True)
 
         #  ensure we do not divide by 0
-        divisor   = keras.backend.maximum(1.0, divisor)
-
-        labels         = y_true
-        classification = y_pred
+        divisor = keras.backend.maximum(1.0, divisor)
 
         # compute the focal loss
         alpha_factor = keras.backend.ones_like(labels) * alpha
@@ -49,13 +48,13 @@ def focal(alpha=0.25, gamma=2.0):
         cls_loss = cls_loss / divisor
 
         # filter out "ignore" anchors
-        anchor_state   = keras.backend.max(labels, axis=2)  # -1 for ignore, 0 for background, 1 for object
-        indices        = keras_retinanet.backend.where(keras.backend.not_equal(anchor_state, -1))
+        anchor_state = keras.backend.max(labels, axis=2)  # -1 for ignore, 0 for background, 1 for object
+        indices      = keras_retinanet.backend.where(keras.backend.not_equal(anchor_state, -1))
 
         cls_loss = keras_retinanet.backend.gather_nd(cls_loss, indices)
 
         # divide by the size of the minibatch
-        return keras.backend.sum(cls_loss) / keras.backend.cast(keras.backend.shape(y_true)[0], keras.backend.floatx())
+        return keras.backend.sum(cls_loss) / keras.backend.cast(keras.backend.shape(labels)[0], keras.backend.floatx())
 
     return _focal
 
@@ -64,16 +63,15 @@ def smooth_l1(sigma=3.0):
     sigma_squared = sigma ** 2
 
     def _smooth_l1(y_true, y_pred):
-
         # separate target and state
         regression        = y_pred
         regression_target = y_true[:, :, :4]
         anchor_state      = y_true[:, :, 4]
 
-        # compute the divisor: for each image in the batch, we want the number of positive anchors
-        divisor = keras_retinanet.backend.where(keras.backend.equal(anchor_state, 1), anchor_state, keras.backend.zeros_like(anchor_state))
-        divisor   = keras.backend.sum(divisor, axis=1, keepdims=True)
-        divisor   = keras.backend.maximum(1.0, divisor)
+        # compute the divisor: for each image in the batch, we want the number of positive and negative anchors
+        divisor = keras_retinanet.backend.where(keras.backend.not_equal(anchor_state, -1), keras.backend.ones_like(anchor_state), keras.backend.zeros_like(anchor_state))
+        divisor = keras.backend.sum(divisor, axis=1, keepdims=True)
+        divisor = keras.backend.maximum(1.0, divisor)
 
         # pad the tensor to have shape (batch_size, 1, 1) for future division
         divisor   = keras.backend.expand_dims(divisor, axis=2)
@@ -89,7 +87,7 @@ def smooth_l1(sigma=3.0):
             regression_diff - 0.5 / sigma_squared
         )
 
-        # normalise by the number of positive anchors for each entry in the minibatch
+        # normalise by the number of positive and negative anchors for each entry in the minibatch
         regression_loss = regression_loss / divisor
 
         # filter out "ignore" anchors

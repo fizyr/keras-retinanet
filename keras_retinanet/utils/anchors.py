@@ -158,9 +158,19 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     """Compute bounding-box regression targets for an image."""
 
     if mean is None:
-        mean = [0, 0, 0, 0]
+        mean = np.array([0, 0, 0, 0])
     if std is None:
-        std = [0.1, 0.1, 0.2, 0.2]
+        std = np.array([0.1, 0.1, 0.2, 0.2])
+
+    if isinstance(mean, (list, tuple)):
+        mean = np.array(mean)
+    elif not isinstance(mean, np.ndarray):
+        raise ValueError('Expected mean to be a np.ndarray, list or tuple. Received: {}'.format(type(mean)))
+
+    if isinstance(std, (list, tuple)):
+        std = np.array(std)
+    elif not isinstance(std, np.ndarray):
+        raise ValueError('Expected std to be a np.ndarray, list or tuple. Received: {}'.format(type(std)))
 
     anchor_widths  = anchors[:, 2] - anchors[:, 0] + 1.0
     anchor_heights = anchors[:, 3] - anchors[:, 1] + 1.0
@@ -180,8 +190,7 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     targets = np.stack((targets_dx, targets_dy, targets_dw, targets_dh))
     targets = targets.T
 
-    for i in range(4):
-        targets[:, i] = (targets[:, i] - mean[i]) / std[i]
+    targets = (targets - mean) / std
 
     return targets
 
