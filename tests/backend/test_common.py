@@ -59,7 +59,7 @@ def test_bbox_transform_inv():
     result = keras_retinanet.backend.bbox_transform_inv(boxes, deltas)
     result = keras.backend.eval(result).reshape(-1, 4)
 
-    np.testing.assert_array_almost_equal(result, expected)
+    np.testing.assert_array_almost_equal(result, expected, decimal=2)
 
 
 def test_shift():
