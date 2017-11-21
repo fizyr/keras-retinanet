@@ -70,6 +70,12 @@ _, _, detections = model.predict_on_batch(inputs)
 
 Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, cls1, cls2, ...)`).
 
+Loading models can be done in the following manner:
+```
+from keras_retinanet.models.resnet import custom_objects
+model = keras.models.load_model('/path/to/model.h5', custom_objects=custom_objects)
+```
+
 Execution time on NVIDIA Pascal Titan X is roughly 55msec for an image of shape `1000x600x3`.
 
 ## Results
