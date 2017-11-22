@@ -1,5 +1,6 @@
 """
 Copyright 2017-2018 yhenon (https://github.com/yhenon/)
+Copyright 2017-2018 Fizyr (https://fizyr.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,9 +19,75 @@ from keras_retinanet.preprocessing.generator import Generator
 
 import numpy as np
 from PIL import Image
+from six import raise_from
 
 import cv2
 import csv
+
+
+def _parse(value, function, fmt):
+    """
+    Parse a string into a value, and format a nice ValueError if it fails.
+
+    Returns `function(value)`.
+    Any `ValueError` raised is catched and a new `ValueError` is raised
+    with message `fmt.format(e)`, where `e` is the caught `ValueError`.
+    """
+    try:
+        return function(value)
+    except ValueError as e:
+        raise_from(ValueError(fmt.format(e)), None)
+
+
+def _read_classes(csv_reader):
+    result = {}
+    for line, row in enumerate(csv_reader):
+        try:
+            class_name, class_id = row
+        except ValueError:
+            raise_from(ValueError('line {}: format should be \'class_name,class_id\''.format(line)), None)
+        class_id = _parse(class_id, int, 'line {}: malformed class ID: {{}}'.format(line))
+
+        if class_name in result:
+            raise ValueError('line {}: duplicate class name: \'{}\''.format(line, class_name))
+        result[class_name] = class_id
+    return result
+
+
+def _read_annotations(csv_reader, classes):
+    result = {}
+    for line, row in enumerate(csv_reader):
+        try:
+            img_file, x1, y1, x2, y2, class_name = row
+        except ValueError:
+            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name\''.format(line)), None)
+        x1 = _parse(x1, int, 'line {}: malformed x1: {{}}'.format(line))
+        y1 = _parse(y1, int, 'line {}: malformed y1: {{}}'.format(line))
+        x2 = _parse(x2, int, 'line {}: malformed x2: {{}}'.format(line))
+        y2 = _parse(y2, int, 'line {}: malformed y2: {{}}'.format(line))
+
+        # check if the current class name is correctly present
+        if class_name not in classes:
+            raise ValueError('line {}: unknown class name: {}'.format(line, class_name))
+
+        if img_file not in result:
+            result[img_file] = []
+
+        result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name})
+    return result
+
+
+def _open_for_csv(path):
+    """
+    Open a file with flags suitable for csv.reader.
+
+    This is different for python2 this means with mode 'rb',
+    for python3 this means 'r' with "universal newlines".
+    """
+    if bytes == str:
+        return open(path, 'rb')
+    else:
+        return open(path, 'r', newline='')
 
 
 class CSVGenerator(Generator):
@@ -31,39 +98,27 @@ class CSVGenerator(Generator):
         *args,
         **kwargs
     ):
-        self.csv_data_file        = csv_data_file
-
-        self.image_names          = []
-        self.image_data           = {}
+        self.image_names = []
+        self.image_data  = {}
 
         # parse the provided class file
-        self.classes = {}
-        with open(csv_class_file, 'r') as f_class_in:
-            csvreader = csv.reader(f_class_in, delimiter=',')
-            for classname, class_id in csvreader:
-                self.classes[classname] = int(class_id)
-
-        # csv with img_filepath, x1, y1, x2, y2, class_name
-        with open(csv_data_file, 'r') as f_in:
-            csvreader = csv.reader(f_in, delimiter=',')
-            for row in csvreader:
-
-                img_filepath, x1, y1, x2, y2, classname = row
-
-                # check if the current class name is correctly present
-                if classname not in self.classes:
-                    raise ValueError('found class name in data file not present in class file: {}'.format(classname))
-
-                if img_filepath not in self.image_names:
-                    self.image_names.append(img_filepath)
-                    self.image_data[img_filepath] = []
-
-                self.image_data[img_filepath].append(
-                    {'x1': int(x1), 'x2': int(x2), 'y1': int(y1), 'y2': int(y2), 'class': classname})
+        try:
+            with _open_for_csv(csv_class_file) as file:
+                self.classes = _read_classes(csv.reader(file, delimiter=','))
+        except ValueError as e:
+            raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
         self.labels = {}
         for key, value in self.classes.items():
             self.labels[value] = key
+
+        # csv with img_path, x1, y1, x2, y2, class_name
+        try:
+            with _open_for_csv(csv_data_file) as file:
+                self.image_data = _read_annotations(csv.reader(file, delimiter=','))
+        except ValueError as e:
+            raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
+        self.image_names = self.image_data.keys()
 
         super(CSVGenerator, self).__init__(*args, **kwargs)
 
@@ -90,22 +145,16 @@ class CSVGenerator(Generator):
         return cv2.imread(path)
 
     def load_annotations(self, image_index):
-
-        path = self.image_names[image_index]
-
+        path   = self.image_names[image_index]
         annots = self.image_data[path]
-
-        boxes = np.zeros((len(annots), 5))
+        boxes  = np.zeros((len(annots), 5))
 
         for idx, annot in enumerate(annots):
-
             class_name = annot['class']
-
             boxes[idx, 0] = float(annot['x1'])
             boxes[idx, 1] = float(annot['y1'])
             boxes[idx, 2] = float(annot['x2'])
             boxes[idx, 3] = float(annot['y2'])
-
             boxes[idx, 4] = self.name_to_label(class_name)
 
         return boxes
