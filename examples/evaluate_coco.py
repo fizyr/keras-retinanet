@@ -26,6 +26,7 @@ from keras_retinanet.utils.keras_version import check_keras_version
 import tensorflow as tf
 
 import argparse
+import os
 
 
 def get_session():
