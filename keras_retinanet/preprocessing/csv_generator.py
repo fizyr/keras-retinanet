@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from keras_retinanet.preprocessing.generator import Generator
+from .generator import Generator
+from ..utils.image import read_image_bgr
 
 import numpy as np
 from PIL import Image
 from six import raise_from
 
-import cv2
 import csv
 
 
@@ -142,7 +142,7 @@ class CSVGenerator(Generator):
 
     def load_image(self, image_index):
         path = self.image_names[image_index]
-        return cv2.imread(path)
+        return read_image_bgr(path)
 
     def load_annotations(self, image_index):
         path   = self.image_names[image_index]
