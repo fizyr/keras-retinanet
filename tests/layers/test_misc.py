@@ -215,8 +215,11 @@ class TestUpsampleLike(object):
 
 class TestRegressBoxes(object):
     def test_simple(self):
+        mean = [0, 0, 0, 0]
+        std  = [0.1, 0.1, 0.2, 0.2]
+
         # create simple RegressBoxes layer
-        regress_boxes_layer = keras_retinanet.layers.RegressBoxes()
+        regress_boxes_layer = keras_retinanet.layers.RegressBoxes(mean=mean, std=std)
 
         # create input
         anchors = np.array([[
@@ -240,8 +243,8 @@ class TestRegressBoxes(object):
         # compute expected output
         expected = np.array([[
             [0 , 0 , 10 , 10 ],
-            [55, 55, 105, 105],
-            [30 - math.e ** 0.1 * 20 * 0.5, 30 - math.e ** 0.1 * 20 * 0.5, 30 + math.e ** 0.1 * 20 * 0.5, 30 + math.e ** 0.1 * 20 * 0.5],
+            [50 + (0.1 * std[0] + mean[0]) * 50, 50 + (0.1 * std[1] + mean[1]) * 50, 100 + (0.1 * std[0] + mean[0]) * 50, 100 + (0.1 * std[1] + mean[1]) * 50],
+            [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],
         ]], dtype=keras.backend.floatx())
 
         np.testing.assert_array_almost_equal(actual, expected, decimal=2)
