@@ -174,8 +174,6 @@ def retinanet(
     if submodels is None:
         submodels = default_submodels(num_classes, anchor_parameters)
 
-    image = inputs
-
     _, C3, C4, C5 = backbone.outputs  # we ignore C2
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
