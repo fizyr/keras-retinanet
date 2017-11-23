@@ -19,6 +19,11 @@ import keras
 import time
 import numpy as np
 import cv2
+import PIL
+
+
+def read_image_bgr(path):
+    return np.asarray(PIL.Image.open(path))[:, :, ::-1]
 
 
 def preprocess_image(x):
