@@ -19,6 +19,12 @@ import keras
 import time
 import numpy as np
 import cv2
+import PIL
+
+
+def read_image_bgr(path):
+    image = np.asarray(PIL.Image.open(path).convert('RGB'))
+    return image[:, :, ::-1]
 
 
 def preprocess_image(x):
@@ -61,7 +67,7 @@ def random_transform(
         # generate box mask and randomly transform it
         mask = np.zeros_like(image, dtype=np.uint8)
         b = boxes[index, :4].astype(int)
-        cv2.rectangle(mask, (b[0], b[1]), (b[2], b[3]), (255,) * image.shape[-1], -1)
+        mask[b[1]:b[3], b[0]:b[2], :] = 255
         mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
         mask = mask.copy()  # to force contiguous arrays
 

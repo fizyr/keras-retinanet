@@ -15,8 +15,8 @@ limitations under the License.
 """
 
 from keras_retinanet.preprocessing.generator import Generator
+from keras_retinanet.utils.image import read_image_bgr
 
-import cv2
 import os
 import numpy as np
 
@@ -78,9 +78,9 @@ class CocoGenerator(Generator):
         return float(image['width']) / float(image['height'])
 
     def load_image(self, image_index):
-        image = self.coco.loadImgs(self.image_ids[image_index])[0]
-        path  = os.path.join(self.data_dir, 'images', self.set_name, image['file_name'])
-        return cv2.imread(path)
+        image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
+        path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
+        return read_image_bgr(path)
 
     def load_annotations(self, image_index):
         # get ground truth annotations
