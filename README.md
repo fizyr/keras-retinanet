@@ -81,7 +81,7 @@ Execution time on NVIDIA Pascal Titan X is roughly 55msec for an image of shape 
 ## Results
 
 ### MS COCO
-The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.com/personal/h_gaiser_fizyr_com/_layouts/15/guestaccess.aspx?docid=0cc7925c4f1154ddda5c5c3c088b8a147&authkey=AUySn3LkZtD4u7nq3viBMiQ&expiration=2017-12-16T15%3A15%3A32.000Z&e=914be80961224618b67321646495f497). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.34).
+The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.com/personal/h_gaiser_fizyr_com/_layouts/15/guestaccess.aspx?docid=058cccfc5055047ad855e7f6e80625621&authkey=AVk9jMWYhYc_HF8bSh_Sxzw&expiration=2017-12-23T16%3A23%3A44.000Z&e=564924016c7a424fb552bfb3097dadda). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.34).
 
 ```
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.305
