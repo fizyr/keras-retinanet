@@ -18,6 +18,7 @@ import numpy as np
 import random
 import threading
 import time
+import warnings
 
 import keras
 
@@ -53,28 +54,50 @@ class Generator(object):
         self.group_images()
 
     def size(self):
-        raise NotImplementedError("size method not implemented")
+        raise NotImplementedError('size method not implemented')
 
     def num_classes(self):
-        raise NotImplementedError("num_classes method not implemented")
+        raise NotImplementedError('num_classes method not implemented')
 
     def name_to_label(self, name):
-        raise NotImplementedError("name_to_label method not implemented")
+        raise NotImplementedError('name_to_label method not implemented')
 
     def label_to_name(self, label):
-        raise NotImplementedError("label_to_name method not implemented")
+        raise NotImplementedError('label_to_name method not implemented')
 
     def image_aspect_ratio(self, image_index):
-        raise NotImplementedError("image_aspect_ratio method not implemented")
+        raise NotImplementedError('image_aspect_ratio method not implemented')
 
     def load_image(self, image_index):
-        raise NotImplementedError("load_image method not implemented")
+        raise NotImplementedError('load_image method not implemented')
 
     def load_annotations(self, image_index):
-        raise NotImplementedError("load_annotations method not implemented")
+        raise NotImplementedError('load_annotations method not implemented')
 
     def load_annotations_group(self, group):
-        return [self.load_annotations(image_index) for image_index in group]
+        annotations_group = [self.load_annotations(image_index) for image_index in group]
+
+        # test all annotations
+        for index, annotations in enumerate(annotations_group):
+            assert(isinstance(annotations, np.ndarray)), '\'load_annotations\' should return a list of numpy arrays, received: {}'.format(type(annotations))
+
+            # test x2 < x1 | y2 < y1 | x1 < 0 | y1 < 0 | x2 <= 0 | y2 <= 0
+            invalid_indices = np.where(
+                (annotations[:, 2] <= annotations[:, 0]) |
+                (annotations[:, 3] <= annotations[:, 1]) |
+                (annotations[:, 0] < 0) |
+                (annotations[:, 1] < 0) |
+                (annotations[:, 2] <= 0) |
+                (annotations[:, 3] <= 0)
+            )[0]
+            if len(invalid_indices):
+                warnings.warn('Image with id {} contains the following invalid boxes: {}.'.format(
+                    group[index],
+                    [annotations[invalid_index, :] for invalid_index in invalid_indices]
+                ))
+                annotations_group[index] = np.delete(annotations, invalid_indices, axis=0)
+
+        return annotations_group
 
     def load_image_group(self, group):
         return [self.load_image(image_index) for image_index in group]
