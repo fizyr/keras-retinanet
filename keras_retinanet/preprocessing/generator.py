@@ -73,11 +73,11 @@ class Generator(object):
     def load_annotations(self, image_index):
         raise NotImplementedError("load_annotations method not implemented")
 
-    def load_annotations_group(self, group_index):
-        return [self.load_annotations(image_index) for image_index in self.groups[group_index]]
+    def load_annotations_group(self, group):
+        return [self.load_annotations(image_index) for image_index in group]
 
-    def load_image_group(self, group_index):
-        return [self.load_image(image_index) for image_index in self.groups[group_index]]
+    def load_image_group(self, group):
+        return [self.load_image(image_index) for image_index in group]
 
     def resize_image(self, image):
         return resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
@@ -169,10 +169,10 @@ class Generator(object):
 
         return [regression_batch, labels_batch]
 
-    def compute_input_output(self, group_index):
+    def compute_input_output(self, group):
         # load images and annotations
-        image_group       = self.load_image_group(group_index)
-        annotations_group = self.load_annotations_group(group_index)
+        image_group       = self.load_image_group(group)
+        annotations_group = self.load_annotations_group(group)
 
         # perform preprocessing steps
         image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
@@ -191,10 +191,10 @@ class Generator(object):
     def next(self):
         # advance the group index
         with self.lock:
-            group_index = self.group_index
+            group = self.groups[self.group_index]
             self.group_index = (self.group_index + 1) % len(self.groups)
             if self.group_index == 0 and self.shuffle_groups:
                 # shuffle groups at end of epoch
                 random.shuffle(self.groups)
 
-        return self.compute_input_output(group_index)
+        return self.compute_input_output(group)
