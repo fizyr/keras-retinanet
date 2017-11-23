@@ -4,6 +4,8 @@ python:
     - '2.7'
 install:
     - pip install keras==2.0.9
+    - pip install opencv-python>=3.3.0
+    - pip install pillow
     - pip install tensorflow
     - pip install git+https://github.com/broadinstitute/keras-resnet
     - pip install pytest-pep8
