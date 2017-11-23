@@ -23,6 +23,7 @@ from PIL import Image
 from six import raise_from
 
 import csv
+import sys
 
 
 def _parse(value, function, fmt):
@@ -66,6 +67,12 @@ def _read_annotations(csv_reader, classes):
         x2 = _parse(x2, int, 'line {}: malformed x2: {{}}'.format(line))
         y2 = _parse(y2, int, 'line {}: malformed y2: {{}}'.format(line))
 
+        # Check that the bounding box is valid.
+        if x2 <= x1:
+            raise ValueError('line {}: x2 ({}) must be higher than x1 ({})'.format(line, x2, x1))
+        if y2 <= y1:
+            raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
+
         # check if the current class name is correctly present
         if class_name not in classes:
             raise ValueError('line {}: unknown class name: {}'.format(line, class_name))
@@ -81,10 +88,10 @@ def _open_for_csv(path):
     """
     Open a file with flags suitable for csv.reader.
 
-    This is different for python2 this means with mode 'rb',
+    This is different for python2 it means with mode 'rb',
     for python3 this means 'r' with "universal newlines".
     """
-    if bytes == str:
+    if sys.version_info[0] < 3:
         return open(path, 'rb')
     else:
         return open(path, 'r', newline='')

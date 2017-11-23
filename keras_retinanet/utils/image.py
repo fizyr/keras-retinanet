@@ -24,7 +24,7 @@ import PIL
 
 def read_image_bgr(path):
     image = np.asarray(PIL.Image.open(path).convert('RGB'))
-    return image[:, :, ::-1]
+    return image[:, :, ::-1].copy()
 
 
 def preprocess_image(x):

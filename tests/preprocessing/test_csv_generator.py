@@ -175,3 +175,33 @@ def test_read_annotations_wrong_class():
         except ValueError as e:
             assert str(e).startswith("line 0: unknown class name:")
             raise
+
+
+def test_read_annotations_invalid_bb_x():
+    with pytest.raises(ValueError):
+        try:
+            annotations = csv_generator._read_annotations(csv_str('a.png,1,2,1,3,g'), {'a': 1})
+        except ValueError as e:
+            assert str(e).startswith("line 0: x2 (1) must be higher than x1 (1)")
+            raise
+    with pytest.raises(ValueError):
+        try:
+            annotations = csv_generator._read_annotations(csv_str('a.png,9,2,5,3,g'), {'a': 1})
+        except ValueError as e:
+            assert str(e).startswith("line 0: x2 (5) must be higher than x1 (9)")
+            raise
+
+
+def test_read_annotations_invalid_bb_y():
+    with pytest.raises(ValueError):
+        try:
+            annotations = csv_generator._read_annotations(csv_str('a.png,1,2,3,2,a'), {'a': 1})
+        except ValueError as e:
+            assert str(e).startswith("line 0: y2 (2) must be higher than y1 (2)")
+            raise
+    with pytest.raises(ValueError):
+        try:
+            annotations = csv_generator._read_annotations(csv_str('a.png,1,8,3,5,a'), {'a': 1})
+        except ValueError as e:
+            assert str(e).startswith("line 0: y2 (5) must be higher than y1 (8)")
+            raise
