@@ -86,9 +86,7 @@ class Generator(object):
                 (annotations[:, 2] <= annotations[:, 0]) |
                 (annotations[:, 3] <= annotations[:, 1]) |
                 (annotations[:, 0] < 0) |
-                (annotations[:, 1] < 0) |
-                (annotations[:, 2] <= 0) |
-                (annotations[:, 3] <= 0)
+                (annotations[:, 1] < 0)
             )[0]
             if len(invalid_indices):
                 warnings.warn('Image with id {} contains the following invalid boxes: {}.'.format(
