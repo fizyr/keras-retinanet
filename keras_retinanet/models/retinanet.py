@@ -218,6 +218,7 @@ def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=model.outputs[1:] + [detections], name=name)
 
+
 def retinanet_multi_gpu_bbox(inputs, num_classes, gpu_list, nms=True, name='retinanet-bbox', *args, **kwargs):
     model = retinanet(inputs=inputs, num_classes=num_classes, *args, **kwargs)
     model = make_parallel(model, gpu_list=gpu_list)

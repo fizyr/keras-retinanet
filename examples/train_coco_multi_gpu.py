@@ -28,6 +28,7 @@ from keras_retinanet.models.resnet import ResNet50RetinaNetMultiGpu
 from keras_retinanet.preprocessing.coco import CocoGenerator
 from keras_retinanet.utils.keras_version import check_keras_version
 
+
 def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -42,12 +43,14 @@ def create_model(gpu_list, weights='imagenet'):
 def parse_args():
     parser = argparse.ArgumentParser(description='Simple training script for COCO object detection.')
     parser.add_argument('coco_path', help='Path to COCO directory (ie. /tmp/COCO).')
-    parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
-    parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
-    parser.add_argument('--gpu-list', help='List of the GPUs to use (as reported by nvidia-smi). Sample input: 0,1,2',
+    parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).',
+                        default='imagenet')
+    parser.add_argument('--batch-size', help='Size of the batches.', default=2, type=int)
+    parser.add_argument('--gpu-list', help='List of the GPUs to use (as reported by nvidia-smi). Sample input: 0,1',
                         default='0,1')
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
     # parse arguments
@@ -70,7 +73,7 @@ if __name__ == '__main__':
     # compile model (note: set loss to None since loss is added inside layer)
     model.compile(
         loss={
-            'regression'    : keras_retinanet.losses.smooth_l1(),
+            'regression': keras_retinanet.losses.smooth_l1(),
             'classification': keras_retinanet.losses.focal()
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
@@ -116,7 +119,8 @@ if __name__ == '__main__':
             keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto',
                                               epsilon=0.0001, cooldown=0, min_lr=0),
             keras_retinanet.callbacks.coco.CocoEvalMultiGpu(val_generator,
-                                                            model_path=os.path.join('snapshots', 'resnet50_coco_best.h5')),
+                                                            model_path=os.path.join('snapshots',
+                                                                                    'resnet50_coco_best.h5')),
         ],
     )
 
