@@ -78,7 +78,12 @@ def make_parallel(model, gpu_list):
 	# merge outputs on CPU
 	with tf.device('/cpu:0'):
 		merged = []
-		for outputs in outputs_all:
-			merged.append(concatenate(outputs, axis=0))
+		for idx, outputs in enumerate(outputs_all):
+			if idx == 1:
+				merged.append(concatenate(outputs, axis=0, name='regression'))
+			elif idx == 2:
+				merged.append(concatenate(outputs, axis=0, name='classification'))
+			else:
+				merged.append(concatenate(outputs, axis=0))
 
 		return Model(inputs=model.inputs, outputs=merged)
