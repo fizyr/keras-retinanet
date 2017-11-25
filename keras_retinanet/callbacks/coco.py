@@ -18,7 +18,6 @@ import keras
 from keras_retinanet.utils.coco_eval import evaluate_coco, evaluate_coco_multi_gpu
 
 
-
 class CocoEval(keras.callbacks.Callback):
     def __init__(self, generator, threshold=0.05):
         self.generator = generator
@@ -26,6 +25,7 @@ class CocoEval(keras.callbacks.Callback):
 
     def on_epoch_end(self, epoch, logs={}):
         evaluate_coco(self.generator, self.model, self.threshold)
+
 
 class CocoEvalMultiGpu(keras.callbacks.Callback):
     def __init__(self, generator, model_path, threshold=0.05):

@@ -27,11 +27,13 @@ import os
 import keras
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 
+
 def create_model(model_path):
     image = keras.layers.Input((None, None, 3))
     model = ResNet50RetinaNet(inputs=image, num_classes=80)
     model.load_weights(model_path, by_name=True)
     return model
+
 
 def evaluate_coco(generator, model, threshold=0.05):
     # start collecting results
@@ -97,6 +99,7 @@ def evaluate_coco(generator, model, threshold=0.05):
     coco_eval.evaluate()
     coco_eval.accumulate()
     coco_eval.summarize()
+
 
 def evaluate_coco_multi_gpu(generator, model_path, threshold=0.05):
     model = create_model(model_path)
