@@ -21,7 +21,11 @@ For training on [MS COCO](http://cocodataset.org/#home), run:
 ```
 python examples/train_coco.py <path to MS COCO>
 ```
-
+For training with multi gpu on [MS COCO](http://cocodataset.org/#home), run:
+```
+python examples/train_coco_multi_gpu.py <path to MS COCO> --gpu-list 0,1
+```
+If you want to use multi gpu training on other datasets, you should change `create_model` function and replace `CocoEval` callback with `CocoEvalMultiGpu`. Please inspect sample multi-gpu training file for other minor things to consider.  
 For training on a custom dataset, a CSV file can be used as a way to pass the data. To train using your CSV, run:
 ```
 python examples/train_csv.py <path to csv file containing annotations> <path to csv file containing classes>

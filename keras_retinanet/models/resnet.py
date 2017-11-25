@@ -39,6 +39,29 @@ def ResNet50RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
 
     resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
 
-    model = keras_retinanet.models.retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
+    model = keras_retinanet.models.retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet,
+                                                            *args, **kwargs)
+    model.load_weights(weights_path, by_name=True)
+    return model
+
+
+def ResNet50RetinaNetMultiGpu(inputs, num_classes, gpu_list, weights='imagenet', *args, **kwargs):
+    image = inputs
+
+    # load pretrained imagenet weights?
+    if weights == 'imagenet':
+        weights_path = keras.applications.imagenet_utils.get_file(
+            'ResNet-50-model.keras.h5',
+            WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='1e511c75e9ab5c16900652ad1f6044ce'
+        )
+    else:
+        weights_path = weights
+
+    resnet = keras_resnet.models.ResNet50(image, include_top=False, freeze_bn=True)
+
+    model = keras_retinanet.models.retinanet.retinanet_multi_gpu_bbox(inputs=inputs,
+                                                                      num_classes=num_classes,
+                                                                      gpu_list=gpu_list,
+                                                                      backbone=resnet, *args, **kwargs)
     model.load_weights(weights_path, by_name=True)
     return model
