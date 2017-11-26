@@ -52,7 +52,6 @@ class TestAnchors(object):
         np.testing.assert_array_equal(anchors, expected)
 
     # mark test to fail
-    @pytest.mark.xfail
     def test_mini_batch(self):
         # create simple Anchors layer
         anchors_layer = keras_retinanet.layers.Anchors(
@@ -250,7 +249,6 @@ class TestRegressBoxes(object):
         np.testing.assert_array_almost_equal(actual, expected, decimal=2)
 
     # mark test to fail
-    @pytest.mark.xfail
     def test_mini_batch(self):
         # create simple RegressBoxes layer
         regress_boxes_layer = keras_retinanet.layers.RegressBoxes()
