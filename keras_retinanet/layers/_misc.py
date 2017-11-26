@@ -64,12 +64,15 @@ class Anchors(keras.layers.Layer):
             return (input_shape[0], None, 4)
 
     def get_config(self):
-        return {
+        config = super(Anchors, self).get_config()
+        config.update({
             'size'   : self.size,
             'stride' : self.stride,
             'ratios' : self.ratios.tolist(),
             'scales' : self.scales.tolist(),
-        }
+        })
+
+        return config
 
 
 class NonMaximumSuppression(keras.layers.Layer):
@@ -105,11 +108,14 @@ class NonMaximumSuppression(keras.layers.Layer):
         return (input_shape[2][0], None, input_shape[2][2])
 
     def get_config(self):
-        return {
+        config = super(NonMaximumSuppression, self).get_config()
+        config.update({
             'nms_threshold' : self.nms_threshold,
             'top_k'         : self.top_k,
             'max_boxes'     : self.max_boxes,
-        }
+        })
+
+        return config
 
 
 class UpsampleLike(keras.layers.Layer):

@@ -32,7 +32,7 @@ def ResNet50RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
     if weights == 'imagenet':
         weights_path = keras.applications.imagenet_utils.get_file(
             'ResNet-50-model.keras.h5',
-            WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='1e511c75e9ab5c16900652ad1f6044ce'
+            WEIGHTS_PATH_NO_TOP, cache_subdir='models', md5_hash='3e9f4e4f77bbe2c9bec13b53ee1c2319'
         )
     else:
         weights_path = weights
