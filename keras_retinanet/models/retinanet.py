@@ -212,7 +212,12 @@ def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, 
 
     # additionally apply non maximum suppression
     if nms:
-        detections = keras_retinanet.layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+        # only run NMS when we're not training
+        detections = keras.backend.switch(
+            keras.backend.learning_phase(),
+            detections,
+            keras_retinanet.layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+        )
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=model.outputs[1:] + [detections], name=name)
