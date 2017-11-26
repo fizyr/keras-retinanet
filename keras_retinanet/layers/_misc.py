@@ -48,11 +48,11 @@ class Anchors(keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         features = inputs
-        features_shape = keras.backend.shape(features)[1:3]
+        features_shape = keras.backend.shape(features)[:3]
 
         # generate proposals from bbox deltas and shifted anchors
-        anchors = keras_retinanet.backend.shift(features_shape, self.stride, self.anchors)
-        anchors = keras.backend.expand_dims(anchors, axis=0)
+        anchors = keras_retinanet.backend.shift(features_shape[1:3], self.stride, self.anchors)
+        anchors = keras.backend.tile(keras.backend.expand_dims(anchors, axis=0), (features_shape[0], 1, 1))
 
         return anchors
 
