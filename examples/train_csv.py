@@ -19,9 +19,11 @@ import os
 
 import keras
 import keras.preprocessing.image
+from keras.utils import multi_gpu_model
 
 import tensorflow as tf
 
+import keras_retinanet.layers
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.preprocessing.csv_generator import CSVGenerator
 import keras_retinanet
@@ -33,9 +35,32 @@ def get_session():
     return tf.Session(config=config)
 
 
-def create_model(num_classes, weights='imagenet'):
+def create_models(num_classes, weights='imagenet', multi_gpu=0):
+    # create "base" model (no NMS)
     image = keras.layers.Input((None, None, 3))
-    return ResNet50RetinaNet(image, num_classes=num_classes, weights=weights)
+    model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
+
+    # optionally wrap in a parallel model
+    if args.multi_gpu > 1:
+        training_model = multi_gpu_model(model, gpus=args.multi_gpu)
+    else:
+        training_model = model
+
+    # append NMS for prediction
+    detections = keras_retinanet.layers.NonMaximumSuppression(name='nms')(model.outputs)
+    prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
+
+    return model, training_model, prediction_model
+
+
+def create_callbacks(model, training_model, prediction_model):
+    # save the prediction model
+    checkpoint = keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_{epoch:02d}.h5'), verbose=1)
+    checkpoint.set_model(prediction_model)
+
+    lr_scheduler = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
+
+    return [checkpoint, lr_scheduler]
 
 
 def parse_args():
@@ -47,12 +72,16 @@ def parse_args():
                         default='imagenet')
     parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
+    parser.add_argument('--multi-gpu', help='Number of GPUs to use for parallel processing.', type=int, default=0)
 
     return parser.parse_args()
 
 if __name__ == '__main__':
     # parse arguments
     args = parse_args()
+
+    # make sure keras is the minimum required version
+    check_keras_version()
 
     # optionally choose specific GPU
     if args.gpu:
@@ -89,10 +118,14 @@ if __name__ == '__main__':
 
     # create the model
     print('Creating model, this may take a second...')
-    model = create_model(num_classes=num_classes, weights=args.weights)
+    model, training_model, prediction_model = create_models(
+        num_classes=num_classes,
+        weights=args.weights,
+        multi_gpu=args.multi_gpu
+    )
 
     # compile model (note: set loss to None since loss is added inside layer)
-    model.compile(
+    training_model.compile(
         loss={
             'regression'    : keras_retinanet.losses.smooth_l1(),
             'classification': keras_retinanet.losses.focal()
@@ -104,7 +137,7 @@ if __name__ == '__main__':
     print(model.summary())
 
     # start training
-    model.fit_generator(
+    training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=train_generator.size() // args.batch_size,
         epochs=20,
@@ -112,10 +145,7 @@ if __name__ == '__main__':
         max_queue_size=20,
         validation_data=test_generator,
         validation_steps=test_generator.size() // args.batch_size if test_generator else 0,
-        callbacks=[
-            keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_csv_best.h5'), monitor='val_loss', verbose=1, save_best_only=True),
-            keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0),
-        ],
+        callbacks=create_callbacks(model, training_model, prediction_model),
     )
 
     # store final result too
