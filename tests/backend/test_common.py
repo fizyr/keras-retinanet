@@ -46,6 +46,7 @@ def test_bbox_transform_inv():
     deltas = keras.backend.variable(deltas)
 
     expected = np.array([[
+        [100         , 100         , 200         , 200         ],
         [100         , 102         , 300         , 302         ],
         [ 97         , 100         , 197         , 300         ],
         [104         , 102         , 304         , 202         ],
