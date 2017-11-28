@@ -15,14 +15,13 @@ limitations under the License.
 """
 
 from keras_retinanet.preprocessing.generator import Generator
+from keras_retinanet.utils.image import read_image_bgr
 
-import cv2
 import os
 import numpy as np
 from six import raise_from
 from PIL import Image
 
-import cv2
 try:
     import xml.etree.cElementTree as ET
 except ImportError:
@@ -112,7 +111,7 @@ class PascalVocGenerator(Generator):
 
     def load_image(self, image_index):
         path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
-        return cv2.imread(path)
+        return read_image_bgr(path)
 
     def __parse_annotation(self, element):
         truncated = _findNode(element, 'truncated', parse=int)
