@@ -137,10 +137,6 @@ class Generator(object):
         # divide into groups, one group = one batch
         self.groups = [[order[x % len(order)] for x in range(i, i + self.batch_size)] for i in range(0, len(order), self.batch_size)]
 
-        # shuffle groups
-        if self.shuffle_groups:
-            random.shuffle(self.groups)
-
     def compute_inputs(self, image_group):
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
@@ -212,10 +208,10 @@ class Generator(object):
     def next(self):
         # advance the group index
         with self.lock:
+            if self.group_index == 0 and self.shuffle_groups:
+                # shuffle groups at start of epoch
+                random.shuffle(self.groups)
             group = self.groups[self.group_index]
             self.group_index = (self.group_index + 1) % len(self.groups)
-            if self.group_index == 0 and self.shuffle_groups:
-                # shuffle groups at end of epoch
-                random.shuffle(self.groups)
 
         return self.compute_input_output(group)
