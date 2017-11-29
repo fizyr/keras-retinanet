@@ -24,6 +24,7 @@ from six import raise_from
 
 import csv
 import sys
+import os.path
 
 
 def _parse(value, function, fmt):
@@ -102,11 +103,16 @@ class CSVGenerator(Generator):
         self,
         csv_data_file,
         csv_class_file,
-        *args,
+        base_dir = None,
         **kwargs
     ):
         self.image_names = []
         self.image_data  = {}
+        self.base_dir    = base_dir
+
+        # Take base_dir from annotations file if not explicitly specified.
+        if self.base_dir is None:
+            os.path.dirname(csv_data_file)
 
         # parse the provided class file
         try:
@@ -141,15 +147,16 @@ class CSVGenerator(Generator):
     def label_to_name(self, label):
         return self.labels[label]
 
+    def image_path(self, image_index):
+        return os.path.join(self.base_dir, self.image_names[image_index])
+
     def image_aspect_ratio(self, image_index):
-        path = self.image_names[image_index]
         # PIL is fast for metadata
-        image = Image.open(path)
+        image = Image.open(self.image_path(image_index))
         return float(image.width) / float(image.height)
 
     def load_image(self, image_index):
-        path = self.image_names[image_index]
-        return read_image_bgr(path)
+        return read_image_bgr(self.image_path(image_index))
 
     def load_annotations(self, image_index):
         path   = self.image_names[image_index]
