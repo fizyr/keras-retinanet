@@ -125,7 +125,7 @@ class CSVGenerator(Generator):
                 self.image_data = _read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
-        self.image_names = self.image_data.keys()
+        self.image_names = list(self.image_data.keys())
 
         super(CSVGenerator, self).__init__(*args, **kwargs)
 
