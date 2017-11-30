@@ -67,6 +67,9 @@ def random_transform(
         # generate box mask and randomly transform it
         mask = np.zeros_like(image, dtype=np.uint8)
         b = boxes[index, :4].astype(int)
+
+        assert(b[0] < b[2] and b[1] < b[3]), 'Annotations contain invalid box: {}'.format(b)
+
         mask[b[1]:b[3], b[0]:b[2], :] = 255
         mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
         mask = mask.copy()  # to force contiguous arrays

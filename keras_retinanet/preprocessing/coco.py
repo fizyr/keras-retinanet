@@ -94,6 +94,10 @@ class CocoGenerator(Generator):
         # parse annotations
         coco_annotations = self.coco.loadAnns(annotations_ids)
         for idx, a in enumerate(coco_annotations):
+            # some annotations have basically no width / height, skip them
+            if a['bbox'][2] < 1 or a['bbox'][3] < 1:
+                continue
+
             annotation        = np.zeros((1, 5))
             annotation[0, :4] = a['bbox']
             annotation[0, 4]  = self.coco_label_to_label(a['category_id'])
