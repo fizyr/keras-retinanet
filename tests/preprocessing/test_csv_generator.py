@@ -205,3 +205,11 @@ def test_read_annotations_invalid_bb_y():
         except ValueError as e:
             assert str(e).startswith("line 0: y2 (5) must be higher than y1 (8)")
             raise
+
+
+def test_read_annotations_empty_image():
+    # Check that images without annotations are parsed.
+    assert csv_generator._read_annotations(csv_str('a.png,,,,,\nb.png,,,,,'), {'a': 1}) == {'a.png': [], 'b.png': []}
+
+    # Check that lines without annotations don't clear earlier annotations.
+    assert csv_generator._read_annotations(csv_str('a.png,0,1,2,3,a\na.png,,,,,'), {'a': 1}) == {'a.png': [annotation(0, 1,  2,  3, 'a')]}

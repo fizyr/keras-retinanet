@@ -62,7 +62,15 @@ def _read_annotations(csv_reader, classes):
         try:
             img_file, x1, y1, x2, y2, class_name = row
         except ValueError:
-            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name\''.format(line)), None)
+            raise_from(ValueError('line {}: format should be \'img_file,x1,y1,x2,y2,class_name\' or \'img_file,,,,,\''.format(line)), None)
+
+        if img_file not in result:
+            result[img_file] = []
+
+        # If a row contains only an image path, it's an image without annotations.
+        if (x1, y1, x2, y2, class_name) == ('', '', '', '', ''):
+            continue
+
         x1 = _parse(x1, int, 'line {}: malformed x1: {{}}'.format(line))
         y1 = _parse(y1, int, 'line {}: malformed y1: {{}}'.format(line))
         x2 = _parse(x2, int, 'line {}: malformed x2: {{}}'.format(line))
@@ -77,9 +85,6 @@ def _read_annotations(csv_reader, classes):
         # check if the current class name is correctly present
         if class_name not in classes:
             raise ValueError('line {}: unknown class name: {}'.format(line, class_name))
-
-        if img_file not in result:
-            result[img_file] = []
 
         result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name})
     return result
