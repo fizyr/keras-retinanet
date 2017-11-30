@@ -1,5 +1,5 @@
 # Keras RetinaNet [![Build Status](https://travis-ci.org/fizyr/keras-retinanet.svg?branch=master)](https://travis-ci.org/fizyr/keras-retinanet)
-Keras implementation of RetinaNet object detection as described in [this paper](https://arxiv.org/abs/1708.02002) by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
+Keras implementation of RetinaNet object detection as described in [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002) by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
 ## Installation
 
@@ -32,20 +32,23 @@ The expected format of each line of the annotations CSV is:
 filepath,x1,y1,x2,y2,class_name
 ```
 
-For example:
+Images with multiple bounding boxes should use one row per bounding box. For example:
 ```
 /data/imgs/img_001.jpg,837,346,981,456,cow
 /data/imgs/img_002.jpg,215,312,279,391,cat
+/data/imgs/img_002.jpg,22,5,89,84,bird
 ```
+
 Note that indexing for pixel values starts at 0. The expected format of each line of the classes CSV is:
 ```
 class_name,id
 ```
 
-For example:
+Indexing for classes starts at 0. Do not include a background class as it is implicit. For example:
 ```
 cow,0
 cat,1
+bird,2
 ```
 
 In general, the steps to train on your own datasets are:
