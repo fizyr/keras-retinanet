@@ -15,20 +15,20 @@ limitations under the License.
 """
 
 import keras
-import keras_retinanet.initializers
-import keras_retinanet.layers
-import keras_retinanet.losses
+from .. import initializers
+from .. import layers
+from .. import losses
 
 import numpy as np
 
 custom_objects = {
-    'UpsampleLike'          : keras_retinanet.layers.UpsampleLike,
-    'PriorProbability'      : keras_retinanet.initializers.PriorProbability,
-    'RegressBoxes'          : keras_retinanet.layers.RegressBoxes,
-    'NonMaximumSuppression' : keras_retinanet.layers.NonMaximumSuppression,
-    'Anchors'               : keras_retinanet.layers.Anchors,
-    '_smooth_l1'            : keras_retinanet.losses.smooth_l1(),
-    '_focal'                : keras_retinanet.losses.focal(),
+    'UpsampleLike'          : layers.UpsampleLike,
+    'PriorProbability'      : initializers.PriorProbability,
+    'RegressBoxes'          : layers.RegressBoxes,
+    'NonMaximumSuppression' : layers.NonMaximumSuppression,
+    'Anchors'               : layers.Anchors,
+    '_smooth_l1'            : losses.smooth_l1(),
+    '_focal'                : losses.focal(),
 }
 
 
@@ -61,7 +61,7 @@ def default_classification_model(
     outputs = keras.layers.Conv2D(
         filters=num_classes * num_anchors,
         kernel_initializer=keras.initializers.zeros(),
-        bias_initializer=keras_retinanet.initializers.PriorProbability(probability=prior_probability),
+        bias_initializer=initializers.PriorProbability(probability=prior_probability),
         name='pyramid_classification',
         **options
     )(outputs)
@@ -104,13 +104,13 @@ def default_regression_model(num_anchors, pyramid_feature_size=256, regression_f
 def __create_pyramid_features(C3, C4, C5, feature_size=256):
     # upsample C5 to get P5 from the FPN paper
     P5           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='P5')(C5)
-    P5_upsampled = keras_retinanet.layers.UpsampleLike(name='P5_upsampled')([P5, C4])
+    P5_upsampled = layers.UpsampleLike(name='P5_upsampled')([P5, C4])
 
     # add P5 elementwise to C4
     P4           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C4_reduced')(C4)
     P4           = keras.layers.Add(name='P4_merged')([P5_upsampled, P4])
     P4           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P4')(P4)
-    P4_upsampled = keras_retinanet.layers.UpsampleLike(name='P4_upsampled')([P4, C3])
+    P4_upsampled = layers.UpsampleLike(name='P4_upsampled')([P4, C3])
 
     # add P4 elementwise to C3
     P3 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C3_reduced')(C3)
@@ -164,7 +164,7 @@ def __build_pyramid(models, features):
 def __build_anchors(anchor_parameters, features):
     anchors = []
     for i, f in enumerate(features):
-        anchors.append(keras_retinanet.layers.Anchors(
+        anchors.append(layers.Anchors(
             size=anchor_parameters.sizes[i],
             stride=anchor_parameters.strides[i],
             ratios=anchor_parameters.ratios,
@@ -207,12 +207,12 @@ def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, 
     classification = model.outputs[2]
 
     # apply predicted regression to anchors
-    boxes      = keras_retinanet.layers.RegressBoxes(name='boxes')([anchors, regression])
+    boxes      = layers.RegressBoxes(name='boxes')([anchors, regression])
     detections = keras.layers.Concatenate(axis=2)([boxes, classification] + model.outputs[3:])
 
     # additionally apply non maximum suppression
     if nms:
-        detections = keras_retinanet.layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+        detections = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=model.outputs[1:] + [detections], name=name)

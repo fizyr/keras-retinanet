@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import keras.backend
-import keras_retinanet.backend
+from .dynamic import meshgrid
 
 import numpy as np
 
@@ -62,7 +62,7 @@ def shift(shape, stride, anchors):
     shift_x = (keras.backend.arange(0, shape[1], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
     shift_y = (keras.backend.arange(0, shape[0], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
 
-    shift_x, shift_y = keras_retinanet.backend.meshgrid(shift_x, shift_y)
+    shift_x, shift_y = meshgrid(shift_x, shift_y)
     shift_x = keras.backend.reshape(shift_x, [-1])
     shift_y = keras.backend.reshape(shift_y, [-1])
 
