@@ -22,8 +22,8 @@ import warnings
 
 import keras
 
-from keras_retinanet.utils.image import preprocess_image, resize_image, random_transform
-from keras_retinanet.utils.anchors import anchor_targets_bbox
+from ..utils.image import preprocess_image, resize_image, random_transform
+from ..utils.anchors import anchor_targets_bbox
 
 
 class Generator(object):

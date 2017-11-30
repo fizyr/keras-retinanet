@@ -16,7 +16,7 @@ limitations under the License.
 
 from __future__ import print_function
 
-from keras_retinanet.utils.image import preprocess_image, resize_image
+from ..utils.image import preprocess_image, resize_image
 
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval

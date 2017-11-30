@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import keras
-from keras_retinanet.utils.coco_eval import evaluate_coco
+from ..utils.coco_eval import evaluate_coco
 
 
 class CocoEval(keras.callbacks.Callback):
