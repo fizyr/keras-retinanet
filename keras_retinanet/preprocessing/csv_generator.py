@@ -109,6 +109,7 @@ class CSVGenerator(Generator):
         csv_data_file,
         csv_class_file,
         base_dir = None,
+        *args,
         **kwargs
     ):
         self.image_names = []
