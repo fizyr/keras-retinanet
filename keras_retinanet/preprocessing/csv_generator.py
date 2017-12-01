@@ -138,7 +138,7 @@ class CSVGenerator(Generator):
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
         self.image_names = list(self.image_data.keys())
 
-        super(CSVGenerator, self).__init__(*args, **kwargs)
+        super(CSVGenerator, self).__init__(**kwargs)
 
     def size(self):
         return len(self.image_names)
