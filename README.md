@@ -4,9 +4,14 @@ Keras implementation of RetinaNet object detection as described in [Focal Loss f
 ## Installation
 
 1) Clone this repository.
-2) In the repository, execute `python setup.py install --user`. Note that due to inconsistencies with how `tensorflow` should be installed, this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch linux results in an incorrect installation). Please make sure `tensorflow` is installed as per your systems requirements. Also, make sure Keras 2.0.9 is installed.
+2) In the repository, execute `python setup.py install --user`.
+   Note that due to inconsistencies with how `tensorflow` should be installed,
+   this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch linux results in an incorrect installation).
+   Please make sure `tensorflow` is installed as per your systems requirements.
+   Also, make sure Keras 2.1.2 is installed.
 3) As of writing, this repository requires the master branch of `keras-resnet` (run `pip install --user --upgrade git+https://github.com/broadinstitute/keras-resnet`).
-4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset. Clone the [`cocoapi` repository](https://github.com/cocodataset/cocoapi) and inside the `PythonAPI` folder, execute `python setup.py install --user`.
+4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset.
+   Clone the [`cocoapi` repository](https://github.com/cocodataset/cocoapi) and inside the `PythonAPI` folder, execute `python setup.py install --user`.
 
 ## Training
 An example on how to train `keras-retinanet` can be found [here](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/train_csv.py).
@@ -29,9 +34,9 @@ To train using your CSV, run:
 python examples/train_csv.py <path to csv file containing annotations> <path to csv file containing classes>
 ```
 
-
 In general, the steps to train on your own datasets are:
-1) Create a model by calling for instance `keras_retinanet.models.ResNet50RetinaNet` and compile it. Empirically, the following compile arguments have been found to work well:
+1) Create a model by calling for instance `keras_retinanet.models.ResNet50RetinaNet` and compile it.
+   Empirically, the following compile arguments have been found to work well:
 ```
 model.compile(
     loss={
@@ -45,7 +50,8 @@ model.compile(
 3) Use `model.fit_generator` to start training.
 
 ## Testing
-An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet%20-%20COCO%202017.ipynb). In general, output can be retrieved from the network as follows:
+An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet%20-%20COCO%202017.ipynb).
+In general, output can be retrieved from the network as follows:
 ```
 _, _, detections = model.predict_on_batch(inputs)
 ```
@@ -132,7 +138,8 @@ The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.c
 ```
 
 ## Status
-* The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) and [MS COCO](http://cocodataset.org/). Example output images are shown below.
+The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) and [MS COCO](http://cocodataset.org/).
+Example output images are shown below.
 
 <p align="center">
   <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco1.png" alt="Example result of RetinaNet on MS COCO"/>
@@ -144,7 +151,7 @@ The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.c
 * Configure CI
 
 ### Notes
-* This repository requires Keras 2.0.9.
+* This repository requires Keras 2.1.2.
 * This repository is tested using OpenCV 3.3 (3.0+ should be supported).
 
 Contributions to this project are welcome.
