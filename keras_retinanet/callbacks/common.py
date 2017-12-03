@@ -1,5 +1,6 @@
 import keras.callbacks
 
+
 class RedirectModel(keras.callbacks.Callback):
     """Callback which wraps another callback, but executed on a different model.
     # Arguments
