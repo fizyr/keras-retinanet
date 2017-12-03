@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import keras.backend
 from keras.preprocessing.image import ImageDataGenerator
 from keras_retinanet.preprocessing.generator import Generator
 
@@ -22,9 +23,17 @@ import pytest
 
 
 class SimpleGenerator(Generator):
-    def __init__(self, annotations_group):
+    def __init__(self, annotations_group, num_classes=0, image=None):
         self.annotations_group = annotations_group
+        self.num_classes_      = num_classes
+        self.image             = image
         super(SimpleGenerator, self).__init__(ImageDataGenerator(), group_method='none', shuffle_groups=False)
+
+    def num_classes(self):
+        return self.num_classes_
+
+    def load_image(self, image_index):
+        return self.image
 
     def size(self):
         return len(self.annotations_group)
@@ -68,6 +77,8 @@ class TestLoadAnnotationsGroup(object):
         np.testing.assert_equal([expected_annotations_group[0]], annotations_group_0)
         np.testing.assert_equal([expected_annotations_group[1]], annotations_group_1)
 
+
+class TestFilterAnnotations(object):
     def test_simple_filter(self):
         input_annotations_group = [
             np.array([
@@ -76,16 +87,19 @@ class TestLoadAnnotationsGroup(object):
             ]),
         ]
 
+        input_image = np.zeros((500, 500, 3))
+
         expected_annotations_group = [
             np.array([
-                [  0,   0, 10, 10],
+                [0, 0, 10, 10],
             ]),
         ]
 
         simple_generator = SimpleGenerator(input_annotations_group)
+        annotations_group = simple_generator.load_annotations_group(simple_generator.groups[0])
         # expect a UserWarning
         with pytest.warns(UserWarning):
-            annotations_group = simple_generator.load_annotations_group(simple_generator.groups[0])
+            image_group, annotations_group = simple_generator.filter_annotations([input_image], annotations_group, simple_generator.groups[0])
 
         np.testing.assert_equal(expected_annotations_group, annotations_group)
 
@@ -107,7 +121,13 @@ class TestLoadAnnotationsGroup(object):
                 [-10, -10, -100, -100],
                 [ 10,  10,  100,  100]
             ]),
+            np.array([
+                [ 10,  10,  100,  100],
+                [ 10,  10,  600,  600]
+            ]),
         ]
+
+        input_image = np.zeros((500, 500, 3))
 
         expected_annotations_group = [
             np.array([
@@ -118,18 +138,51 @@ class TestLoadAnnotationsGroup(object):
             np.zeros((0, 4)),
             np.array([
                 [10, 10, 100, 100]
-            ])
+            ]),
+            np.array([
+                [ 10,  10,  100,  100]
+            ]),
         ]
 
         simple_generator = SimpleGenerator(input_annotations_group)
         # expect a UserWarning
+        annotations_group_0 = simple_generator.load_annotations_group(simple_generator.groups[0])
         with pytest.warns(UserWarning):
-            annotations_group_0 = simple_generator.load_annotations_group(simple_generator.groups[0])
+            image_group, annotations_group_0 = simple_generator.filter_annotations([input_image], annotations_group_0, simple_generator.groups[0])
+
+        annotations_group_1 = simple_generator.load_annotations_group(simple_generator.groups[1])
         with pytest.warns(UserWarning):
-            annotations_group_1 = simple_generator.load_annotations_group(simple_generator.groups[1])
+            image_group, annotations_group_1 = simple_generator.filter_annotations([input_image], annotations_group_1, simple_generator.groups[1])
+
+        annotations_group_2 = simple_generator.load_annotations_group(simple_generator.groups[2])
         with pytest.warns(UserWarning):
-            annotations_group_2 = simple_generator.load_annotations_group(simple_generator.groups[2])
+            image_group, annotations_group_2 = simple_generator.filter_annotations([input_image], annotations_group_2, simple_generator.groups[2])
 
         np.testing.assert_equal([expected_annotations_group[0]], annotations_group_0)
         np.testing.assert_equal([expected_annotations_group[1]], annotations_group_1)
         np.testing.assert_equal([expected_annotations_group[2]], annotations_group_2)
+
+    def test_complete(self):
+        input_annotations_group = [
+            np.array([
+                [  0,   0, 50, 50, 0],  # one object of class 0
+                [150, 150, 50, 50, 1],  # one object of class 1 with an invalid box
+            ], dtype=keras.backend.floatx()),
+        ]
+
+        input_image = np.zeros((500, 500, 3), dtype=np.uint8)
+
+        expected_annotations_group = [
+            np.array([
+                [0, 0, 10, 10],
+            ]),
+        ]
+
+        simple_generator = SimpleGenerator(input_annotations_group, image=input_image, num_classes=2)
+        # expect a UserWarning
+        with pytest.warns(UserWarning):
+            _, [_, labels_batch] = simple_generator.next()
+
+        # test that only object with class 0 is present in labels_batch
+        labels = np.unique(np.argmax(labels_batch == 1, axis=2))
+        assert(len(labels) == 1 and labels[0] == 0), 'Expected only class 0 to be present, but got classes {}'.format(labels)
