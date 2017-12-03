@@ -23,6 +23,7 @@ from keras.utils import multi_gpu_model
 
 import tensorflow as tf
 
+import keras_retinanet.callbacks
 import keras_retinanet.losses
 import keras_retinanet.layers
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
@@ -69,7 +70,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     # save the prediction model
     checkpoint = keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)), verbose=1)
-    checkpoint = keras.callbacks.RedirectModel(checkpoint, prediction_model)
+    checkpoint = keras_retinanet.callbacks.RedirectModel(checkpoint, prediction_model)
     callbacks.append(checkpoint)
 
     if dataset_type == 'coco':
@@ -77,7 +78,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
         # use prediction model for evaluation
         evaluation = keras_retinanet.callbacks.coco.CocoEval(validation_generator)
-        evaluation = keras.callbacks.RedirectModel(evaluation, prediction_model)
+        evaluation = keras_retinanet.callbacks.RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
     lr_scheduler = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
@@ -150,6 +151,7 @@ def create_generators(args):
 def parse_args():
     parser     = argparse.ArgumentParser(description='Simple training script for training a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
+    subparsers.required = True
 
     coco_parser = subparsers.add_parser('coco')
     coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
