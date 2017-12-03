@@ -117,7 +117,7 @@ class CSVGenerator(Generator):
 
         # Take base_dir from annotations file if not explicitly specified.
         if self.base_dir is None:
-            os.path.dirname(csv_data_file)
+            self.base_dir = os.path.dirname(csv_data_file)
 
         # parse the provided class file
         try:
