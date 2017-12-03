@@ -75,27 +75,33 @@ class Generator(object):
         raise NotImplementedError('load_annotations method not implemented')
 
     def load_annotations_group(self, group):
-        annotations_group = [self.load_annotations(image_index) for image_index in group]
+        return [self.load_annotations(image_index) for image_index in group]
 
+    def filter_annotations(self, image_group, annotations_group, group):
         # test all annotations
-        for index, annotations in enumerate(annotations_group):
+        for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             assert(isinstance(annotations, np.ndarray)), '\'load_annotations\' should return a list of numpy arrays, received: {}'.format(type(annotations))
 
-            # test x2 < x1 | y2 < y1 | x1 < 0 | y1 < 0 | x2 <= 0 | y2 <= 0
+            # test x2 < x1 | y2 < y1 | x1 < 0 | y1 < 0 | x2 <= 0 | y2 <= 0 | x2 >= image.shape[1] | y2 >= image.shape[0]
             invalid_indices = np.where(
                 (annotations[:, 2] <= annotations[:, 0]) |
                 (annotations[:, 3] <= annotations[:, 1]) |
                 (annotations[:, 0] < 0) |
-                (annotations[:, 1] < 0)
+                (annotations[:, 1] < 0) |
+                (annotations[:, 2] >= image.shape[1]) |
+                (annotations[:, 3] >= image.shape[0])
             )[0]
+
+            # delete invalid indices
             if len(invalid_indices):
-                warnings.warn('Image with id {} contains the following invalid boxes: {}.'.format(
+                warnings.warn('Image with id {} (shape {}) contains the following invalid boxes: {}.'.format(
                     group[index],
+                    image.shape,
                     [annotations[invalid_index, :] for invalid_index in invalid_indices]
                 ))
                 annotations_group[index] = np.delete(annotations, invalid_indices, axis=0)
 
-        return annotations_group
+        return image_group, annotations_group
 
     def load_image_group(self, group):
         return [self.load_image(image_index) for image_index in group]
@@ -190,6 +196,9 @@ class Generator(object):
         # load images and annotations
         image_group       = self.load_image_group(group)
         annotations_group = self.load_annotations_group(group)
+
+        # check validity of annotations
+        image_group, annotations_group = self.filter_annotations(image_group, annotations_group, group)
 
         # perform preprocessing steps
         image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
