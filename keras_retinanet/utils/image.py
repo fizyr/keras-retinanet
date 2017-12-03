@@ -69,6 +69,7 @@ def random_transform(
         b = boxes[index, :4].astype(int)
 
         assert(b[0] < b[2] and b[1] < b[3]), 'Annotations contain invalid box: {}'.format(b)
+        assert(b[2] < image.shape[1] and b[3] < image.shape[0]), 'Annotation ({}) is outside of image shape ({}).'.format(b, image.shape)
 
         mask[b[1]:b[3], b[0]:b[2], :] = 255
         mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
