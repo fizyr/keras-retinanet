@@ -23,9 +23,9 @@ from keras.utils import multi_gpu_model
 
 import tensorflow as tf
 
-import keras_retinanet.callbacks
 import keras_retinanet.losses
 import keras_retinanet.layers
+from keras_retinanet.callbacks import RedirectModel
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
 from keras_retinanet.preprocessing.csv import CSVGenerator
 from keras_retinanet.models.resnet import ResNet50RetinaNet
@@ -38,10 +38,10 @@ def get_session():
     return tf.Session(config=config)
 
 
-def create_models(weights='imagenet', multi_gpu=0):
+def create_models(num_classes, weights='imagenet', multi_gpu=0):
     # create "base" model (no NMS)
     image = keras.layers.Input((None, None, 3))
-    model = ResNet50RetinaNet(image, num_classes=80, weights=weights, nms=False)
+    model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
 
     # optionally wrap in a parallel model
     if args.multi_gpu > 1:
@@ -70,7 +70,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     # save the prediction model
     checkpoint = keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)), verbose=1)
-    checkpoint = keras_retinanet.callbacks.RedirectModel(checkpoint, prediction_model)
+    checkpoint = RedirectModel(checkpoint, prediction_model)
     callbacks.append(checkpoint)
 
     if dataset_type == 'coco':
@@ -78,7 +78,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
         # use prediction model for evaluation
         evaluation = keras_retinanet.callbacks.coco.CocoEval(validation_generator)
-        evaluation = keras_retinanet.callbacks.RedirectModel(evaluation, prediction_model)
+        evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
     lr_scheduler = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
@@ -183,15 +183,15 @@ if __name__ == '__main__':
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     keras.backend.tensorflow_backend.set_session(get_session())
 
+    # create the generators
+    train_generator, validation_generator = create_generators(args)
+
     # create the model
     print('Creating model, this may take a second...')
-    model, training_model, prediction_model = create_models(weights=args.weights, multi_gpu=args.multi_gpu)
+    model, training_model, prediction_model = create_models(num_classes=train_generator.num_classes(), weights=args.weights, multi_gpu=args.multi_gpu)
 
     # print model summary
     print(model.summary())
-
-    # create the generators
-    train_generator, validation_generator = create_generators(args)
 
     # create the callbacks
     callbacks = create_callbacks(model, training_model, prediction_model, validation_generator, args.dataset_type)
