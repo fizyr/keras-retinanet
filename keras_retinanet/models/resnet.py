@@ -21,6 +21,7 @@ from ..models import retinanet
 
 WEIGHTS_PATH_NO_TOP_50 = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-50-model.keras.h5'
 WEIGHTS_PATH_NO_TOP_101 = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-101-model.keras.h5'
+WEIGHTS_PATH_NO_TOP_152 = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/ResNet-152-model.keras.h5'
 
 custom_objects = retinanet.custom_objects.copy()
 custom_objects.update(keras_resnet.custom_objects)
@@ -58,6 +59,25 @@ def ResNet101RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs)
         weights_path = weights
 
     resnet = keras_resnet.models.ResNet101(image, include_top=False, freeze_bn=True)
+
+    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
+    model.load_weights(weights_path, by_name=True)
+    return model
+
+
+def ResNet152RetinaNet(inputs, num_classes, weights='imagenet', *args, **kwargs):
+    image = inputs
+
+    # load pretrained imagenet weights?
+    if weights == 'imagenet':
+        weights_path = keras.applications.imagenet_utils.get_file(
+            'ResNet-152-model.keras.h5',
+            WEIGHTS_PATH_NO_TOP_152, cache_subdir='models', md5_hash='6ee11ef2b135592f8031058820bb9e71'
+        )
+    else:
+        weights_path = weights
+
+    resnet = keras_resnet.models.ResNet152(image, include_top=False, freeze_bn=True)
 
     model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, *args, **kwargs)
     model.load_weights(weights_path, by_name=True)
