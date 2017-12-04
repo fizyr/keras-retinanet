@@ -69,9 +69,9 @@ def random_transform(
         b = boxes[index, :4].astype(int)
 
         assert(b[0] < b[2] and b[1] < b[3]), 'Annotations contain invalid box: {}'.format(b)
-        assert(b[2] < image.shape[1] and b[3] < image.shape[0]), 'Annotation ({}) is outside of image shape ({}).'.format(b, image.shape)
+        assert(b[2] <= image.shape[1] and b[3] <= image.shape[0]), 'Annotation ({}) is outside of image shape ({}).'.format(b, image.shape)
 
-        mask[b[1]:b[3] + 1, b[0]:b[2] + 1, :] = 255
+        mask[b[1]:b[3], b[0]:b[2], :] = 255
         mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
         mask = mask.copy()  # to force contiguous arrays
 
@@ -79,8 +79,8 @@ def random_transform(
         [i, j] = np.where(mask == 255)
         boxes[index, 0] = float(min(j))
         boxes[index, 1] = float(min(i))
-        boxes[index, 2] = float(max(j))
-        boxes[index, 3] = float(max(i))
+        boxes[index, 2] = float(max(j)) + 1 # set box to an open interval [min, max)
+        boxes[index, 3] = float(max(i)) + 1 # set box to an open interval [min, max)
 
     # restore fill_mode
     image_data_generator.fill_mode = fill_mode
