@@ -160,9 +160,9 @@ def parse_args():
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
 
     csv_parser = subparsers.add_parser('csv')
-    csv_parser.add_argument('csv_path', help='Path to CSV file for training.')
-    csv_parser.add_argument('classes_path', help='Path to a CSV file containing class label mapping.')
-    csv_parser.add_argument('--val_path', help='Path to CSV file for validation (optional).')
+    csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
+    csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
+    csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
 
     parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
     parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
