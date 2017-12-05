@@ -79,8 +79,8 @@ def random_transform(
         [i, j] = np.where(mask == 255)
         boxes[index, 0] = float(min(j))
         boxes[index, 1] = float(min(i))
-        boxes[index, 2] = float(max(j)) + 1 # set box to an open interval [min, max)
-        boxes[index, 3] = float(max(i)) + 1 # set box to an open interval [min, max)
+        boxes[index, 2] = float(max(j)) + 1  # set box to an open interval [min, max)
+        boxes[index, 3] = float(max(i)) + 1  # set box to an open interval [min, max)
 
     # restore fill_mode
     image_data_generator.fill_mode = fill_mode
