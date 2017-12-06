@@ -88,8 +88,8 @@ class Generator(object):
                 (annotations[:, 3] <= annotations[:, 1]) |
                 (annotations[:, 0] < 0) |
                 (annotations[:, 1] < 0) |
-                (annotations[:, 2] >= image.shape[1]) |
-                (annotations[:, 3] >= image.shape[0])
+                (annotations[:, 2] > image.shape[1]) |
+                (annotations[:, 3] > image.shape[0])
             )[0]
 
             # delete invalid indices
