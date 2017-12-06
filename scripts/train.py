@@ -130,16 +130,16 @@ def create_generators(args):
         )
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
-            args.csv_path,
-            args.classes_path,
+            args.annotations,
+            args.classes,
             image_datrain_image_data_generator,
             batch_size=args.batch_size
         )
 
         if args.val_path:
             validation_generator = CSVGenerator(
-                args.val_path,
-                args.classes_path,
+                args.val_annotations,
+                args.classes,
                 val_image_data_generator,
                 batch_size=args.batch_size
             )
