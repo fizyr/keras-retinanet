@@ -132,7 +132,7 @@ def create_generators(args):
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
-            image_datrain_image_data_generator,
+            train_image_data_generator,
             batch_size=args.batch_size
         )
 
