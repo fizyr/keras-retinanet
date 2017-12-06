@@ -52,8 +52,11 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
         model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
         training_model = model
 
-    # append NMS for prediction
-    detections = keras_retinanet.layers.NonMaximumSuppression(name='nms')(model.outputs)
+    # append NMS for prediction only
+    classification   = model.outputs[1]
+    detections       = model.outputs[2]
+    boxes            = keras.layers.Lambda(lambda x: x[:, :, :4])(detections)
+    detections       = keras_retinanet.layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
     prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
 
     # compile model
