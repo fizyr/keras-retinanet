@@ -52,7 +52,6 @@ class TestAnchors(object):
         np.testing.assert_array_equal(anchors, expected)
 
     # mark test to fail
-    @pytest.mark.xfail
     def test_mini_batch(self):
         # create simple Anchors layer
         anchors_layer = keras_retinanet.layers.Anchors(
@@ -250,10 +249,12 @@ class TestRegressBoxes(object):
         np.testing.assert_array_almost_equal(actual, expected, decimal=2)
 
     # mark test to fail
-    @pytest.mark.xfail
     def test_mini_batch(self):
+        mean = [0, 0, 0, 0]
+        std  = [0.1, 0.1, 0.2, 0.2]
+
         # create simple RegressBoxes layer
-        regress_boxes_layer = keras_retinanet.layers.RegressBoxes()
+        regress_boxes_layer = keras_retinanet.layers.RegressBoxes(mean=mean, std=std)
 
         # create input
         anchors = np.array([
@@ -292,13 +293,13 @@ class TestRegressBoxes(object):
         expected = np.array([
             [
                 [0 , 0 , 10 , 10 ],  # 1
-                [55, 55, 105, 105],  # 2
-                [30 - math.e ** 0.1 * 20 * 0.5, 30 - math.e ** 0.1 * 20 * 0.5, 30 + math.e ** 0.1 * 20 * 0.5, 30 + math.e ** 0.1 * 20 * 0.5],  # 3
+                [50.5, 50.5, 100.5, 100.5],  # 2
+                [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],  # 3
             ],
             [
-                [30 - math.e ** 0.1 * 20 * 0.5, 30 - math.e ** 0.1 * 20 * 0.5, 30 + math.e ** 0.1 * 20 * 0.5, 30 + math.e ** 0.1 * 20 * 0.5],  # 3
+                [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],  # 3
                 [0 , 0 , 10 , 10 ],  # 1
-                [55, 55, 105, 105],  # 2
+                [50.5, 50.5, 100.5, 100.5],  # 2
             ],
         ], dtype=keras.backend.floatx())
 

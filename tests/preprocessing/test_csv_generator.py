@@ -21,7 +21,7 @@ try:
 except ImportError:
     from stringio import StringIO
 
-from keras_retinanet.preprocessing import csv_generator
+import keras_retinanet.preprocessing.csv as csv_generator
 
 
 def csv_str(string):

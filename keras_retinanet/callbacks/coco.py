@@ -23,5 +23,7 @@ class CocoEval(keras.callbacks.Callback):
         self.generator = generator
         self.threshold = threshold
 
+        super(CocoEval, self).__init__()
+
     def on_epoch_end(self, epoch, logs={}):
         evaluate_coco(self.generator, self.model, self.threshold)

@@ -14,24 +14,24 @@ Keras implementation of RetinaNet object detection as described in [Focal Loss f
    Clone the [`cocoapi` repository](https://github.com/cocodataset/cocoapi) and inside the `PythonAPI` folder, execute `python setup.py install --user`.
 
 ## Training
-An example on how to train `keras-retinanet` can be found [here](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/train_csv.py).
+`keras-retinanet` can be trained using [this](https://github.com/delftrobotics/keras-retinanet/blob/master/scripts/train.py) script.
 
 ### Usage
 For training on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/), run:
 ```
-python examples/train_pascal.py <path to VOCdevkit/VOC2007>
+python scripts/train.py pascal <path to VOCdevkit/VOC2007>
 ```
 
 For training on [MS COCO](http://cocodataset.org/#home), run:
 ```
-python examples/train_coco.py <path to MS COCO>
+python scripts/train.py coco <path to MS COCO>
 ```
 
 For training on a custom dataset, a CSV file can be used as a way to pass the data.
 See below for more details on the format of these CSV files.
 To train using your CSV, run:
 ```
-python examples/train_csv.py <path to csv file containing annotations> <path to csv file containing classes>
+python scripts/train.py csv <path to csv file containing annotations> <path to csv file containing classes>
 ```
 
 In general, the steps to train on your own datasets are:
@@ -138,8 +138,7 @@ The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.c
 ```
 
 ## Status
-The [examples](https://github.com/delftrobotics/keras-retinanet/tree/master/examples) show how to train `keras-retinanet` on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/) and [MS COCO](http://cocodataset.org/).
-Example output images are shown below.
+Example output images using `keras-retinanet` are shown below.
 
 <p align="center">
   <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco1.png" alt="Example result of RetinaNet on MS COCO"/>
@@ -147,12 +146,9 @@ Example output images are shown below.
   <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco3.png" alt="Example result of RetinaNet on MS COCO"/>
 </p>
 
-### Todo's
-* Configure CI
-
 ### Notes
 * This repository requires Keras 2.1.2.
-* This repository is tested using OpenCV 3.3 (3.0+ should be supported).
+* This repository is tested using OpenCV 3.3.
 
 Contributions to this project are welcome.
 

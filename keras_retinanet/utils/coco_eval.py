@@ -16,8 +16,6 @@ limitations under the License.
 
 from __future__ import print_function
 
-from ..utils.image import preprocess_image, resize_image
-
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
@@ -32,7 +30,7 @@ def evaluate_coco(generator, model, threshold=0.05):
     image_ids = []
     for i in range(len(generator.image_ids)):
         image = generator.load_image(i)
-        image = preprocess_image(image)
+        image = generator.preprocess_image(image)
         image, scale = generator.resize_image(image)
 
         # run network

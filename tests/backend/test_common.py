@@ -21,7 +21,7 @@ import keras_retinanet.backend
 
 
 def test_bbox_transform_inv():
-    boxes = np.array([
+    boxes = np.array([[
         [100, 100, 200, 200],
         [100, 100, 300, 300],
         [100, 100, 200, 300],
@@ -30,10 +30,10 @@ def test_bbox_transform_inv():
         [80,  120, 300, 300],
         [80,  120, 200, 300],
         [80,  120, 300, 200],
-    ])
+    ]])
     boxes = keras.backend.variable(boxes)
 
-    deltas = np.array([
+    deltas = np.array([[
         [0   , 0  , 0   , 0   ],
         [0   , 0.1, 0   , 0   ],
         [-0.3, 0  , 0   , 0   ],
@@ -42,10 +42,10 @@ def test_bbox_transform_inv():
         [0   , 0  , 0   , -0.3],
         [0   , 0  , 0.2 , 0.2 ],
         [0.1 , 0.2, -0.3, 0.4 ],
-    ])
+    ]])
     deltas = keras.backend.variable(deltas)
 
-    expected = np.array([
+    expected = np.array([[
         [100         , 100         , 200         , 200         ],
         [100         , 102         , 300         , 302         ],
         [ 97         , 100         , 197         , 300         ],
@@ -54,10 +54,10 @@ def test_bbox_transform_inv():
         [ 80         , 125.24119568, 300         , 294.75878906],
         [ 77.55134583, 116.32702637, 202.44865417, 303.67297363],
         [ 88.605896  , 118.26852417, 295.7940979 , 204.93148804]
-    ])
+    ]])
 
     result = keras_retinanet.backend.bbox_transform_inv(boxes, deltas)
-    result = keras.backend.eval(result).reshape(-1, 4)
+    result = keras.backend.eval(result)
 
     np.testing.assert_array_almost_equal(result, expected, decimal=2)
 
