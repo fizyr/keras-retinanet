@@ -41,12 +41,15 @@ def get_session():
 def create_models(num_classes, weights='imagenet', multi_gpu=0):
     # create "base" model (no NMS)
     image = keras.layers.Input((None, None, 3))
-    model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
 
+    # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if args.multi_gpu > 1:
+        with tf.device('/cpu:0'):
+            model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
         training_model = multi_gpu_model(model, gpus=args.multi_gpu)
     else:
+        model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
         training_model = model
 
     # append NMS for prediction
