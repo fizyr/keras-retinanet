@@ -44,10 +44,10 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
-    if args.multi_gpu > 1:
+    if multi_gpu > 1:
         with tf.device('/cpu:0'):
             model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
-        training_model = multi_gpu_model(model, gpus=args.multi_gpu)
+        training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
         model = ResNet50RetinaNet(image, num_classes=num_classes, weights=weights, nms=False)
         training_model = model
@@ -151,6 +151,24 @@ def create_generators(args):
     return train_generator, validation_generator
 
 
+def check_args(parsed_args):
+    """
+    Function to check for inherent contradictions within parsed arguments.
+    For example, batch_size < num_gpus
+    Intended to raise errors prior to backend initialisation.
+
+    :param parsed_args: parser.parse_args()
+    :return: parsed_args
+    """
+
+    if parsed_args.multi_gpu > 1 and parsed_args.batch_size < parsed_args.multi_gpu:
+        raise ValueError(
+            "Batch size ({}) must be equal to or higher than the number of GPUs ({})".format(parsed_args.batch_size,
+                                                                                             parsed_args.multi_gpu))
+
+    return parsed_args
+
+
 def parse_args():
     parser     = argparse.ArgumentParser(description='Simple training script for training a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
@@ -172,7 +190,7 @@ def parse_args():
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu', help='Number of GPUs to use for parallel processing.', type=int, default=0)
 
-    return parser.parse_args()
+    return check_args(parser.parse_args())
 
 if __name__ == '__main__':
     # parse arguments
