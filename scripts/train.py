@@ -27,7 +27,7 @@ import keras_retinanet.losses
 import keras_retinanet.layers
 from keras_retinanet.callbacks import RedirectModel
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
-from keras_retinanet.preprocessing.csv import CSVGenerator
+from keras_retinanet.preprocessing.csv_generator import CSVGenerator
 from keras_retinanet.models.resnet import ResNet50RetinaNet
 from keras_retinanet.utils.keras_version import check_keras_version
 
