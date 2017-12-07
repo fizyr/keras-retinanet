@@ -1,0 +1,3 @@
+[submodule "tests/test-data"]
+	path = tests/test-data
+	url = https://github.com/fizyr/keras-retinanet-test-data.git
