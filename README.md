@@ -10,8 +10,7 @@ Keras implementation of RetinaNet object detection as described in [Focal Loss f
    Please make sure `tensorflow` is installed as per your systems requirements.
    Also, make sure Keras 2.1.2 is installed.
 3) As of writing, this repository requires the master branch of `keras-resnet` (run `pip install --user --upgrade git+https://github.com/broadinstitute/keras-resnet`).
-4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset.
-   Clone the [`cocoapi` repository](https://github.com/cocodataset/cocoapi) and inside the `PythonAPI` folder, execute `python setup.py install --user`.
+4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset by running `pip install --user git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI`.
 
 ## Training
 `keras-retinanet` can be trained using [this](https://github.com/delftrobotics/keras-retinanet/blob/master/scripts/train.py) script.
