@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Copyright 2017-2018 Fizyr (https://fizyr.com)
 
@@ -71,21 +73,22 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
     return model, training_model, prediction_model
 
 
-def create_callbacks(model, training_model, prediction_model, validation_generator, dataset_type, snapshot_path):
+def create_callbacks(model, training_model, prediction_model, validation_generator, dataset_type, snapshot_path, evaluation, snapshots):
     callbacks = []
 
     # save the prediction model
-    checkpoint = keras.callbacks.ModelCheckpoint(
-        os.path.join(
-            snapshot_path,
-            'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)
-        ),
-        verbose=1
-    )
-    checkpoint = RedirectModel(checkpoint, prediction_model)
-    callbacks.append(checkpoint)
+    if snapshots:
+        checkpoint = keras.callbacks.ModelCheckpoint(
+            os.path.join(
+                snapshot_path,
+                'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)
+            ),
+            verbose=1
+        )
+        checkpoint = RedirectModel(checkpoint, prediction_model)
+        callbacks.append(checkpoint)
 
-    if dataset_type == 'coco':
+    if evaluation and dataset_type == 'coco':
         import keras_retinanet.callbacks.coco
 
         # use prediction model for evaluation
@@ -194,15 +197,20 @@ def parse_args():
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
 
-    parser.add_argument('--weights', help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
-    parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
-    parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
-    parser.add_argument('--multi-gpu', help='Number of GPUs to use for parallel processing.', type=int, default=0)
+    parser.add_argument('--weights',       help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
+    parser.add_argument('--batch-size',    help='Size of the batches.', default=1, type=int)
+    parser.add_argument('--gpu',           help='Id of the GPU to use (as reported by nvidia-smi).')
+    parser.add_argument('--multi-gpu',     help='Number of GPUs to use for parallel processing.', type=int, default=0)
+    parser.add_argument('--epochs',        help='Number of epochs to train.', type=int, default=50)
+    parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
+    parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
+    parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
+    parser.set_defaults(evaluation=True, snapshots=True)
 
     return check_args(parser.parse_args())
 
-if __name__ == '__main__':
+def main():
     # parse arguments
     args = parse_args()
 
@@ -225,13 +233,25 @@ if __name__ == '__main__':
     print(model.summary())
 
     # create the callbacks
-    callbacks = create_callbacks(model, training_model, prediction_model, validation_generator, args.dataset_type, args.snapshot_path)
+    callbacks = create_callbacks(
+        model,
+        training_model,
+        prediction_model,
+        validation_generator,
+        dataset_type=args.dataset_type,
+        snapshot_path=args.snapshot_path,
+        evaluation=args.evaluation,
+        snapshots=args.snapshots,
+    )
 
     # start training
     training_model.fit_generator(
         generator=train_generator,
-        steps_per_epoch=10000,
-        epochs=50,
+        steps_per_epoch=args.steps,
+        epochs=args.epochs,
         verbose=1,
         callbacks=callbacks,
     )
+
+if __name__ == '__main__':
+    main()

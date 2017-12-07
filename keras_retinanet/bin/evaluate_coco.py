@@ -45,7 +45,7 @@ def parse_args():
 
     return parser.parse_args()
 
-if __name__ == '__main__':
+def main():
     # parse arguments
     args = parse_args()
 
@@ -72,3 +72,6 @@ if __name__ == '__main__':
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)
+
+if __name__ == '__main__':
+    main()
