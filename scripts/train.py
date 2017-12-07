@@ -139,7 +139,7 @@ def create_generators(args):
             batch_size=args.batch_size
         )
 
-        if args.val_path:
+        if args.val_annotations:
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
