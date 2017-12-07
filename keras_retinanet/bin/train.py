@@ -210,6 +210,7 @@ def parse_args():
 
     return check_args(parser.parse_args())
 
+
 def main():
     # parse arguments
     args = parse_args()
