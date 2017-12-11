@@ -18,6 +18,12 @@ limitations under the License.
 
 import argparse
 import os
+import sys
+
+# Allow relative imports when being executed as script.
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "keras_retinanet.bin"
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import keras
 import keras.preprocessing.image
@@ -25,13 +31,13 @@ from keras.utils import multi_gpu_model
 
 import tensorflow as tf
 
-import keras_retinanet.losses
-import keras_retinanet.layers
-from keras_retinanet.callbacks import RedirectModel
-from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
-from keras_retinanet.preprocessing.csv_generator import CSVGenerator
-from keras_retinanet.models.resnet import ResNet50RetinaNet
-from keras_retinanet.utils.keras_version import check_keras_version
+from .. import losses
+from .. import layers
+from ..callbacks import RedirectModel
+from ..preprocessing.pascal_voc import PascalVocGenerator
+from ..preprocessing.csv_generator import CSVGenerator
+from ..models.resnet import ResNet50RetinaNet
+from ..utils.keras_version import check_keras_version
 
 
 def get_session():
@@ -58,14 +64,14 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
     classification   = model.outputs[1]
     detections       = model.outputs[2]
     boxes            = keras.layers.Lambda(lambda x: x[:, :, :4])(detections)
-    detections       = keras_retinanet.layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+    detections       = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
     prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
 
     # compile model
     training_model.compile(
         loss={
-            'regression'    : keras_retinanet.losses.smooth_l1(),
-            'classification': keras_retinanet.losses.focal()
+            'regression'    : losses.smooth_l1(),
+            'classification': losses.focal()
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
     )
@@ -89,10 +95,10 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         callbacks.append(checkpoint)
 
     if evaluation and dataset_type == 'coco':
-        import keras_retinanet.callbacks.coco
+        from ..callbacks.coco import CocoEval
 
         # use prediction model for evaluation
-        evaluation = keras_retinanet.callbacks.coco.CocoEval(validation_generator)
+        evaluation = CocoEval(validation_generator)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
@@ -111,7 +117,7 @@ def create_generators(args):
 
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
-        from keras_retinanet.preprocessing.coco import CocoGenerator
+        from ..preprocessing.coco import CocoGenerator
 
         train_generator = CocoGenerator(
             args.coco_path,

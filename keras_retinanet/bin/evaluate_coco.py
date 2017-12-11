@@ -16,17 +16,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
-import keras.preprocessing.image
-from keras_retinanet.preprocessing.coco import CocoGenerator
-from keras_retinanet.utils.coco_eval import evaluate_coco
-from keras_retinanet.models.resnet import custom_objects
-from keras_retinanet.utils.keras_version import check_keras_version
-
-import tensorflow as tf
-
 import argparse
 import os
+import sys
+
+# Allow relative imports when being executed as script.
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "keras_retinanet.bin"
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
+import keras
+import keras.preprocessing.image
+from ..preprocessing.coco import CocoGenerator
+from ..utils.coco_eval import evaluate_coco
+from ..models.resnet import custom_objects
+from ..utils.keras_version import check_keras_version
+
+import tensorflow as tf
 
 
 def get_session():
