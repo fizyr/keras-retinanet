@@ -71,11 +71,17 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
     return model, training_model, prediction_model
 
 
-def create_callbacks(model, training_model, prediction_model, validation_generator, dataset_type):
+def create_callbacks(model, training_model, prediction_model, validation_generator, dataset_type, snapshot_path):
     callbacks = []
 
     # save the prediction model
-    checkpoint = keras.callbacks.ModelCheckpoint(os.path.join('snapshots', 'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)), verbose=1)
+    checkpoint = keras.callbacks.ModelCheckpoint(
+        os.path.join(
+            snapshot_path,
+            'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)
+        ),
+        verbose=1
+    )
     checkpoint = RedirectModel(checkpoint, prediction_model)
     callbacks.append(checkpoint)
 
@@ -192,6 +198,7 @@ def parse_args():
     parser.add_argument('--batch-size', help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu', help='Number of GPUs to use for parallel processing.', type=int, default=0)
+    parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
 
     return check_args(parser.parse_args())
 
@@ -218,7 +225,7 @@ if __name__ == '__main__':
     print(model.summary())
 
     # create the callbacks
-    callbacks = create_callbacks(model, training_model, prediction_model, validation_generator, args.dataset_type)
+    callbacks = create_callbacks(model, training_model, prediction_model, validation_generator, args.dataset_type, args.snapshot_path)
 
     # start training
     training_model.fit_generator(
