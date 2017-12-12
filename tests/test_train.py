@@ -36,3 +36,21 @@ def test_coco():
 
     # run training / evaluation
     keras_retinanet.bin.train.main()
+
+
+def test_pascal():
+    # ignore warnings in this test
+    warnings.simplefilter('ignore')
+
+    # simulate arguments
+    sys.argv = [
+        '',
+        '--epochs=1',
+        '--steps=1',
+        '--no-snapshots',
+        'pascal',
+        'tests/test-data/pascal',
+    ]
+
+    # run training / evaluation
+    keras_retinanet.bin.train.main()
