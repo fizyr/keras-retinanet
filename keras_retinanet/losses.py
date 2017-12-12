@@ -69,7 +69,7 @@ def smooth_l1(sigma=3.0):
         anchor_state      = y_true[:, :, 4]
 
         # compute the divisor: for each image in the batch, we want the number of positive and negative anchors
-        divisor = backend.where(keras.backend.not_equal(anchor_state, -1), keras.backend.ones_like(anchor_state), keras.backend.zeros_like(anchor_state))
+        divisor = backend.where(keras.backend.equal(anchor_state, 1), keras.backend.ones_like(anchor_state), keras.backend.zeros_like(anchor_state))
         divisor = keras.backend.sum(divisor, axis=1, keepdims=True)
         divisor = keras.backend.maximum(1.0, divisor)
 
