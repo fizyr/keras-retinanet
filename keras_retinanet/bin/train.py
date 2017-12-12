@@ -79,22 +79,22 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
     return model, training_model, prediction_model
 
 
-def create_callbacks(model, training_model, prediction_model, validation_generator, dataset_type, snapshot_path, evaluation, snapshots):
+def create_callbacks(model, training_model, prediction_model, validation_generator, args):
     callbacks = []
 
     # save the prediction model
-    if snapshots:
+    if args.snapshots:
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
-                snapshot_path,
-                'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=dataset_type)
+                args.snapshot_path,
+                'resnet50_{dataset_type}_{{epoch:02d}}.h5'.format(dataset_type=args.dataset_type)
             ),
             verbose=1
         )
         checkpoint = RedirectModel(checkpoint, prediction_model)
         callbacks.append(checkpoint)
 
-    if evaluation and dataset_type == 'coco':
+    if args.dataset_type == 'coco' and args.evaluation:
         from ..callbacks.coco import CocoEval
 
         # use prediction model for evaluation
@@ -194,6 +194,8 @@ def parse_args():
 
     coco_parser = subparsers.add_parser('coco')
     coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
+    coco_parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
+    coco_parser.set_defaults(evaluation=True)
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
@@ -210,9 +212,8 @@ def parse_args():
     parser.add_argument('--epochs',        help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
-    parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
     parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
-    parser.set_defaults(evaluation=True, snapshots=True)
+    parser.set_defaults(snapshots=True)
 
     return check_args(parser.parse_args())
 
@@ -245,10 +246,7 @@ def main():
         training_model,
         prediction_model,
         validation_generator,
-        dataset_type=args.dataset_type,
-        snapshot_path=args.snapshot_path,
-        evaluation=args.evaluation,
-        snapshots=args.snapshots,
+        args,
     )
 
     # start training
