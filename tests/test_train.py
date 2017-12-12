@@ -54,3 +54,22 @@ def test_pascal():
 
     # run training / evaluation
     keras_retinanet.bin.train.main()
+
+
+def test_csv():
+    # ignore warnings in this test
+    warnings.simplefilter('ignore')
+
+    # simulate arguments
+    sys.argv = [
+        '',
+        '--epochs=1',
+        '--steps=1',
+        '--no-snapshots',
+        'csv',
+        'tests/test-data/csv/annotations.csv',
+        'tests/test-data/csv/classes.csv',
+    ]
+
+    # run training / evaluation
+    keras_retinanet.bin.train.main()
