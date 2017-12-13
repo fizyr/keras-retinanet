@@ -3,6 +3,11 @@ import numpy as np
 DEFAULT_PRNG = np.random
 
 
+def colvec(*args):
+    """ Create a numpy array representing a column vector. """
+    return np.array([args]).T
+
+
 def _random_vector(min, max, prng = DEFAULT_PRNG):
     """ Construct a random column vector between min and max.
     # Arguments
@@ -208,8 +213,8 @@ def random_transform_from_image_data_generator(image_data_generator, prng = DEFA
         max_translation = +translation,
         min_shear       = -shear,
         max_shear       = +shear,
-        min_scaling     = vec2(min_zoom, min_zoom),
-        max_scaling     = vec2(max_zoom, max_zoom),
+        min_scaling     = colvec(min_zoom, min_zoom),
+        max_scaling     = colvec(max_zoom, max_zoom),
         flip_x_chance   = flip_x,
         flip_y_chance   = flip_y,
         prng            = prng
