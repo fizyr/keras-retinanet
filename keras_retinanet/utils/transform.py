@@ -152,11 +152,11 @@ def random_scaling(min, max, prng = DEFAULT_PRNG):
     return scaling(_random_vector(min, max, prng))
 
 
-def transform_around(transform, center):
-    """ Get a transform applying the given transform with a different origin.
+def change_transform_origin(transform, center):
+    """ Create a new transform with the origin at a different location.
     # Arguments:
         transform: the transformation matrix
-        center: the origin of the transformation
+        center: the new origin of the transformation
     # Return:
         translate(center) * transform * translate(-center)
     """
