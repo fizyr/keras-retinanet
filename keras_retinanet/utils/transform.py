@@ -8,6 +8,39 @@ def colvec(*args):
     return np.array([args]).T
 
 
+def transform_aabb(transform, x1, y1, x2, y2):
+    """ Apply a transformation to an axis aligned bounding box.
+
+    The result is a new AABB in the same coordinate system
+    containing all tranformed points of the original AABB.
+
+    # Arguments
+        transform: The transormation to apply.
+        x1:        The minimum X value of the AABB.
+        y1:        The minimum y value of the AABB.
+        x2:        The maximum X value of the AABB.
+        y2:        The maximum y value of the AABB.
+    # Returns
+        The new AABB as tuple (x1, y1, x2, y2)
+    """
+    # Point 2 is not within the AABB itself.
+    x2 -= 1
+    y2 -= 1
+    # Transform all 4 corners of the AABB.
+    points = transform.dot([
+        [x1, x2, x1, x2],
+        [y1, y2, y2, y1],
+        [1,  1,  1,  1 ],
+    ])
+
+    # Extract the min and max corners again.
+    min_corner = points.min(axis=1)
+    max_corner = points.max(axis=1)
+
+    # Make point 2 exclusive again.
+    return min_corner[0], min_corner[1], max_corner[0] + 1, max_corner[1] + 1
+
+
 def _random_vector(min, max, prng = DEFAULT_PRNG):
     """ Construct a random column vector between min and max.
     # Arguments
