@@ -22,8 +22,11 @@ import warnings
 
 import keras
 
-from ..utils.image import preprocess_image, resize_image, random_transform
 from ..utils.anchors import anchor_targets_bbox
+from ..utils.image import apply_transform, preprocess_image, resize_image
+
+from ..utils.transform import DEFAULT_PRNG
+from ..utils.transform import random_transform_generator_from_image_data_generator
 
 
 class Generator(object):
@@ -35,6 +38,7 @@ class Generator(object):
         shuffle_groups=True,
         image_min_side=600,
         image_max_side=1024,
+        prng=DEFAULT_PRNG,
         seed=None
     ):
         self.image_data_generator = image_data_generator
@@ -44,9 +48,11 @@ class Generator(object):
         self.image_min_side       = image_min_side
         self.image_max_side       = image_max_side
 
+        self.transform_generator  = random_transform_generator_from_image_data_generator(image_data_generator)
+
         if seed is None:
             seed = np.uint32((time.time() % 1)) * 1000
-        np.random.seed(seed)
+        prng.seed(seed)
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -118,7 +124,11 @@ class Generator(object):
             image = self.preprocess_image(image)
 
             # randomly transform both image and annotations
-            image, annotations = random_transform(image, annotations, self.image_data_generator)
+            transform = next(self.transform_generator)
+            channel_axis = self.image_data_generator.channel_axis - 1  # no batch axis
+            fill_mode    = self.image_data_generator.fill_mode
+            cval         = self.image_data_generator.cval
+            image, annotations = apply_transform(transform, image, annotations, channel_axis=channel_axis, fill_mode=fill_mode, cval=cval)
 
             # resize image
             image, image_scale = self.resize_image(image)
