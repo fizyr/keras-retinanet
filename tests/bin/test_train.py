@@ -24,52 +24,40 @@ def test_coco():
     # ignore warnings in this test
     warnings.simplefilter('ignore')
 
-    # simulate arguments
-    sys.argv = [
-        '',
+    # run training / evaluation
+    keras_retinanet.bin.train.main([
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
         'coco',
         'tests/test-data/coco',
-    ]
-
-    # run training / evaluation
-    keras_retinanet.bin.train.main()
+    ])
 
 
 def test_pascal():
     # ignore warnings in this test
     warnings.simplefilter('ignore')
 
-    # simulate arguments
-    sys.argv = [
-        '',
+    # run training / evaluation
+    keras_retinanet.bin.train.main([
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
         'pascal',
         'tests/test-data/pascal',
-    ]
-
-    # run training / evaluation
-    keras_retinanet.bin.train.main()
+    ])
 
 
 def test_csv():
     # ignore warnings in this test
     warnings.simplefilter('ignore')
 
-    # simulate arguments
-    sys.argv = [
-        '',
+    # run training / evaluation
+    keras_retinanet.bin.train.main([
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
         'csv',
         'tests/test-data/csv/annotations.csv',
         'tests/test-data/csv/classes.csv',
-    ]
-
-    # run training / evaluation
-    keras_retinanet.bin.train.main()
+    ])

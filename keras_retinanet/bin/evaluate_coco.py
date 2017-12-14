@@ -41,7 +41,7 @@ def get_session():
     return tf.Session(config=config)
 
 
-def parse_args():
+def parse_args(args):
     parser = argparse.ArgumentParser(description='Simple training script for COCO object detection.')
     parser.add_argument('model', help='Path to RetinaNet model.')
     parser.add_argument('coco_path', help='Path to COCO directory (ie. /tmp/COCO).')
@@ -49,12 +49,14 @@ def parse_args():
     parser.add_argument('--set', help='Name of the set file to evaluate (defaults to val2017).', default='val2017')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
-def main():
+def main(args=None):
     # parse arguments
-    args = parse_args()
+    if args is None:
+        args = sys.argv[1:]
+    args = parse_args(args)
 
     # make sure keras is the minimum required version
     check_keras_version()

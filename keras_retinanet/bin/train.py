@@ -187,7 +187,7 @@ def check_args(parsed_args):
     return parsed_args
 
 
-def parse_args():
+def parse_args(args):
     parser     = argparse.ArgumentParser(description='Simple training script for training a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
@@ -215,12 +215,14 @@ def parse_args():
     parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.set_defaults(snapshots=True)
 
-    return check_args(parser.parse_args())
+    return check_args(parser.parse_args(args))
 
 
-def main():
+def main(args=None):
     # parse arguments
-    args = parse_args()
+    if args is None:
+        args = sys.argv[1:]
+    args = parse_args(args)
 
     # make sure keras is the minimum required version
     check_keras_version()
