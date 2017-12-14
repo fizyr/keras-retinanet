@@ -186,16 +186,16 @@ def change_transform_origin(transform, center):
 
 
 def random_transform(
-    min_rotation,
-    max_rotation,
-    min_translation,
-    max_translation,
-    min_shear,
-    max_shear,
-    min_scaling,
-    max_scaling,
-    flip_x_chance,
-    flip_y_chance,
+    min_rotation=0,
+    max_rotation=0,
+    min_translation=colvec(0, 0),
+    max_translation=colvec(0, 0),
+    min_shear=0,
+    max_shear=0,
+    min_scaling=colvec(1, 1),
+    max_scaling=colvec(1, 1),
+    flip_x_chance=0,
+    flip_y_chance=0,
     prng = DEFAULT_PRNG
 ):
     """ Create a random transformation.
