@@ -13,5 +13,6 @@ install:
     - pip install matplotlib
     - pip install h5py
     - pip install git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
+cache: pip
 script:
     - py.test --pep8
