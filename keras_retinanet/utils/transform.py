@@ -159,6 +159,21 @@ def random_scaling(min, max, prng = DEFAULT_PRNG):
     return scaling(_random_vector(min, max, prng))
 
 
+def random_flip(flip_x_chance, flip_y_chance, prng = DEFAULT_PRNG):
+    """ Construct a transformation randomly containing X/Y flips (or not).
+    # Arguments
+        flip_x_chance: The chance that the result will contain a flip along the X axis.
+        flip_y_chance: The chance that the result will contain a flip along the Y axis.
+        prng:          The pseudo-random number generator to use.
+    # Returns
+        a homogeneous 3 by 3 transformation matrix
+    """
+    flip_x = prng.uniform(0, 1) < flip_x_chance
+    flip_y = prng.uniform(0, 1) < flip_y_chance
+    # 1 - 2 * bool gives 1 for False and -1 for True.
+    return scaling(colvec(1 - 2 * flip_x, 1 - 2 * flip_y))
+
+
 def change_transform_origin(transform, center):
     """ Create a new transform with the origin at a different location.
     # Arguments:
