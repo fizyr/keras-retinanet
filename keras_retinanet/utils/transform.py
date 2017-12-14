@@ -230,11 +230,15 @@ def random_transform(
     ])
 
 
-def random_transform_generator(*args, **kwargs):
-    """ Create a random transform generator with the same arugments as `random_transform`. """
+def random_transform_generator(prng = None, **kwargs):
+    """ Create a random transform generator with the same arugments as `random_transform`.
+
+    Uses a dedicated, newly created, properly seeded PRNG by default instead of the global DEFAULT_PRNG.
+    """
+
+    if prng is None:
+        # RandomState automatically seeds using the best available method.
+        prng = np.random.RandomState()
+
     while True:
-        yield random_transform(*args, **kwargs)
-
-
-
-    while True:
+        yield random_transform(prng=prng, **kwargs)
