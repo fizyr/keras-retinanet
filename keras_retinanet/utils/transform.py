@@ -236,50 +236,5 @@ def random_transform_generator(*args, **kwargs):
         yield random_transform(*args, **kwargs)
 
 
-def _translate_image_data_generator_params(image_data_generator):
-    """ Translate the properties of a Keras ImageDataGenerator to keyword arguments for random_transform() """
 
-
-def random_transform_from_image_data_generator(image_data_generator, prng = DEFAULT_PRNG):
-    """ Create a random transform using the same parameters as a Keras ImageDataGenerator.
-
-    Note that the image dimensions are unknown at this points,
-    so the transform origin should be modified to the image center before using it.
-    Additionally, the translation is relative to the image size.
-    You can use `transform_image` to fix these details for you.
-
-    # Arguments
-        image_data_generator: The Keras ImageDataGenerator to mimick.
-        prng:                 The speudo-random number generator to use.
-    """
-    rotation    = image_data_generator.rotation_range
-    translation = np.array([[image_data_generator.width_shift_range], [image_data_generator.height_shift_range]])
-    shear       = image_data_generator.shear_range
-    min_zoom    = image_data_generator.zoom_range[0]
-    max_zoom    = image_data_generator.zoom_range[1]
-    flip_x      = 0.5 if image_data_generator.horizontal_flip else 0
-    flip_y      = 0.5 if image_data_generator.vertical_flip else 0
-
-    return random_transform(
-        min_rotation    = -rotation,
-        max_rotation    = +rotation,
-        min_translation = -translation,
-        max_translation = +translation,
-        min_shear       = -shear,
-        max_shear       = +shear,
-        min_scaling     = colvec(min_zoom, min_zoom),
-        max_scaling     = colvec(max_zoom, max_zoom),
-        flip_x_chance   = flip_x,
-        flip_y_chance   = flip_y,
-        prng            = prng
-    )
-
-
-def random_transform_generator_from_image_data_generator(image_data_generator, prng = DEFAULT_PRNG):
-    """ Create a random transform generator that mimicks a Keras ImageDataGenerator.
-    # Arguments
-        image_data_generator: The Keras ImageDataGenerator to mimick.
-        prng:                 The speudo-random number generator to use.
-    """
     while True:
-        yield random_transform_from_image_data_generator(image_data_generator, prng)

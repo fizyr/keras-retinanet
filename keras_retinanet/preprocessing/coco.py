@@ -24,7 +24,7 @@ from pycocotools.coco import COCO
 
 
 class CocoGenerator(Generator):
-    def __init__(self, data_dir, set_name, image_data_generator, *args, **kwargs):
+    def __init__(self, data_dir, set_name, **kwargs):
         self.data_dir  = data_dir
         self.set_name  = set_name
         self.coco      = COCO(os.path.join(data_dir, 'annotations', 'instances_' + set_name + '.json'))
@@ -32,7 +32,7 @@ class CocoGenerator(Generator):
 
         self.load_classes()
 
-        super(CocoGenerator, self).__init__(image_data_generator, **kwargs)
+        super(CocoGenerator, self).__init__(**kwargs)
 
     def load_classes(self):
         # load class names (name -> label)

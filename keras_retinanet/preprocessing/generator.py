@@ -23,36 +23,34 @@ import warnings
 import keras
 
 from ..utils.anchors import anchor_targets_bbox
-from ..utils.image import apply_transform, preprocess_image, resize_image
-
-from ..utils.transform import DEFAULT_PRNG
-from ..utils.transform import random_transform_generator_from_image_data_generator
+from ..utils.image import (
+    TransformParameters,
+    adjust_transform_for_image,
+    apply_transform,
+    preprocess_image,
+    resize_image,
+)
+from ..utils.transform import transform_aabb
 
 
 class Generator(object):
     def __init__(
         self,
-        image_data_generator,
+        transform_generator = None,
         batch_size=1,
         group_method='ratio',  # one of 'none', 'random', 'ratio'
         shuffle_groups=True,
         image_min_side=600,
         image_max_side=1024,
-        prng=DEFAULT_PRNG,
-        seed=None
+        transform_parameters=None,
     ):
-        self.image_data_generator = image_data_generator
+        self.transform_generator  = transform_generator
         self.batch_size           = int(batch_size)
         self.group_method         = group_method
         self.shuffle_groups       = shuffle_groups
         self.image_min_side       = image_min_side
         self.image_max_side       = image_max_side
-
-        self.transform_generator  = random_transform_generator_from_image_data_generator(image_data_generator)
-
-        if seed is None:
-            seed = np.uint32((time.time() % 1)) * 1000
-        prng.seed(seed)
+        self.transform_parameters = transform_parameters or TransformParameters()
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -118,23 +116,33 @@ class Generator(object):
     def preprocess_image(self, image):
         return preprocess_image(image)
 
+    def preprocess_group_entry(self, image, annotations):
+        # preprocess the image
+        image = self.preprocess_image(image)
+
+        # randomly transform both image and annotations
+        if self.transform_generator is not None:
+            transform = adjust_transform_for_image(next(self.transform_generator), image)
+            apply_transform(transform, image, self.transform_parameters)
+
+            # Transform the bounding boxes in the annotations.
+            annotations = annotations.copy()
+            for index in range(annotations.shape[0]):
+                box                    = annotations[index, :4]
+                annotations[index, :4] = transform_aabb(transform, box[0], box[1], box[2], box[3])
+
+        # resize image
+        image, image_scale = self.resize_image(image)
+
+        # apply resizing to annotations too
+        annotations[:, :4] *= image_scale
+
+        return image, annotations
+
     def preprocess_group(self, image_group, annotations_group):
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
-            # preprocess the image (subtract imagenet mean)
-            image = self.preprocess_image(image)
-
-            # randomly transform both image and annotations
-            transform = next(self.transform_generator)
-            channel_axis = self.image_data_generator.channel_axis - 1  # no batch axis
-            fill_mode    = self.image_data_generator.fill_mode
-            cval         = self.image_data_generator.cval
-            image, annotations = apply_transform(transform, image, annotations, channel_axis=channel_axis, fill_mode=fill_mode, cval=cval)
-
-            # resize image
-            image, image_scale = self.resize_image(image)
-
-            # apply resizing to annotations too
-            annotations[:, :4] *= image_scale
+            # preprocess a single group entry
+            image, annotations = self.preprocess_group_entry(image, annotations)
 
             # copy processed data back to group
             image_group[index]       = image

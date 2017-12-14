@@ -50,7 +50,7 @@ def preprocess_image(x):
     return x
 
 
-def adjust_transform_for_image(image, transform):
+def adjust_transform_for_image(transform, image):
     """ Adjust a transformation for a specific image.
 
     The translation of the matrix will be scaled with the size of the image.
@@ -67,20 +67,44 @@ def adjust_transform_for_image(image, transform):
     return result
 
 
-def apply_transform(transform, image, annotations, channel_axis, fill_mode, cval):
-    # Update transform for image size.
-    transform = adjust_transform_for_image(image, transform)
+class TransformParameters:
+    """ Struct holding parameters determining how to transform images.
 
-    # Transform the image itself.
-    image = keras.preprocessing.image.apply_transform(image, transform, channel_axis=channel_axis, fill_mode=fill_mode, cval=cval)
+    # Arguments
+        fill_mode:   Same as for keras.preprocessing.image.apply_transform
+        cval:        Same as for keras.preprocessing.image.apply_transform
+        data_format: Same as for keras.preprocessing.image.apply_transform
+    """
+    def __init__(
+        self,
+        fill_mode    = 'nearest',
+        cval         = 0,
+        data_format  = None,
+    ):
+        self.fill_mode    = fill_mode
+        self.cval         = cval
 
-    # Transform the bounding boxes in the annotations.
-    annotations = annotations.copy()
-    for index in range(annotations.shape[0]):
-        box                    = annotations[index, :4]
-        annotations[index, :4] = transform_aabb(transform, box[0], box[1], box[2], box[3])
+        if data_format is None:
+            data_format = keras.backend.image_data_format()
+        self.data_format = data_format
 
-    return image, annotations
+        if data_format == 'channels_first':
+            self.channel_axis = 0
+        elif data_format == 'channels_last':
+            self.channel_axis = 2
+        else:
+            raise ValueError("invalid data_format, expected 'channels_first' or 'channels_last', got '{}'".format(data_format))
+
+
+def apply_transform(transform, image, params):
+    """ Wrapper around keras.preprocessing.image.apply_transform using TransformParameters. """
+    return keras.preprocessing.image.apply_transform(
+        image,
+        transform,
+        channel_axis=params.channel_axis,
+        fill_mode=params.fill_mode,
+        cval=params.cval
+    )
 
 
 def resize_image(img, min_side=600, max_side=1024):

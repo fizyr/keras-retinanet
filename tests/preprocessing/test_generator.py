@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import keras.backend
-from keras.preprocessing.image import ImageDataGenerator
 from keras_retinanet.preprocessing.generator import Generator
 
 import numpy as np
@@ -27,7 +26,7 @@ class SimpleGenerator(Generator):
         self.annotations_group = annotations_group
         self.num_classes_      = num_classes
         self.image             = image
-        super(SimpleGenerator, self).__init__(ImageDataGenerator(), group_method='none', shuffle_groups=False)
+        super(SimpleGenerator, self).__init__(group_method='none', shuffle_groups=False)
 
     def num_classes(self):
         return self.num_classes_
