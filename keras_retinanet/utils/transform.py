@@ -11,8 +11,8 @@ def colvec(*args):
 def transform_aabb(transform, x1, y1, x2, y2):
     """ Apply a transformation to an axis aligned bounding box.
 
-    The result is a new AABB in the same coordinate system
-    containing all tranformed points of the original AABB.
+    The result is a new AABB in the same coordinate system as the original AABB.
+    The new AABB contains all corner points of the original AABB after applying the given transformation.
 
     # Arguments
         transform: The transormation to apply.
@@ -23,7 +23,7 @@ def transform_aabb(transform, x1, y1, x2, y2):
     # Returns
         The new AABB as tuple (x1, y1, x2, y2)
     """
-    # Point 2 is not within the AABB itself.
+    # Point x2,y2 is not within the AABB itself.
     x2 -= 1
     y2 -= 1
     # Transform all 4 corners of the AABB.
@@ -68,7 +68,9 @@ def rotation(angle):
 def random_rotation(min, max, prng = DEFAULT_PRNG):
     """ Construct a random rotation between -max and max.
     # Arguments
-        max: the maximum absolute angle in radians
+        min:  a scalar for the minumum absolute angle in radians
+        max:  a scalar for the maximum absolute angle in radians
+        prng: the pseudo-random number generator to use.
     # Returns
         a homogeneous 3 by 3 rotation matrix
     """
@@ -92,8 +94,9 @@ def translation(translation):
 def random_translation(min, max, prng = DEFAULT_PRNG):
     """ Construct a random 2D translation between min and max.
     # Arguments
-        min: the minumum translation for each dimension
-        max: the maximum translation for each dimension
+        min:  a 2D column vector with the minumum translation for each dimension
+        max:  a 2D column vector with the maximum translation for each dimension
+        prng: the pseudo-random number generator to use.
     # Returns
         a homogeneous 3 by 3 translation matrix
     """
@@ -119,7 +122,9 @@ def shear(amount):
 def random_shear(min, max, prng = DEFAULT_PRNG):
     """ Construct a random 2D shear matrix with shear angle between -max and max.
     # Arguments
-        amount: the max shear amount
+        min:  the minumum shear factor.
+        max:  the maximum shear factor.
+        prng: the pseudo-random number generator to use.
     # Returns
         a homogeneous 3 by 3 shear matrix
     """
@@ -129,7 +134,7 @@ def random_shear(min, max, prng = DEFAULT_PRNG):
 def scaling(factor):
     """ Construct a homogeneous 2D scaling matrix.
     # Arguments
-        factor: a 2D vector for X and Y scaling
+        factor: a 2D column vector for X and Y scaling
     # Returns
         the zoom matrix as 3 by 3 numpy array
     """
@@ -143,7 +148,9 @@ def scaling(factor):
 def random_scaling(min, max, prng = DEFAULT_PRNG):
     """ Construct a random 2D scale matrix between -max and max.
     # Arguments
-        factor: a 2D vector for maximum X and Y scaling
+        min:  a 2D column vector containing the minimum scaling factor for X and Y.
+        min:  a 2D column vector containing The maximum scaling factor for X and Y.
+        prng: the pseudo-random number generator to use.
     # Returns
         a homogeneous 3 by 3 scaling matrix
     """
