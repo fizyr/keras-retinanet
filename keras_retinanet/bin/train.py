@@ -20,17 +20,17 @@ import argparse
 import os
 import sys
 
+import keras
+import keras.preprocessing.image
+from keras.utils import multi_gpu_model
+import tensorflow as tf
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-import keras
-import keras.preprocessing.image
-from keras.utils import multi_gpu_model
-
-import tensorflow as tf
-
+# Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import losses
 from .. import layers
 from ..callbacks import RedirectModel

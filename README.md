@@ -1,36 +1,56 @@
 # Keras RetinaNet [![Build Status](https://travis-ci.org/fizyr/keras-retinanet.svg?branch=master)](https://travis-ci.org/fizyr/keras-retinanet)
-Keras implementation of RetinaNet object detection as described in [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002) by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
+Keras implementation of RetinaNet object detection as described in [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002)
+by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
 ## Installation
 
 1) Clone this repository.
 2) In the repository, execute `python setup.py install --user`.
    Note that due to inconsistencies with how `tensorflow` should be installed,
-   this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch linux results in an incorrect installation).
+   this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch Linux results in an incorrect installation).
    Please make sure `tensorflow` is installed as per your systems requirements.
    Also, make sure Keras 2.1.2 is installed.
 3) As of writing, this repository requires the master branch of `keras-resnet` (run `pip install --user --upgrade git+https://github.com/broadinstitute/keras-resnet`).
 4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset by running `pip install --user git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI`.
 
 ## Training
-`keras-retinanet` can be trained using [this](https://github.com/delftrobotics/keras-retinanet/blob/master/scripts/train.py) script.
+`keras-retinanet` can be trained using [this](https://github.com/delftrobotics/keras-retinanet/blob/master/keras_retinanet/bin/train.py) script.
+Note that the train script uses relative imports since it is inside the `keras_retinanet` package.
+If you want to adjust the script for your own use outside of this repository,
+you will need to switch it to use absolute imports.
+
+If you installed `keras-retinanet` correctly, the train script will be installed as `retinanet-train`.
+However, if you make local modifications to the `keras-retinanet` repository, you should run the script directly from the repository.
+That will ensure that your local changes will be used by the train script.
 
 ### Usage
 For training on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/), run:
 ```
-python scripts/train.py pascal <path to VOCdevkit/VOC2007>
+# Running directly from the repository:
+keras_retinanet/bin/train.py pascal <path to VOCdevkit/VOC2007>
+
+# Using the installed script:
+retinanet-train pascal <path to VOCdevkit/VOC2007>
 ```
 
 For training on [MS COCO](http://cocodataset.org/#home), run:
 ```
-python scripts/train.py coco <path to MS COCO>
+# Running directly from the repository:
+keras_retinanet/bin/train.py coco <path to MS COCO>
+
+# Using the installed script:
+retinanet-train coco <path to MS COCO>
 ```
 
 For training on a custom dataset, a CSV file can be used as a way to pass the data.
 See below for more details on the format of these CSV files.
 To train using your CSV, run:
 ```
-python scripts/train.py csv <path to csv file containing annotations> <path to csv file containing classes>
+# Running directly from the repository:
+keras_retinanet/bin/train.py csv <path to csv file containing annotations> <path to csv file containing classes>
+
+# Using the installed script:
+retinanet-train csv <path to csv file containing annotations> <path to csv file containing classes>
 ```
 
 In general, the steps to train on your own datasets are:

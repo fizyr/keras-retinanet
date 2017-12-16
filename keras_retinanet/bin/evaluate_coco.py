@@ -20,19 +20,20 @@ import argparse
 import os
 import sys
 
+import keras
+import keras.preprocessing.image
+import tensorflow as tf
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-import keras
-import keras.preprocessing.image
+# Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from ..preprocessing.coco import CocoGenerator
 from ..utils.coco_eval import evaluate_coco
 from ..models.resnet import custom_objects
 from ..utils.keras_version import check_keras_version
-
-import tensorflow as tf
 
 
 def get_session():
