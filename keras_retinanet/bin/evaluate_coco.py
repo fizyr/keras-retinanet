@@ -16,17 +16,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
-import keras.preprocessing.image
-from keras_retinanet.preprocessing.coco import CocoGenerator
-from keras_retinanet.utils.coco_eval import evaluate_coco
-from keras_retinanet.models.resnet import custom_objects
-from keras_retinanet.utils.keras_version import check_keras_version
-
-import tensorflow as tf
-
 import argparse
 import os
+import sys
+
+import keras
+import keras.preprocessing.image
+import tensorflow as tf
+
+# Allow relative imports when being executed as script.
+if __name__ == "__main__" and __package__ is None:
+    __package__ = "keras_retinanet.bin"
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
+
+# Change these to absolute imports if you copy this script outside the keras_retinanet package.
+from ..preprocessing.coco import CocoGenerator
+from ..utils.coco_eval import evaluate_coco
+from ..models.resnet import custom_objects
+from ..utils.keras_version import check_keras_version
 
 
 def get_session():
@@ -35,7 +42,7 @@ def get_session():
     return tf.Session(config=config)
 
 
-def parse_args():
+def parse_args(args):
     parser = argparse.ArgumentParser(description='Simple training script for COCO object detection.')
     parser.add_argument('model', help='Path to RetinaNet model.')
     parser.add_argument('coco_path', help='Path to COCO directory (ie. /tmp/COCO).')
@@ -43,11 +50,14 @@ def parse_args():
     parser.add_argument('--set', help='Name of the set file to evaluate (defaults to val2017).', default='val2017')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
 
-    return parser.parse_args()
+    return parser.parse_args(args)
 
-if __name__ == '__main__':
+
+def main(args=None):
     # parse arguments
-    args = parse_args()
+    if args is None:
+        args = sys.argv[1:]
+    args = parse_args(args)
 
     # make sure keras is the minimum required version
     check_keras_version()
@@ -72,3 +82,6 @@ if __name__ == '__main__':
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)
+
+if __name__ == '__main__':
+    main()
