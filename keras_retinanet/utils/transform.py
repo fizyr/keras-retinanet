@@ -23,9 +23,6 @@ def transform_aabb(transform, x1, y1, x2, y2):
     # Returns
         The new AABB as tuple (x1, y1, x2, y2)
     """
-    # Point x2,y2 is not within the AABB itself.
-    x2 -= 1
-    y2 -= 1
     # Transform all 4 corners of the AABB.
     points = transform.dot([
         [x1, x2, x1, x2],
@@ -38,7 +35,7 @@ def transform_aabb(transform, x1, y1, x2, y2):
     max_corner = points.max(axis=1)
 
     # Make point 2 exclusive again.
-    return min_corner[0], min_corner[1], max_corner[0] + 1, max_corner[1] + 1
+    return min_corner[0], min_corner[1], max_corner[0], max_corner[1]
 
 
 def _random_vector(min, max, prng = DEFAULT_PRNG):
