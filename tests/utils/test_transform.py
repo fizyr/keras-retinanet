@@ -51,14 +51,14 @@ def assert_is_translation(transform, min, max):
     assert transform.shape == (3, 3)
     assert np.array_equal(transform[:, 0:2], np.eye(3, 2))
     assert transform[2, 2] == 1
-    assert np.greater_equal(transform[0:2, 2:3], min).all()
-    assert np.less(         transform[0:2, 2:3], max).all()
+    assert np.greater_equal(transform[0:2, 2], min).all()
+    assert np.less(         transform[0:2, 2], max).all()
 
 
 def test_random_translation():
     prng = np.random.RandomState(0)
-    min = colvec(-10, -20)
-    max = colvec(20, 10)
+    min = (-10, -20)
+    max = (20, 10)
     for i in range(100):
         assert_is_translation(random_translation(min, max, prng), min, max)
 
@@ -105,10 +105,10 @@ def assert_is_scaling(transform, min, max):
 
 def test_random_scaling():
     prng = np.random.RandomState(0)
-    min = colvec(0.1, 0.2)
-    max = colvec(20, 10)
+    min = (0.1, 0.2)
+    max = (20, 10)
     for i in range(100):
-        assert_is_scaling(random_scaling(min, max, prng), min[:, 0], max[:, 0])
+        assert_is_scaling(random_scaling(min, max, prng), min, max)
 
 
 def assert_is_flip(transform):
@@ -123,8 +123,6 @@ def assert_is_flip(transform):
 
 def test_random_flip():
     prng = np.random.RandomState(0)
-    min = colvec(0.1, 0.2)
-    max = colvec(20, 10)
     for i in range(100):
         assert_is_flip(random_flip(0.5, 0.5, prng))
 
@@ -140,6 +138,6 @@ def test_random_transform():
 
 
 def test_transform_aabb():
-    assert (1, 2, 3, 4) == transform_aabb(np.identity(3), 1, 2, 3, 4)
-    assert_almost_equal(colvec(-3, -4, -1, -2), colvec(*transform_aabb(rotation(pi),              1, 2, 3, 4)))
-    assert_almost_equal(colvec( 2,  4,  4,  6), colvec(*transform_aabb(translation(colvec(1, 2)), 1, 2, 3, 4)))
+    assert np.array_equal([1, 2, 3, 4], transform_aabb(np.identity(3), [1, 2, 3, 4]))
+    assert_almost_equal([-3, -4, -1, -2], transform_aabb(rotation(pi),        [1, 2, 3, 4]))
+    assert_almost_equal([ 2,  4,  4,  6], transform_aabb(translation([1, 2]), [1, 2, 3, 4]))

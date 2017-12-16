@@ -59,7 +59,7 @@ def adjust_transform_for_image(transform, image):
     height, width, channels = image.shape
 
     # Move the origin of transformation.
-    result = change_transform_origin(transform, colvec(width, height) * 0.5)
+    result = change_transform_origin(transform, (0.5 * width, 0.5 * height))
 
     # Scale the translation with the image size.
     result[0:2, 2] *= [width, height]

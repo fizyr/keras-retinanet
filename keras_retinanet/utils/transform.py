@@ -8,7 +8,7 @@ def colvec(*args):
     return np.array([args]).T
 
 
-def transform_aabb(transform, x1, y1, x2, y2):
+def transform_aabb(transform, aabb):
     """ Apply a transformation to an axis aligned bounding box.
 
     The result is a new AABB in the same coordinate system as the original AABB.
@@ -23,6 +23,7 @@ def transform_aabb(transform, x1, y1, x2, y2):
     # Returns
         The new AABB as tuple (x1, y1, x2, y2)
     """
+    x1, y1, x2, y2 = aabb
     # Transform all 4 corners of the AABB.
     points = transform.dot([
         [x1, x2, x1, x2],
@@ -34,18 +35,20 @@ def transform_aabb(transform, x1, y1, x2, y2):
     min_corner = points.min(axis=1)
     max_corner = points.max(axis=1)
 
-    # Make point 2 exclusive again.
-    return min_corner[0], min_corner[1], max_corner[0], max_corner[1]
+    return [min_corner[0], min_corner[1], max_corner[0], max_corner[1]]
 
 
 def _random_vector(min, max, prng = DEFAULT_PRNG):
-    """ Construct a random column vector between min and max.
+    """ Construct a random vector between min and max.
     # Arguments
         min: the minimum value for each component
         max: the maximum value for each component
     """
-    width = np.array(max) - np.array(min)
-    return prng.uniform(0, 1, (2, 1)) * width + min
+    min = np.array(min)
+    max = np.array(max)
+    assert min.shape == max.shape
+    assert len(min.shape) == 1
+    return prng.uniform(min, max)
 
 
 def rotation(angle):
@@ -77,13 +80,13 @@ def random_rotation(min, max, prng = DEFAULT_PRNG):
 def translation(translation):
     """ Construct a homogeneous 2D translation matrix.
     # Arguments
-        translation: the translation as column vector
+        translation: the translation 2D vector
     # Returns
         the translation matrix as 3 by 3 numpy array
     """
     return np.array([
-        [1, 0, translation[0, 0]],
-        [0, 1, translation[1, 0]],
+        [1, 0, translation[0]],
+        [0, 1, translation[1]],
         [0, 0, 1]
     ])
 
@@ -91,14 +94,12 @@ def translation(translation):
 def random_translation(min, max, prng = DEFAULT_PRNG):
     """ Construct a random 2D translation between min and max.
     # Arguments
-        min:  a 2D column vector with the minumum translation for each dimension
-        max:  a 2D column vector with the maximum translation for each dimension
+        min:  a 2D vector with the minumum translation for each dimension
+        max:  a 2D vector with the maximum translation for each dimension
         prng: the pseudo-random number generator to use.
     # Returns
         a homogeneous 3 by 3 translation matrix
     """
-    assert min.shape == (2, 1)
-    assert max.shape == (2, 1)
     return translation(_random_vector(min, max, prng))
 
 
@@ -131,13 +132,13 @@ def random_shear(min, max, prng = DEFAULT_PRNG):
 def scaling(factor):
     """ Construct a homogeneous 2D scaling matrix.
     # Arguments
-        factor: a 2D column vector for X and Y scaling
+        factor: a 2D vector for X and Y scaling
     # Returns
         the zoom matrix as 3 by 3 numpy array
     """
     return np.array([
-        [factor[0, 0], 0, 0],
-        [0, factor[1, 0], 0],
+        [factor[0], 0, 0],
+        [0, factor[1], 0],
         [0, 0, 1]
     ])
 
@@ -145,14 +146,12 @@ def scaling(factor):
 def random_scaling(min, max, prng = DEFAULT_PRNG):
     """ Construct a random 2D scale matrix between -max and max.
     # Arguments
-        min:  a 2D column vector containing the minimum scaling factor for X and Y.
-        min:  a 2D column vector containing The maximum scaling factor for X and Y.
+        min:  a 2D vector containing the minimum scaling factor for X and Y.
+        min:  a 2D vector containing The maximum scaling factor for X and Y.
         prng: the pseudo-random number generator to use.
     # Returns
         a homogeneous 3 by 3 scaling matrix
     """
-    assert min.shape == (2, 1)
-    assert max.shape == (2, 1)
     return scaling(_random_vector(min, max, prng))
 
 
@@ -168,7 +167,7 @@ def random_flip(flip_x_chance, flip_y_chance, prng = DEFAULT_PRNG):
     flip_x = prng.uniform(0, 1) < flip_x_chance
     flip_y = prng.uniform(0, 1) < flip_y_chance
     # 1 - 2 * bool gives 1 for False and -1 for True.
-    return scaling(colvec(1 - 2 * flip_x, 1 - 2 * flip_y))
+    return scaling((1 - 2 * flip_x, 1 - 2 * flip_y))
 
 
 def change_transform_origin(transform, center):
@@ -179,18 +178,19 @@ def change_transform_origin(transform, center):
     # Return:
         translate(center) * transform * translate(-center)
     """
+    center = np.array(center)
     return np.dot(np.dot(translation(center), transform), translation(-center))
 
 
 def random_transform(
     min_rotation=0,
     max_rotation=0,
-    min_translation=colvec(0, 0),
-    max_translation=colvec(0, 0),
+    min_translation=(0, 0),
+    max_translation=(0, 0),
     min_shear=0,
     max_shear=0,
-    min_scaling=colvec(1, 1),
-    max_scaling=colvec(1, 1),
+    min_scaling=(1, 1),
+    max_scaling=(1, 1),
     flip_x_chance=0,
     flip_y_chance=0,
     prng = DEFAULT_PRNG

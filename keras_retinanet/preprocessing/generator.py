@@ -128,8 +128,7 @@ class Generator(object):
             # Transform the bounding boxes in the annotations.
             annotations = annotations.copy()
             for index in range(annotations.shape[0]):
-                box                    = annotations[index, :4]
-                annotations[index, :4] = transform_aabb(transform, box[0], box[1], box[2], box[3])
+                annotations[index, :4] = transform_aabb(transform, annotations[index, :4])
 
         # resize image
         image, image_scale = self.resize_image(image)
