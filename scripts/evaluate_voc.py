@@ -58,4 +58,4 @@ if __name__ == '__main__':
         test_image_data_generator
     )
 
-    evaluate_voc(test_generator, model, args.score_threshold)
+    evaluate_voc(test_generator, model, args.score_threshold, save=True)

@@ -61,7 +61,11 @@ def process_detections(dets, image_id, threshold, generator):
 
     return filtered_detections
 
-def evaluate_voc(generator, model, threshold=0.05):
+def evaluate_voc(generator, model, threshold=0.05, save=False, save_path='images_voc'):
+
+    if save:
+        dest = pathlib.Path(save_path)
+        dest.mkdir(exist_ok=True)
 
     gt = [[] for _ in range(generator.size())]
 
@@ -90,8 +94,7 @@ def evaluate_voc(generator, model, threshold=0.05):
         # Draw Ground Truth
         draw_gt_bboxes(draw, gt[i])
 
-        dest = pathlib.Path('./images_voc/')
-        dest.mkdir(exist_ok=True)
-        cv2.imwrite(str(dest.joinpath("{}.jpg".format(i))), draw)
+        if save:
+            cv2.imwrite(str(dest.joinpath("{}.jpg".format(i))), draw)
 
         print('{}/{}'.format(i, len(generator.image_names)), end='\r')
