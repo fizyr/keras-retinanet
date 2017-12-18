@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import keras
 import keras.preprocessing.image
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
-from keras_retinanet.utils.voc_eval import evaluate_voc
+from keras_retinanet.utils.voc_eval import VOCEvaluator
 from keras_retinanet.models.resnet import custom_objects
 from keras_retinanet.utils.keras_version import check_keras_version
 
@@ -58,4 +58,5 @@ if __name__ == '__main__':
         test_image_data_generator
     )
 
-    evaluate_voc(test_generator, model, args.score_threshold, save=True)
+    voc_evaluator = VOCEvaluator(test_generator, model, args.score_threshold, True)
+    voc_evaluator.evaluate()
