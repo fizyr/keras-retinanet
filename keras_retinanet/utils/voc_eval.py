@@ -41,7 +41,7 @@ def draw_top_N(image, bbox_preds, generator, N):
 
 def process_detections(dets, image_id, threshold, generator):
     filtered_detections = []
-    for detection in dets[0, ...]:
+    for detection in dets[0, :, :]:
         positive_labels = np.where(detection[4:] > threshold)[0]
 
         # Skip as we have no positive detections above the threshold for this image
