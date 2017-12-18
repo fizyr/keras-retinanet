@@ -39,6 +39,28 @@ def draw_top_N(image, bbox_preds, generator, N):
         cv2.putText(image, caption, (b[0], b[3] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 3)
         cv2.putText(image, caption, (b[0], b[3] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
 
+def process_detections(dets, image_id, threshold, generator):
+    filtered_detections = []
+    for detection in dets[0, ...]:
+        positive_labels = np.where(detection[4:] > threshold)[0]
+
+        # Skip as we have no positive detections above the threshold for this image
+        if len(positive_labels) < 1:
+            continue
+
+        # append detections for each positively labeled class
+        for indx, label in enumerate(positive_labels):
+            image_result = {
+                'image_id': generator.image_names[image_id],
+                'category_id': label,
+                'score': float(detection[4 + label]),
+                'bbox': (detection[:4]).tolist(),
+            }
+
+            filtered_detections.append(image_result)
+
+    return filtered_detections
+
 def evaluate_voc(generator, model, threshold=0.05):
 
     gt = [[] for _ in range(generator.size())]
@@ -60,25 +82,7 @@ def evaluate_voc(generator, model, threshold=0.05):
         det[:, :, 2] = np.minimum(image.shape[1], det[:, :, 2])
         det[:, :, 3] = np.minimum(image.shape[0], det[:, :, 3])
 
-        results_this_image = []
-
-        for detection in det[0, ...]:
-            positive_labels = np.where(detection[4:] > threshold)[0]
-
-            # Skip as we have no positive detections above the threshold for this image
-            if len(positive_labels) < 1:
-                continue
-
-            # append detections for each positively labeled class
-            for indx, label in enumerate(positive_labels):
-                image_result = {
-                    'image_id': generator.image_names[i],
-                    'category_id': label,
-                    'score': float(detection[4 + label]),
-                    'bbox': (detection[:4]).tolist(),
-                }
-
-                results_this_image.append(image_result)
+        results_this_image = process_detections(det, i, threshold, generator)
 
         # Draw Top N BBox predictions!
         draw_top_N(draw, results_this_image, generator, 5)
