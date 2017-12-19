@@ -30,7 +30,9 @@ def parse_args():
     parser.add_argument('--set', help='Name of the set file to evaluate (defaults to test).', default='test')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
     parser.add_argument('--iou-threshold', help='IoU Threshold to count for a positive detection (defaults to 0.5).', default=0.5, type=float)
-    parser.add_argument('--max-det', help='Max Detections per image (defaults to 100)', default=100, type=int)
+    parser.add_argument('--max-det', help='Max Detections per image (defaults to 100).', default=100, type=int)
+    parser.add_argument('--save-images', help='Save images with annotation ground truth and predictions.', action='store_true')
+    parser.add_argument('--save-path', help='Save path for images (defaults to ./images_voc).', default='images_voc', type=str)
 
     return parser.parse_args()
 
