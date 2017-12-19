@@ -5,29 +5,55 @@ import numpy as np
 import pathlib
 import cv2
 
+from keras_retinanet.utils.anchors import compute_overlap
+
+
 class VOCEvaluator():
-    def __init__(self, generator, model, threshold=0.05, save=False, save_path='images_voc'):
+    def __init__(self, generator, model, threshold=0.05, iou_threshold=0.5, max_detections=100, save=False,
+                 save_path='images_voc'):
         self.generator = generator
         self.model = model
         self.threshold = threshold
+        self.iou_threshold = iou_threshold
+        self.max_detections = max_detections
         self.save = save
 
-        self.detections = []
+        self.detections = [[None for _ in range(self.generator.num_classes())] for _ in range(self.generator.size())]
+        self.ground_truth = [[None for _ in range(self.generator.num_classes())] for _ in range(self.generator.size())]
+
+        self.average_precisions = np.zeros((0,))
 
         if self.save:
             self.save_path = pathlib.Path(save_path)
             self.save_path.mkdir(exist_ok=True)
 
-    def load_ground_truths(self, image_id ):
-        gt=[]
-        for annotation in self.generator.load_annotations(image_id):
-            label = int(annotation[4])
-            gt.append({
-                'image_id': self.generator.image_names[image_id],
-                'category_id': self.generator.label_to_name(label), # Use name
-                'bbox': (annotation[:4]).tolist()
-            })
-        return gt
+    def load_ground_truths(self):
+        for i in range(self.generator.size()):
+            annotations = self.generator.load_annotations(i)
+
+            for l in range(self.generator.num_classes()):
+                self.ground_truth[i][l] = annotations[annotations[:, 4] == l, :4].copy()
+
+    @staticmethod
+    def _compute_ap(recall, precision):
+        # code originally from https://github.com/rbgirshick/py-faster-rcnn
+
+        # correct AP calculation
+        # first append sentinel values at the end
+        mrec = np.concatenate(([0.], recall, [1.]))
+        mpre = np.concatenate(([0.], precision, [0.]))
+
+        # compute the precision envelope
+        for i in range(mpre.size - 1, 0, -1):
+            mpre[i - 1] = np.maximum(mpre[i - 1], mpre[i])
+
+        # to calculate area under PR curve, look for points
+        # where X axis (recall) changes value
+        i = np.where(mrec[1:] != mrec[:-1])[0]
+
+        # and sum (\Delta recall) * prec
+        ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
+        return ap
 
     @staticmethod
     def draw_gt_bboxes(image, anno_list):
@@ -62,57 +88,111 @@ class VOCEvaluator():
             cv2.putText(image, caption, (b[0], b[3] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 3)
             cv2.putText(image, caption, (b[0], b[3] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
 
-    def process_image_detections(self, dets, image_id):
-        filtered_detections = []
-        for detection in dets[0, :, :]:
-            positive_labels = np.where(detection[4:] > self.threshold)[0]
+    def populate_detections(self):
+        for i in range(self.generator.size()):
+            image = self.generator.load_image(i)
+            image = self.generator.preprocess_image(image)
+            image, scale = self.generator.resize_image(image)
 
-            # Skip as we have no positive detections above the threshold for this image
-            if len(positive_labels) < 1:
-                continue
+            _, _, det = self.model.predict_on_batch(np.expand_dims(image, axis=0))
 
-            # append detections for each positively labeled class
-            for indx, label in enumerate(positive_labels):
-                image_result = {
-                    'image_id': self.generator.image_names[image_id],
-                    'category_id': label,
-                    'score': float(detection[4 + label]),
-                    'bbox': (detection[:4]).tolist(),
-                }
+            # Rescale and clip detection bboxes to new image.
+            self.preprocess_detection(det, scale, image)
 
-                filtered_detections.append(image_result)
+            # Obtain indices for scores where they are over the score threshold.
+            chosen_scores_indices = np.where(det[0,:,4:] > self.threshold)
 
-        return filtered_detections
+            # Actually grab those indices.
+            actual_scores = det[0,:,4:][chosen_scores_indices]
+
+            # Sort, clipping to max detection number.
+            sorted_scores_order = np.argsort(-actual_scores)[:self.max_detections]
+
+            # Pick the bbox from the sorted, cropped list, ignoring the score component.
+            image_boxes         = det[0, chosen_scores_indices[0][sorted_scores_order], :4]
+
+            # Score component for all labels.
+            image_scores        = np.expand_dims(det[0, chosen_scores_indices[0][sorted_scores_order],
+                                                  4 + chosen_scores_indices[1][
+                sorted_scores_order]], axis=1)
+
+            # [image_boxes] + [scores]
+            image_det           = np.append(image_boxes, image_scores, axis=1) # Tack score at end of each bbox.
+
+            image_pred_label    = chosen_scores_indices[1][sorted_scores_order]
+
+            for l in range(self.generator.num_classes()):
+                # Bin the detections into their respective classes for this image.
+                self.detections[i][l] = image_det[image_pred_label == l, :]
+
+            print('{}/{}'.format(i, self.generator.size()), end='\r')
 
     def save_image(self, image, image_name):
         cv2.imwrite(str(self.save_path.joinpath(image_name)), image)
 
     def evaluate(self):
-        gt = [[] for _ in range(self.generator.size())]
 
-        for i in range(self.generator.size()):
+        #Initialise Detections
+        self.populate_detections()
 
-            image = self.generator.load_image(i)
-            gt[i] = self.load_ground_truths(i)
+        #Initialise Ground Truth data
+        self.load_ground_truths()
 
-            draw = image.copy()
+        for l in range(self.generator.num_classes()):
+            tp      = np.zeros((0,))
+            fp      = np.zeros((0,))
+            scores  = np.zeros((0,))
+            npos = 0
 
-            image, scale = self.generator.resize_image(image)
-            image = self.generator.preprocess_image(image)
+            for i in range(self.generator.size()):
+                dets    = self.detections[i][l]
+                gt      = self.ground_truth[i][l]
+                npos += gt.shape[0]
+                detected_record = []
 
-            _, _, det = self.model.predict_on_batch(np.expand_dims(image, axis=0))
+                for detection in dets:
 
-            self.preprocess_detection(det,scale,image)
+                    # Append the score first as we might skip!
+                    scores = np.append(scores, detection[4])
 
-            results_this_image = self.process_image_detections(det, i)
+                    # Ensure shape.
+                    if gt.shape[0] == 0:
+                        fp = np.append(fp, 1)
+                        tp = np.append(tp, 0)
+                        continue
 
-            # Draw Top N BBox predictions!
-            self.draw_top_N(draw, results_this_image, 5)
+                    #Calculate overlap
+                    overlaps = compute_overlap(np.expand_dims(detection, axis=0), gt)
+                    best_overlap = np.argmax(overlaps, axis=1)
 
-            # Draw Ground Truth
-            self.draw_gt_bboxes(draw, gt[i])
+                    if best_overlap not in detected_record and overlaps[0, best_overlap] > self.iou_threshold:
+                        # Only capture once
+                        detected_record.append(best_overlap)
 
-            if self.save:
-                self.save_image(draw, "{}.jpg".format(i))
+                        # Positive count.
+                        fp = np.append(fp, 0)
+                        tp = np.append(tp, 1)
+                    else:
+                        # Negative count.
+                        fp = np.append(fp, 1)
+                        tp = np.append(tp, 0)
 
-            print('{}/{}'.format(i, self.generator.size()), end='\r')
+
+            indices = np.argsort(-scores)
+            tp = tp[indices]
+            fp = fp[indices]
+
+            tp_score = np.cumsum(tp)
+            fp_score = np.cumsum(fp)
+
+            recall = tp_score / npos
+            precision = tp_score /  np.maximum(tp_score + fp_score, np.finfo(np.float64).eps)
+
+            ap = self._compute_ap(recall,precision)
+            self.average_precisions = np.append(self.average_precisions, ap)
+
+            print(self.generator.label_to_name(l), ap)
+        print("mAP: {}".format(self.average_precisions.mean()))
+
+
+
