@@ -8,6 +8,7 @@ import keras
 import keras.preprocessing.image
 from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
 from keras_retinanet.utils.voc_eval import VOCEvaluator
+from keras_retinanet.utils.eval import evaluate
 from keras_retinanet.models.resnet import custom_objects
 from keras_retinanet.utils.keras_version import check_keras_version
 
@@ -15,6 +16,8 @@ import tensorflow as tf
 
 import argparse
 import os
+
+import pydevd
 
 def get_session():
     config = tf.ConfigProto()
@@ -29,10 +32,14 @@ def parse_args():
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--set', help='Name of the set file to evaluate (defaults to test).', default='test')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
+    parser.add_argument('--iou-threshold', help='IoU Threshold to count for a positive detection (defaults to 0.5).', default=0.5, type=float)
 
     return parser.parse_args()
 
 if __name__ == '__main__':
+
+    pydevd.settrace('10.5.35.132', port=56473, stdoutToServer=True, stderrToServer=True)
+
     # parse arguments
     args = parse_args()
 
@@ -58,5 +65,7 @@ if __name__ == '__main__':
         test_image_data_generator
     )
 
-    voc_evaluator = VOCEvaluator(test_generator, model, args.score_threshold, True)
+    voc_evaluator = VOCEvaluator(test_generator,model,args.score_threshold,args.iou_threshold)
     voc_evaluator.evaluate()
+
+    #evaluate(test_generator, model, 0.5, args.score_threshold )
