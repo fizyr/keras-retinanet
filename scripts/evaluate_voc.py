@@ -63,5 +63,13 @@ if __name__ == '__main__':
         test_image_data_generator
     )
 
-    voc_evaluator = VOCEvaluator(test_generator,model, args.score_threshold, args.iou_threshold, args.max_det)
+    voc_evaluator = VOCEvaluator(
+        generator=test_generator,
+        model=model,
+        threshold=args.score_threshold,
+        iou_threshold=args.iou_threshold,
+        max_detections=args.max_det,
+        save=args.save_images,
+        save_path=args.save_path
+    )
     voc_evaluator.evaluate()

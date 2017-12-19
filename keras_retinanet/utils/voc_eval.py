@@ -56,20 +56,12 @@ class VOCEvaluator():
         return ap
 
     @staticmethod
-    def draw_gt_bboxes(image, anno_list):
-        for anno in anno_list:
-            label = anno['category_id']
-            b = np.array(anno['bbox']).astype(int)
-
-            cv2.rectangle(image, (b[0], b[1]), (b[2], b[3]), (0, 255, 0), 1)
-            caption = "GT:{}".format(label)
-            cv2.putText(image, caption, (b[0], b[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 3)
-            cv2.putText(image, caption, (b[0], b[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
-
-    @staticmethod
-    def filter_top_N_bboxes(bbox_preds, N):
-        max_liklihood_sorted = sorted(bbox_preds, key=lambda x: x['score'], reverse=True)
-        return max_liklihood_sorted[:min(len(max_liklihood_sorted), N)]
+    def draw_bbox(image, bbox, label, gt=False):
+        bbox = np.array(bbox).astype(int)
+        cv2.rectangle(image, (bbox[0], bbox[1]), (bbox[2], bbox[3]), (0, 255, 0) if gt else (0,0,255), 1)
+        caption = "{}: {}".format("GT" if gt else "P", label)
+        cv2.putText(image, caption, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 3)
+        cv2.putText(image, caption, (bbox[0], bbox[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
 
     @staticmethod
     def preprocess_detection(det, scale, image):
@@ -79,18 +71,16 @@ class VOCEvaluator():
         det[:, :, 2] = np.minimum(image.shape[1], det[:, :, 2])
         det[:, :, 3] = np.minimum(image.shape[0], det[:, :, 3])
 
-    def draw_top_N(self, image, bbox_preds, N):
-        for bbox in self.filter_top_N_bboxes(bbox_preds, N):
-            b = np.array(bbox['bbox']).astype(int)
-            cv2.rectangle(image, (b[0], b[1]), (b[2], b[3]), (0, 0, 255), 2)
-            caption = "P:{} {:.3f}".format(self.generator.label_to_name(bbox['category_id']), bbox[
-                'score'])
-            cv2.putText(image, caption, (b[0], b[3] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0), 3)
-            cv2.putText(image, caption, (b[0], b[3] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 2)
+    def save_image(self, image, image_id):
+        if self.save:
+            cv2.imwrite(str(self.save_path.joinpath("{}.jpg".format(image_id))), image)
 
     def populate_detections(self):
         for i in range(self.generator.size()):
             image = self.generator.load_image(i)
+            if self.save:
+                draw = image.copy()
+
             image = self.generator.preprocess_image(image)
             image, scale = self.generator.resize_image(image)
 
@@ -125,18 +115,24 @@ class VOCEvaluator():
                 # Bin the detections into their respective classes for this image.
                 self.detections[i][l] = image_det[image_pred_label == l, :]
 
+            if self.save:
+                for ind, d in enumerate(image_det):
+                    self.draw_bbox(draw, d[:4], self.generator.label_to_name(image_pred_label[ind]), gt=False)
+                for label, bboxes in enumerate(self.ground_truth[i]):
+                    for b in bboxes:
+                        self.draw_bbox(draw, b[:4], self.generator.label_to_name(label), gt=True)
+                self.save_image(draw,i)
+
             print('{}/{}'.format(i, self.generator.size()), end='\r')
 
-    def save_image(self, image, image_name):
-        cv2.imwrite(str(self.save_path.joinpath(image_name)), image)
 
     def evaluate(self):
 
+        # Initialise Ground Truth data
+        self.load_ground_truths()
+
         #Initialise Detections
         self.populate_detections()
-
-        #Initialise Ground Truth data
-        self.load_ground_truths()
 
         for l in range(self.generator.num_classes()):
             tp      = np.zeros((0,))
@@ -193,6 +189,3 @@ class VOCEvaluator():
 
             print(self.generator.label_to_name(l), ap)
         print("mAP: {}".format(self.average_precisions.mean()))
-
-
-
