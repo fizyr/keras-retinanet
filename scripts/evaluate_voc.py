@@ -16,8 +16,6 @@ import tensorflow as tf
 import argparse
 import os
 
-import pydevd
-
 def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -37,8 +35,6 @@ def parse_args():
     return parser.parse_args()
 
 if __name__ == '__main__':
-
-    pydevd.settrace('10.5.35.132', port=56473, stdoutToServer=True, stderrToServer=True)
 
     # parse arguments
     args = parse_args()
