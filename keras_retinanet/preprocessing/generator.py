@@ -118,7 +118,7 @@ class Generator(object):
             image = self.preprocess_image(image)
 
             # randomly transform both image and annotations
-            image, annotations = random_transform(image, annotations, self.image_data_generator)
+            image, annotations = random_transform(image, annotations, self.image_data_generator, seed=seed)
 
             # resize image
             image, image_scale = self.resize_image(image)
