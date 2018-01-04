@@ -38,7 +38,7 @@ def transform_aabb(transform, aabb):
     return [min_corner[0], min_corner[1], max_corner[0], max_corner[1]]
 
 
-def _random_vector(min, max, prng = DEFAULT_PRNG):
+def _random_vector(min, max, prng=DEFAULT_PRNG):
     """ Construct a random vector between min and max.
     # Arguments
         min: the minimum value for each component
@@ -65,7 +65,7 @@ def rotation(angle):
     ])
 
 
-def random_rotation(min, max, prng = DEFAULT_PRNG):
+def random_rotation(min, max, prng=DEFAULT_PRNG):
     """ Construct a random rotation between -max and max.
     # Arguments
         min:  a scalar for the minumum absolute angle in radians
@@ -91,7 +91,7 @@ def translation(translation):
     ])
 
 
-def random_translation(min, max, prng = DEFAULT_PRNG):
+def random_translation(min, max, prng=DEFAULT_PRNG):
     """ Construct a random 2D translation between min and max.
     # Arguments
         min:  a 2D vector with the minumum translation for each dimension
@@ -117,7 +117,7 @@ def shear(amount):
     ])
 
 
-def random_shear(min, max, prng = DEFAULT_PRNG):
+def random_shear(min, max, prng=DEFAULT_PRNG):
     """ Construct a random 2D shear matrix with shear angle between -max and max.
     # Arguments
         min:  the minumum shear factor.
@@ -143,7 +143,7 @@ def scaling(factor):
     ])
 
 
-def random_scaling(min, max, prng = DEFAULT_PRNG):
+def random_scaling(min, max, prng=DEFAULT_PRNG):
     """ Construct a random 2D scale matrix between -max and max.
     # Arguments
         min:  a 2D vector containing the minimum scaling factor for X and Y.
@@ -155,7 +155,7 @@ def random_scaling(min, max, prng = DEFAULT_PRNG):
     return scaling(_random_vector(min, max, prng))
 
 
-def random_flip(flip_x_chance, flip_y_chance, prng = DEFAULT_PRNG):
+def random_flip(flip_x_chance, flip_y_chance, prng=DEFAULT_PRNG):
     """ Construct a transformation randomly containing X/Y flips (or not).
     # Arguments
         flip_x_chance: The chance that the result will contain a flip along the X axis.
@@ -193,7 +193,7 @@ def random_transform(
     max_scaling=(1, 1),
     flip_x_chance=0,
     flip_y_chance=0,
-    prng = DEFAULT_PRNG
+    prng=DEFAULT_PRNG
 ):
     """ Create a random transformation.
 
@@ -227,7 +227,7 @@ def random_transform(
     ])
 
 
-def random_transform_generator(prng = None, **kwargs):
+def random_transform_generator(prng=None, **kwargs):
     """ Create a random transform generator with the same arugments as `random_transform`.
 
     Uses a dedicated, newly created, properly seeded PRNG by default instead of the global DEFAULT_PRNG.
