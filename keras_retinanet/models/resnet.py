@@ -72,6 +72,8 @@ def resnet_retinanet(num_classes, backbone='50', inputs=None, weights='imagenet'
     if weights_path:
         model.load_weights(weights_path, by_name=True)
 
+    return model
+
 
 def resnet50_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone='50', inputs=inputs, weights=weights, **kwargs)
