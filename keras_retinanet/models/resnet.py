@@ -26,8 +26,8 @@ custom_objects = retinanet.custom_objects.copy()
 custom_objects.update(keras_resnet.custom_objects)
 
 
-def resnet_retinanet(num_classes, backbone='50', inputs=None, weights='imagenet', **kwargs):
-    allowed_backbones = ['50', '101', '152']
+def resnet_retinanet(num_classes, backbone=50, inputs=None, weights='imagenet', **kwargs):
+    allowed_backbones = [50, 101, 152]
     if backbone not in allowed_backbones:
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
@@ -39,11 +39,11 @@ def resnet_retinanet(num_classes, backbone='50', inputs=None, weights='imagenet'
     if weights == 'imagenet':
         filename = resnet_filename.format(backbone)
         resource = resnet_resource.format(backbone)
-        if backbone == '50':
+        if backbone == 50:
             checksum = '3e9f4e4f77bbe2c9bec13b53ee1c2319'
-        elif backbone == '101':
+        elif backbone == 101:
             checksum = '05dc86924389e5b401a9ea0348a3213c'
-        elif backbone == '152':
+        elif backbone == 152:
             checksum = '6ee11ef2b135592f8031058820bb9e71'
 
         weights_path = keras.applications.imagenet_utils.get_file(
@@ -58,11 +58,11 @@ def resnet_retinanet(num_classes, backbone='50', inputs=None, weights='imagenet'
         weights_path = weights
 
     # create the resnet backbone
-    if backbone == '50':
+    if backbone == 50:
         resnet = keras_resnet.models.ResNet50(inputs, include_top=False, freeze_bn=True)
-    elif backbone == '101':
+    elif backbone == 101:
         resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
-    elif backbone == '152':
+    elif backbone == 152:
         resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
 
     # create the full model
@@ -76,12 +76,12 @@ def resnet_retinanet(num_classes, backbone='50', inputs=None, weights='imagenet'
 
 
 def resnet50_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone='50', inputs=inputs, weights=weights, **kwargs)
+    return resnet_retinanet(num_classes=num_classes, backbone=50, inputs=inputs, weights=weights, **kwargs)
 
 
 def resnet101_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone='101', inputs=inputs, weights=weights, **kwargs)
+    return resnet_retinanet(num_classes=num_classes, backbone=101, inputs=inputs, weights=weights, **kwargs)
 
 
 def resnet152_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone='152', inputs=inputs, weights=weights, **kwargs)
+    return resnet_retinanet(num_classes=num_classes, backbone=152, inputs=inputs, weights=weights, **kwargs)
