@@ -52,7 +52,7 @@ def resnet_retinanet(num_classes, backbone='50', inputs=None, weights='imagenet'
             cache_subdir='models',
             md5_hash=checksum
         )
-    elif weights == 'none':
+    elif weights is None:
         weights_path = None
     else:
         weights_path = weights
