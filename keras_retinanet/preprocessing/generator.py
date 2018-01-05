@@ -121,7 +121,7 @@ class Generator(object):
         image = self.preprocess_image(image)
 
         # randomly transform both image and annotations
-        if self.transform_generator is not None:
+        if self.transform_generator:
             transform = adjust_transform_for_image(next(self.transform_generator), image)
             apply_transform(transform, image, self.transform_parameters)
 
