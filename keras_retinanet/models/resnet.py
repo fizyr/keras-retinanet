@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
 import keras
 import keras_resnet
 import keras_resnet.models
@@ -93,3 +95,18 @@ def resnet101_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
 
 def resnet152_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone=152, inputs=inputs, weights=weights, **kwargs)
+
+
+def ResNet50RetinaNet(inputs, num_classes, *args, **kwargs):
+    warnings.warn("ResNet50RetinaNet is replaced by resnet50_retinanet and will be removed in a future release.")
+    return resnet50_retinanet(num_classes, inputs, *args, **kwargs)
+
+
+def ResNet101RetinaNet(inputs, num_classes, *args, **kwargs):
+    warnings.warn("ResNet101RetinaNet is replaced by resnet101_retinanet and will be removed in a future release.")
+    return resnet101_retinanet(num_classes, inputs, *args, **kwargs)
+
+
+def ResNet152RetinaNet(inputs, num_classes, *args, **kwargs):
+    warnings.warn("ResNet152RetinaNet is replaced by resnet152_retinanet and will be removed in a future release.")
+    return resnet152_retinanet(num_classes, inputs, *args, **kwargs)
