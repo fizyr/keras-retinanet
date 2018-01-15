@@ -139,7 +139,7 @@ bird,2
 ## Results
 
 ### MS COCO
-The MS COCO model can be downloaded [here](https://delftrobotics-my.sharepoint.com/personal/h_gaiser_fizyr_com/_layouts/15/guestaccess.aspx?docid=0386bb358d0d44762a7c705cdac052c2f&authkey=AfdlNvj1hPD8ZPShcqUFUZg&expiration=2017-12-28T16%3A09%3A58.000Z&e=5585e7262ac64651bf59990b54b406cd). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.343).
+The MS COCO model can be downloaded [here](https://github.com/fizyr/keras-retinanet/releases/download/0.1/resnet50_coco_best_v1.2.2.h5). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.343).
 
 ```
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.325
