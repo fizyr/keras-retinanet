@@ -38,6 +38,7 @@ from ..callbacks import RedirectModel
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..models.resnet import resnet50_retinanet
+from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 
 
@@ -109,11 +110,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
 
 def create_generators(args):
-    # create image data generator objects
-    train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(
-        horizontal_flip=True,
-    )
-    val_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
+    # create random transform generator for augmenting training data
+    transform_generator = random_transform_generator(flip_x_chance=0.5)
 
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
@@ -122,35 +120,33 @@ def create_generators(args):
         train_generator = CocoGenerator(
             args.coco_path,
             'train2017',
-            train_image_data_generator,
+            transform_generator=transform_generator,
             batch_size=args.batch_size
         )
 
         validation_generator = CocoGenerator(
             args.coco_path,
             'val2017',
-            val_image_data_generator,
             batch_size=args.batch_size
         )
     elif args.dataset_type == 'pascal':
         train_generator = PascalVocGenerator(
             args.pascal_path,
             'trainval',
-            train_image_data_generator,
+            transform_generator=transform_generator,
             batch_size=args.batch_size
         )
 
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
-            val_image_data_generator,
             batch_size=args.batch_size
         )
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
-            train_image_data_generator,
+            transform_generator=transform_generator,
             batch_size=args.batch_size
         )
 
@@ -158,7 +154,6 @@ def create_generators(args):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
-                val_image_data_generator,
                 batch_size=args.batch_size
             )
         else:

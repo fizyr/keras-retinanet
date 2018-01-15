@@ -72,14 +72,10 @@ def main(args=None):
     print('Loading model, this may take a second...')
     model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
-    # create image data generator object
-    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator()
-
     # create a generator for testing data
     test_generator = CocoGenerator(
         args.coco_path,
         args.set,
-        test_image_data_generator,
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)

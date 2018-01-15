@@ -21,6 +21,8 @@ import numpy as np
 import cv2
 import PIL
 
+from .transform import change_transform_origin, transform_aabb, colvec
+
 
 def read_image_bgr(path):
     image = np.asarray(PIL.Image.open(path).convert('RGB'))
@@ -48,44 +50,61 @@ def preprocess_image(x):
     return x
 
 
-def random_transform(
-    image,
-    boxes,
-    image_data_generator,
-    seed=None
-):
-    if seed is None:
-        seed = np.random.randint(10000)
+def adjust_transform_for_image(transform, image):
+    """ Adjust a transformation for a specific image.
 
-    image = image_data_generator.random_transform(image, seed=seed)
+    The translation of the matrix will be scaled with the size of the image.
+    The linear part of the transformation will adjusted so that the origin of the transformation will be at the center of the image.
+    """
+    height, width, channels = image.shape
 
-    # set fill mode so that masks are not enlarged
-    fill_mode = image_data_generator.fill_mode
-    image_data_generator.fill_mode = 'constant'
+    # Move the origin of transformation.
+    result = change_transform_origin(transform, (0.5 * width, 0.5 * height))
 
-    for index in range(boxes.shape[0]):
-        # generate box mask and randomly transform it
-        mask = np.zeros_like(image, dtype=np.uint8)
-        b = boxes[index, :4].astype(int)
+    # Scale the translation with the image size.
+    result[0:2, 2] *= [width, height]
 
-        assert(b[0] < b[2] and b[1] < b[3]), 'Annotations contain invalid box: {}'.format(b)
-        assert(b[2] <= image.shape[1] and b[3] <= image.shape[0]), 'Annotation ({}) is outside of image shape ({}).'.format(b, image.shape)
+    return result
 
-        mask[b[1]:b[3], b[0]:b[2], :] = 255
-        mask = image_data_generator.random_transform(mask, seed=seed)[..., 0]
-        mask = mask.copy()  # to force contiguous arrays
 
-        # find bounding box again in augmented image
-        [i, j] = np.where(mask == 255)
-        boxes[index, 0] = float(min(j))
-        boxes[index, 1] = float(min(i))
-        boxes[index, 2] = float(max(j)) + 1  # set box to an open interval [min, max)
-        boxes[index, 3] = float(max(i)) + 1  # set box to an open interval [min, max)
+class TransformParameters:
+    """ Struct holding parameters determining how to transform images.
 
-    # restore fill_mode
-    image_data_generator.fill_mode = fill_mode
+    # Arguments
+        fill_mode:   Same as for keras.preprocessing.image.apply_transform
+        cval:        Same as for keras.preprocessing.image.apply_transform
+        data_format: Same as for keras.preprocessing.image.apply_transform
+    """
+    def __init__(
+        self,
+        fill_mode    = 'nearest',
+        cval         = 0,
+        data_format  = None,
+    ):
+        self.fill_mode    = fill_mode
+        self.cval         = cval
 
-    return image, boxes
+        if data_format is None:
+            data_format = keras.backend.image_data_format()
+        self.data_format = data_format
+
+        if data_format == 'channels_first':
+            self.channel_axis = 0
+        elif data_format == 'channels_last':
+            self.channel_axis = 2
+        else:
+            raise ValueError("invalid data_format, expected 'channels_first' or 'channels_last', got '{}'".format(data_format))
+
+
+def apply_transform(transform, image, params):
+    """ Wrapper around keras.preprocessing.image.apply_transform using TransformParameters. """
+    return keras.preprocessing.image.apply_transform(
+        image,
+        transform,
+        channel_axis=params.channel_axis,
+        fill_mode=params.fill_mode,
+        cval=params.cval
+    )
 
 
 def resize_image(img, min_side=600, max_side=1024):
