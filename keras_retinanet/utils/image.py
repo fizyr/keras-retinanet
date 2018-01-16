@@ -50,7 +50,7 @@ def preprocess_image(x):
     return x
 
 
-def adjust_transform_for_image(transform, image):
+def adjust_transform_for_image(transform, image, relative_translation):
     """ Adjust a transformation for a specific image.
 
     The translation of the matrix will be scaled with the size of the image.
@@ -61,28 +61,33 @@ def adjust_transform_for_image(transform, image):
     # Move the origin of transformation.
     result = change_transform_origin(transform, (0.5 * width, 0.5 * height))
 
-    # Scale the translation with the image size.
-    result[0:2, 2] *= [width, height]
+    # Scale the translation with the image size if specified.
+    if relative_translation:
+        result[0:2, 2] *= [width, height]
 
     return result
 
 
 class TransformParameters:
-    """ Struct holding parameters determining how to transform images.
+    """ Struct holding parameters determining how to apply a transformation to an image.
 
     # Arguments
-        fill_mode:   Same as for keras.preprocessing.image.apply_transform
-        cval:        Same as for keras.preprocessing.image.apply_transform
-        data_format: Same as for keras.preprocessing.image.apply_transform
+        fill_mode:             Same as for keras.preprocessing.image.apply_transform
+        cval:                  Same as for keras.preprocessing.image.apply_transform
+        data_format:           Same as for keras.preprocessing.image.apply_transform
+        relative_translation:  If true (the default), interpret translation as a factor of the image size.
+                               If false, interpret it as absolute pixels.
     """
     def __init__(
         self,
-        fill_mode    = 'nearest',
-        cval         = 0,
-        data_format  = None,
+        fill_mode            = 'nearest',
+        cval                 = 0,
+        data_format          = None,
+        relative_translation = True,
     ):
-        self.fill_mode    = fill_mode
-        self.cval         = cval
+        self.fill_mode            = fill_mode
+        self.cval                 = cval
+        self.relative_translation = relative_translation
 
         if data_format is None:
             data_format = keras.backend.image_data_format()
@@ -101,9 +106,9 @@ def apply_transform(transform, image, params):
     return keras.preprocessing.image.apply_transform(
         image,
         transform,
-        channel_axis=params.channel_axis,
-        fill_mode=params.fill_mode,
-        cval=params.cval
+        channel_axis = params.channel_axis,
+        fill_mode    = params.fill_mode,
+        cval         = params.cval
     )
 
 

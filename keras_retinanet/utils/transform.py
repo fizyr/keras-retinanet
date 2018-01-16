@@ -205,6 +205,11 @@ def random_transform(
       * flip x (if applied)
       * flip y (if applied)
 
+    Note that by default, the data generators in `keras_retinanet.preprocessing.generators` interpret the translation
+    as factor of the image size. So an X translation of 0.1 would translate the image by 10% of it's width.
+    See `keras_retinanet.utils.image.TransformParameters` for a way to disable this behaviour and use absolute pixel
+    translation instead.
+
     # Arguments
         min_rotation:    The minimum rotation for the transform as scalar.
         max_rotation:    The maximum rotation for the transform as scalar.

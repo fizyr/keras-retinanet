@@ -122,7 +122,7 @@ class Generator(object):
 
         # randomly transform both image and annotations
         if self.transform_generator:
-            transform = adjust_transform_for_image(next(self.transform_generator), image)
+            transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
             apply_transform(transform, image, self.transform_parameters)
 
             # Transform the bounding boxes in the annotations.
