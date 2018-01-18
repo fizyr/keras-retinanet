@@ -16,7 +16,8 @@ limitations under the License.
 
 from __future__ import print_function
 
-from keras_retinanet.utils.anchors import compute_overlap
+from .anchors import compute_overlap
+from .visualization import draw_detections, draw_ground_truth
 
 import numpy as np
 import os
@@ -46,12 +47,12 @@ def _compute_ap(recall, precision):
     return ap
 
 
-def _get_detections(generator, model, score_threshold=0.05, max_detections=100):
+def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
     all_detections = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
 
     for i in range(generator.size()):
-        image = generator.load_image(i)
-        image = generator.preprocess_image(image)
+        raw_image    = generator.load_image(i)
+        image        = generator.preprocess_image(raw_image.copy())
         image, scale = generator.resize_image(image)
 
         # run network
@@ -84,11 +85,16 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100):
         image_detections = np.append(image_boxes, image_scores, axis=1)
         image_predicted_labels = indices[1][scores_sort]
 
+        if save_path is not None:
+            draw_ground_truth(raw_image, generator.load_annotations(i), generator=generator)
+            draw_detections(raw_image, detections[0, indices[0][scores_sort], :], generator=generator)
+
+            cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), raw_image)
+
         # copy detections to all_detections
         for label in range(generator.num_classes()):
             all_detections[i][label] = image_detections[image_predicted_labels == label, :]
 
-        #print([generator.label_to_name(l) for l in image_predicted_labels])
         print('{}/{}'.format(i, generator.size()), end='\r')
 
     return all_detections
@@ -105,22 +111,30 @@ def _get_annotations(generator):
         for label in range(generator.num_classes()):
             all_annotations[i][label] = annotations[annotations[:, 4] == label, :4].copy()
 
-        #print([generator.label_to_name(l) for l in annotations[:, 4]])
         print('{}/{}'.format(i, generator.size()), end='\r')
 
     return all_annotations
 
 
-def evaluate(generator, model, iou_threshold=0.5, score_threshold=0.05, max_detections=100):
-    #all_detections     = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections)
-    #all_annotations    = _get_annotations(generator)
-    average_precisions = np.zeros((0,))
+def evaluate(
+    generator,
+    model,
+    iou_threshold=0.5,
+    score_threshold=0.05,
+    max_detections=100,
+    save_path=None
+):
+    # gather all detections and annotations
+    all_detections     = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
+    all_annotations    = _get_annotations(generator)
+    average_precisions = {}
 
-    all_detections = pickle.load(open('all_detections.pkl', 'rb'))
-    all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
-    #pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
-    #pickle.dump(all_annotations, open('all_annotations.pkl', 'wb'))
+    # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
+    # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
+    # pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
+    # pickle.dump(all_annotations, open('all_annotations.pkl', 'wb'))
 
+    # process detections and annotations
     for label in range(generator.num_classes()):
         false_positives = np.zeros((0,))
         true_positives  = np.zeros((0,))
@@ -153,17 +167,26 @@ def evaluate(generator, model, iou_threshold=0.5, score_threshold=0.05, max_dete
                     false_positives = np.append(false_positives, 1)
                     true_positives  = np.append(true_positives, 0)
 
+        # no annotations -> AP for this class is 0 (is this correct?)
+        if num_annotations == 0:
+            average_precisions[label] = 0
+            continue
+
+        # sort by score
         indices         = np.argsort(-scores)
         false_positives = false_positives[indices]
         true_positives  = true_positives[indices]
 
-        false_positives    = np.cumsum(false_positives)
-        true_positives     = np.cumsum(true_positives)
-        recall             = true_positives / num_annotations
-        precision          = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
+        # compute false positives and true positives
+        false_positives = np.cumsum(false_positives)
+        true_positives  = np.cumsum(true_positives)
+
+        # compute recall and precision
+        recall    = true_positives / num_annotations
+        precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
+
+        # compute average precision
         average_precision  = _compute_ap(recall, precision)
-        average_precisions = np.append(average_precisions, average_precision)
+        average_precisions[label] = average_precision
 
-        print(generator.label_to_name(label), average_precision)
-
-    print('mAP: {}'.format(average_precisions.mean()))
+    return average_precisions
