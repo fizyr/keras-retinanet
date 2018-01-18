@@ -207,8 +207,8 @@ def random_transform(
 
     Note that by default, the data generators in `keras_retinanet.preprocessing.generators` interpret the translation
     as factor of the image size. So an X translation of 0.1 would translate the image by 10% of it's width.
-    See `keras_retinanet.utils.image.TransformParameters` for a way to disable this behaviour and use absolute pixel
-    translation instead.
+    Set `relative_translation` to `False` in the `TransformParameters` of a data generator to have it interpret
+    the translation directly as pixel distances instead.
 
     # Arguments
         min_rotation:    The minimum rotation in radians for the transform as scalar.
@@ -247,8 +247,8 @@ def random_transform_generator(prng=None, **kwargs):
 
     Note that by default, the data generators in `keras_retinanet.preprocessing.generators` interpret the translation
     as factor of the image size. So an X translation of 0.1 would translate the image by 10% of it's width.
-    See `keras_retinanet.utils.image.TransformParameters` for a way to disable this behaviour and use absolute pixel
-    translation instead.
+    Set `relative_translation` to `False` in the `TransformParameters` of a data generator to have it interpret
+    the translation directly as pixel distances instead.
 
     # Arguments
         min_rotation:    The minimum rotation in radians for the transform as scalar.
