@@ -38,7 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
-from ..models.resnet import resnet50_retinanet
+from ..models.resnet import resnet50_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 
@@ -58,16 +58,17 @@ def create_models(num_classes, weights='imagenet', multi_gpu=0):
         with tf.device('/cpu:0'):
             model = resnet50_retinanet(num_classes, weights=weights, nms=False)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
-    else:
-        model = resnet50_retinanet(num_classes, weights=weights, nms=False)
-        training_model = model
 
-    # append NMS for prediction only
-    classification   = model.outputs[1]
-    detections       = model.outputs[2]
-    boxes            = keras.layers.Lambda(lambda x: x[:, :, :4])(detections)
-    detections       = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
-    prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
+        # append NMS for prediction only
+        classification   = model.outputs[1]
+        detections       = model.outputs[2]
+        boxes            = keras.layers.Lambda(lambda x: x[:, :, :4])(detections)
+        detections       = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+        prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
+    else:
+        model            = resnet50_retinanet(num_classes, weights=weights, nms=True)
+        training_model   = model
+        prediction_model = model
 
     # compile model
     training_model.compile(
@@ -183,6 +184,11 @@ def check_args(parsed_args):
             "Batch size ({}) must be equal to or higher than the number of GPUs ({})".format(parsed_args.batch_size,
                                                                                              parsed_args.multi_gpu))
 
+    if parsed_args.multi_gpu > 1 and parsed_args.snapshot:
+        raise ValueError(
+            "Multi GPU training ({}) and resuming from snapshots ({}) is not supported.".format(parsed_args.multi_gpu,
+                                                                                                parsed_args.snapshot))
+
     return parsed_args
 
 
@@ -202,7 +208,10 @@ def parse_args(args):
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
 
-    parser.add_argument('--weights',       help='Weights to use for initialization (defaults to ImageNet).', default='imagenet')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--weights',  help='Weights to use for initialization (defaults to \'imagenet\').', default='imagenet')
+    group.add_argument('--snapshot', help='Snapshot to resume training with.')
+
     parser.add_argument('--batch-size',    help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu',           help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu',     help='Number of GPUs to use for parallel processing.', type=int, default=0)
@@ -233,8 +242,14 @@ def main(args=None):
     train_generator, validation_generator = create_generators(args)
 
     # create the model
-    print('Creating model, this may take a second...')
-    model, training_model, prediction_model = create_models(num_classes=train_generator.num_classes(), weights=args.weights, multi_gpu=args.multi_gpu)
+    if args.snapshot:
+        print('Loading model, this may take a second...')
+        model            = keras.models.load_model(args.snapshot, custom_objects=custom_objects)
+        training_model   = model
+        prediction_model = model
+    else:
+        print('Creating model, this may take a second...')
+        model, training_model, prediction_model = create_models(num_classes=train_generator.num_classes(), weights=args.weights, multi_gpu=args.multi_gpu)
 
     # print model summary
     print(model.summary())
