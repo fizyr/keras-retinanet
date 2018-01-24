@@ -35,6 +35,7 @@ if __name__ == "__main__" and __package__ is None:
 from .. import losses
 from .. import layers
 from ..callbacks import RedirectModel
+from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..models.resnet import resnet50_retinanet
@@ -95,11 +96,14 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         checkpoint = RedirectModel(checkpoint, prediction_model)
         callbacks.append(checkpoint)
 
-    if args.dataset_type == 'coco' and args.evaluation:
-        from ..callbacks.coco import CocoEval
+    if args.evaluation and validation_generator:
+        if args.dataset_type == 'coco':
+            from ..callbacks.coco import CocoEval
 
-        # use prediction model for evaluation
-        evaluation = CocoEval(validation_generator)
+            # use prediction model for evaluation
+            evaluation = CocoEval(validation_generator)
+        else:
+            evaluation = Evaluate(validation_generator)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
@@ -189,8 +193,6 @@ def parse_args(args):
 
     coco_parser = subparsers.add_parser('coco')
     coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
-    coco_parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
-    coco_parser.set_defaults(evaluation=True)
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
@@ -208,7 +210,7 @@ def parse_args(args):
     parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
     parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
-    parser.set_defaults(snapshots=True)
+    parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
 
     return check_args(parser.parse_args(args))
 

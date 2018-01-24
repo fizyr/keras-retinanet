@@ -56,13 +56,11 @@ def create_generator(args):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
-            batch_size=args.batch_size
         )
     elif args.dataset_type == 'csv':
         validation_generator = CSVGenerator(
-            args.val_annotations,
+            args.annotations,
             args.classes,
-            batch_size=args.batch_size
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
@@ -91,8 +89,6 @@ def parse_args(args):
     parser.add_argument('--iou-threshold',   help='IoU Threshold to count for a positive detection (defaults to 0.5).', default=0.5, type=float)
     parser.add_argument('--max-detections',  help='Max Detections per image (defaults to 100).', default=100, type=int)
     parser.add_argument('--save-path',       help='Path for saving images with detections.')
-
-    parser.set_defaults(snapshots=True)
 
     return parser.parse_args(args)
 
