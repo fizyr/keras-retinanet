@@ -58,12 +58,14 @@ def adjust_transform_for_image(transform, image, relative_translation):
     """
     height, width, channels = image.shape
 
-    # Move the origin of transformation.
-    result = change_transform_origin(transform, (0.5 * width, 0.5 * height))
+    result = transform
 
     # Scale the translation with the image size if specified.
     if relative_translation:
         result[0:2, 2] *= [width, height]
+
+    # Move the origin of transformation.
+    result = change_transform_origin(transform, (0.5 * width, 0.5 * height))
 
     return result
 
