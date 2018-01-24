@@ -14,6 +14,7 @@ setuptools.setup(
         'console_scripts': [
             'retinanet-train=keras_retinanet.bin.train:main',
             'retinanet-evaluate-coco=keras_retinanet.bin.evaluate_coco:main',
+            'retinanet-evaluate=keras_retinanet.bin.evaluate:main',
         ],
     }
 )
