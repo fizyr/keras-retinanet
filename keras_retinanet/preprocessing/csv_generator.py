@@ -84,7 +84,7 @@ def _read_annotations(csv_reader, classes):
 
         # check if the current class name is correctly present
         if class_name not in classes:
-            raise ValueError('line {}: unknown class name: {}'.format(line, class_name))
+            raise ValueError('line {}: unknown class name: \'{}\' (classes: {})'.format(line, class_name, classes))
 
         result[img_file].append({'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2, 'class': class_name})
     return result
