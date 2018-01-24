@@ -17,7 +17,7 @@ limitations under the License.
 from __future__ import print_function
 
 from .anchors import compute_overlap
-from .visualization import draw_detections, draw_ground_truth
+from .visualization import draw_detections, draw_annotations
 
 import numpy as np
 import os
@@ -27,8 +27,16 @@ import pickle
 
 
 def _compute_ap(recall, precision):
-    # code originally from https://github.com/rbgirshick/py-faster-rcnn
+    """ Compute the average precision, given the recall and precision curves.
 
+    Code originally from https://github.com/rbgirshick/py-faster-rcnn.
+
+    # Arguments
+        recall:    The recall curve (list).
+        precision: The precision curve (list).
+    # Returns
+        The average precision as computed in py-faster-rcnn.
+    """
     # correct AP calculation
     # first append sentinel values at the end
     mrec = np.concatenate(([0.], recall, [1.]))
@@ -48,6 +56,20 @@ def _compute_ap(recall, precision):
 
 
 def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
+    """ Get the detections from the model using the generator.
+
+    The result is a list of lists such that the size is:
+        all_detections[num_images][num_classes] = detections[num_detections, 4 + num_classes]
+
+    # Arguments
+        generator       : The generator used to run images through the model.
+        model           : The model to run on the images.
+        score_threshold : The score confidence threshold to use.
+        max_detections  : The maximum number of detections to use per image.
+        save_path       : The path to save the images with visualized detections to.
+    # Returns
+        A list of lists containing the detections for each image in the generator.
+    """
     all_detections = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
 
     for i in range(generator.size()):
@@ -86,7 +108,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image_predicted_labels = indices[1][scores_sort]
 
         if save_path is not None:
-            draw_ground_truth(raw_image, generator.load_annotations(i), generator=generator)
+            draw_annotations(raw_image, generator.load_annotations(i), generator=generator)
             draw_detections(raw_image, detections[0, indices[0][scores_sort], :], generator=generator)
 
             cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), raw_image)
@@ -101,6 +123,16 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
 
 def _get_annotations(generator):
+    """ Get the ground truth annotations from the generator.
+
+    The result is a list of lists such that the size is:
+        all_detections[num_images][num_classes] = annotations[num_detections, 5]
+
+    # Arguments
+        generator : The generator used to retrieve ground truth annotations.
+    # Returns
+        A list of lists containing the annotations for each image in the generator.
+    """
     all_annotations = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
 
     for i in range(generator.size()):
@@ -124,6 +156,18 @@ def evaluate(
     max_detections=100,
     save_path=None
 ):
+    """ Evaluate a given dataset using a given model.
+
+    # Arguments
+        generator       : The generator that represents the dataset to evaluate.
+        model           : The model to evaluate.
+        iou_threshold   : The threshold used to consider when a detection is positive or negative.
+        score_threshold : The score confidence threshold to use for detections.
+        max_detections  : The maximum number of detections to use per image.
+        save_path       : The path to save images with visualized detections to.
+    # Returns
+        A dict mapping class names to mAP scores.
+    """
     # gather all detections and annotations
     all_detections     = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_annotations    = _get_annotations(generator)
