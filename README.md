@@ -54,7 +54,7 @@ retinanet-train csv <path to csv file containing annotations> <path to csv file 
 ```
 
 In general, the steps to train on your own datasets are:
-1) Create a model by calling for instance `keras_retinanet.models.ResNet50RetinaNet` and compile it.
+1) Create a model by calling for instance `keras_retinanet.models.resnet50_retinanet` and compile it.
    Empirically, the following compile arguments have been found to work well:
 ```
 model.compile(
