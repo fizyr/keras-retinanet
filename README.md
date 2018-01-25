@@ -56,7 +56,7 @@ retinanet-train csv <path to csv file containing annotations> <path to csv file 
 In general, the steps to train on your own datasets are:
 1) Create a model by calling for instance `keras_retinanet.models.resnet50_retinanet` and compile it.
    Empirically, the following compile arguments have been found to work well:
-```
+```python
 model.compile(
     loss={
         'regression'    : keras_retinanet.losses.regression_loss,
@@ -71,14 +71,14 @@ model.compile(
 ## Testing
 An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet%20-%20COCO%202017.ipynb).
 In general, output can be retrieved from the network as follows:
-```
+```python
 _, _, detections = model.predict_on_batch(inputs)
 ```
 
 Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, cls1, cls2, ...)`).
 
 Loading models can be done in the following manner:
-```
+```python
 from keras_retinanet.models.resnet import custom_objects
 model = keras.models.load_model('/path/to/model.h5', custom_objects=custom_objects)
 ```
