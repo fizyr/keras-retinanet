@@ -16,6 +16,7 @@ limitations under the License.
 
 from __future__ import division
 import keras
+import keras.preprocessing.image
 import time
 import numpy as np
 import cv2
