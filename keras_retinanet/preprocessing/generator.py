@@ -114,7 +114,7 @@ class Generator(object):
         # randomly transform both image and annotations
         if self.transform_generator:
             transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
-            image     = apply_transform(transform, image, self.transform_parameters)
+            image     = np.swapaxes(apply_transform(transform, np.swapaxes(image, 0, 1), self.transform_parameters), 0, 1)
 
             # Transform the bounding boxes in the annotations.
             annotations = annotations.copy()
