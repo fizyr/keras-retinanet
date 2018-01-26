@@ -110,6 +110,19 @@ class Generator(object):
     def load_image_group(self, group):
         return [self.load_image(image_index) for image_index in group]
 
+    def random_transform_group_entry(self, image, annotations):
+        # randomly transform both image and annotations
+        if self.transform_generator:
+            transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
+            image     = apply_transform(transform, image, self.transform_parameters)
+
+            # Transform the bounding boxes in the annotations.
+            annotations = annotations.copy()
+            for index in range(annotations.shape[0]):
+                annotations[index, :4] = transform_aabb(transform, annotations[index, :4])
+
+        return image, annotations
+
     def resize_image(self, image):
         return resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
@@ -120,15 +133,8 @@ class Generator(object):
         # preprocess the image
         image = self.preprocess_image(image)
 
-        # randomly transform both image and annotations
-        if self.transform_generator:
-            transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
-            apply_transform(transform, image, self.transform_parameters)
-
-            # Transform the bounding boxes in the annotations.
-            annotations = annotations.copy()
-            for index in range(annotations.shape[0]):
-                annotations[index, :4] = transform_aabb(transform, annotations[index, :4])
+        # randomly transform image and annotations
+        image, annotations = self.random_transform_group_entry(image, annotations)
 
         # resize image
         image, image_scale = self.resize_image(image)
