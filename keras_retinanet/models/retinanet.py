@@ -182,10 +182,16 @@ def retinanet(
     anchor_parameters       = AnchorParameters.default,
     create_pyramid_features = __create_pyramid_features,
     submodels               = None,
+    freeze_backbone         = False,
     name                    = 'retinanet'
 ):
     if submodels is None:
         submodels = default_submodels(num_classes, anchor_parameters)
+
+    # when doing transfer learning, freeze the backbone layers
+    if freeze_backbone:
+        for l in backbone.layers:
+            l.trainable = False
 
     _, C3, C4, C5 = backbone.outputs  # we ignore C2
 

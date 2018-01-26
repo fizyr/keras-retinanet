@@ -55,14 +55,14 @@ def model_with_weights(model, weights, skip_mismatch):
     return model
 
 
-def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=0):
+def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=0, freeze_backbone=False):
     # create "base" model (no NMS)
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, nms=False), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, nms=False, freeze_backbone=freeze_backbone), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
 
         # append NMS for prediction only
@@ -72,7 +72,7 @@ def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=
         detections       = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
         prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
     else:
-        model            = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, nms=True), weights=weights, skip_mismatch=True)
+        model            = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, nms=True, freeze_backbone=freeze_backbone), weights=weights, skip_mismatch=True)
         training_model   = model
         prediction_model = model
 
@@ -299,6 +299,7 @@ def parse_args(args):
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
+    parser.add_argument('--freeze-backbone', help='Freeze training of backbone layers..', action='store_true')
 
     return check_args(parser.parse_args(args))
 
@@ -340,7 +341,14 @@ def main(args=None):
             weights = download_imagenet(args.backbone)
 
         print('Creating model, this may take a second...')
-        model, training_model, prediction_model = create_models(backbone_retinanet=retinanet, backbone=args.backbone, num_classes=train_generator.num_classes(), weights=weights, multi_gpu=args.multi_gpu)
+        model, training_model, prediction_model = create_models(
+            backbone_retinanet=retinanet,
+            backbone=args.backbone,
+            num_classes=train_generator.num_classes(),
+            weights=weights,
+            multi_gpu=args.multi_gpu,
+            freeze_backbone=args.freeze_backbone
+        )
 
     # print model summary
     print(model.summary())
