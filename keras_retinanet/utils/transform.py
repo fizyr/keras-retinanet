@@ -183,14 +183,14 @@ def change_transform_origin(transform, center):
 
 
 def random_transform(
-    # min_rotation=0,
-    # max_rotation=0,
-    # min_translation=(0, 0),
-    # max_translation=(0, 0),
-    # min_shear=0,
-    # max_shear=0,
-    # min_scaling=(1, 1),
-    # max_scaling=(1, 1),
+    min_rotation=0,
+    max_rotation=0,
+    min_translation=(0, 0),
+    max_translation=(0, 0),
+    min_shear=0,
+    max_shear=0,
+    min_scaling=(1, 1),
+    max_scaling=(1, 1),
     flip_x_chance=0,
     flip_y_chance=0,
     prng=DEFAULT_PRNG
@@ -223,14 +223,13 @@ def random_transform(
         flip_y_chance:   The chance (0 to 1) that a transform will contain a flip along Y direction.
         prng:            The pseudo-random number generator to use.
     """
-    # return np.linalg.multi_dot([
-    #     random_rotation(min_rotation, max_rotation, prng),
-    #     random_translation(min_translation, max_translation, prng),
-    #     random_shear(min_shear, max_shear, prng),
-    #     random_scaling(min_scaling, max_scaling, prng),
-    #     random_flip(flip_x_chance, flip_y_chance, prng)
-    # ])
-    return random_flip(flip_x_chance, flip_y_chance, prng)
+    return np.linalg.multi_dot([
+        random_rotation(min_rotation, max_rotation, prng),
+        random_translation(min_translation, max_translation, prng),
+        random_shear(min_shear, max_shear, prng),
+        random_scaling(min_scaling, max_scaling, prng),
+        random_flip(flip_x_chance, flip_y_chance)
+    ])
 
 
 def random_transform_generator(prng=None, **kwargs):
