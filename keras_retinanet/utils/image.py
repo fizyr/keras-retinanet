@@ -16,9 +16,9 @@ limitations under the License.
 
 from __future__ import division
 import keras
-import keras.preprocessing.image
 import time
 import numpy as np
+import scipy.ndimage as ndi
 import cv2
 import PIL
 
@@ -105,14 +105,36 @@ class TransformParameters:
 
 
 def apply_transform(transform, image, params):
-    """ Wrapper around keras.preprocessing.image.apply_transform using TransformParameters. """
-    return keras.preprocessing.image.apply_transform(
-        image,
-        transform,
-        channel_axis = params.channel_axis,
-        fill_mode    = params.fill_mode,
-        cval         = params.cval
-    )
+    """ Apply a transformation to an image. """
+    # The first axis of an image stored as numpy array is the Y axis.
+    # The transform has to be adjusted to match that convention.
+    #
+    # Additionally, scipy interprets the transform as a transformation from the original canvas to the changed image,
+    # which is opposite of what you would normally expect.
+    # So we invert the transformation before passing it to scipy.
+    transform   = np.linalg.inv(transform)
+    linear      = transform[1::-1, 1::-1]
+    translation = transform[1::-1, 2]
+
+    # Scipy also seems to contain an off-by-one on the translation part.
+    translation -= (1, 1)
+
+    # Apply the transform to each channel separately.
+    # For that we need the first axis to represent the channels so we can loop over them.
+    image    = np.moveaxis(image, params.channel_axis, 0)
+    channels = map(lambda channel: ndi.interpolation.affine_transform(
+        channel,
+        linear,
+        offset=translation,
+        order=0,
+        mode=params.fill_mode,
+        cval=params.cval
+    ), image)
+
+    # Merge the channels back into an image.
+    image = np.stack(channels, axis=0)
+    image = np.moveaxis(image, 0, params.channel_axis)
+    return image
 
 
 def resize_image(img, min_side=600, max_side=1024):
