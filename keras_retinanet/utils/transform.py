@@ -228,7 +228,7 @@ def random_transform(
         random_translation(min_translation, max_translation, prng),
         random_shear(min_shear, max_shear, prng),
         random_scaling(min_scaling, max_scaling, prng),
-        random_flip(flip_x_chance, flip_y_chance)
+        random_flip(flip_x_chance, flip_y_chance, prng)
     ])
 
 
