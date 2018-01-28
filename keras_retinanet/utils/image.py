@@ -22,7 +22,7 @@ import scipy.ndimage as ndi
 import cv2
 import PIL
 
-from .transform import change_transform_origin, transform_aabb, colvec
+from .transform import change_transform_origin, transform_aabb
 
 
 def read_image_bgr(path):
@@ -104,28 +104,42 @@ class TransformParameters:
             raise ValueError("invalid data_format, expected 'channels_first' or 'channels_last', got '{}'".format(data_format))
 
 
-def apply_transform(transform, image, params):
-    """ Apply a transformation to an image. """
-    # The first axis of an image stored as numpy array is the Y axis.
-    # The transform has to be adjusted to match that convention.
-    #
-    # Additionally, scipy interprets the transform as a transformation from the original canvas to the changed image,
+def apply_transform(matrix, image, params):
+    """
+    Apply a transformation to an image.
+
+    The origin of transformation is at the top left corner of the image.
+
+    The matrix is interpreted such that a point (x, y) on the original image is moved to transform * (x, y) in the generated image.
+    Mathematically speaking, that means that the matrix is a transformation from the transformed image space to the original image space.
+
+    Parameters:
+      matrix: A homogenous 3 by 3 matrix holding representing the transformation to apply.
+      image:  The image to transform.
+      params: The transform parameters (see TransformParameters)
+    """
+    # Scipy interprets the matrix as a transformation from the original canvas to the changed image,
     # which is opposite of what you would normally expect.
     # So we invert the transformation before passing it to scipy.
-    transform   = np.linalg.inv(transform)
-    linear      = transform[1::-1, 1::-1]
-    translation = transform[1::-1, 2]
+    # Otherwise, a scaling of (3, 3) would actually shrink the image contents by a factor 3.
+    matrix = np.linalg.inv(matrix)
 
-    # Scipy also seems to contain an off-by-one on the translation part.
-    translation -= (1, 1)
+    # Scipy also has the origin of linear transformations at the *center* of pixel (0, 0).
+    # We need to adjust, because that's insane.
+    # We want the origin precisely at the top left corner of the image.
+    matrix = change_transform_origin(matrix, (-0.5, -0.5))
 
-    # Apply the transform to each channel separately.
+    # The first axis of an image stored as numpy array is the Y axis.
+    # The matrix has to be adjusted to match that convention.
+    matrix[:2, :2] = matrix[1::-1, 1::-1]
+    matrix[:2,  2] = matrix[1::-1, 2]
+
+    # Apply the transformation to each channel separately.
     # For that we need the first axis to represent the channels so we can loop over them.
     image    = np.moveaxis(image, params.channel_axis, 0)
     channels = map(lambda channel: ndi.interpolation.affine_transform(
         channel,
-        linear,
-        offset=translation,
+        matrix,
         order=0,
         mode=params.fill_mode,
         cval=params.cval
