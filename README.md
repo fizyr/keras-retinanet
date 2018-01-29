@@ -9,7 +9,7 @@ by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
    Note that due to inconsistencies with how `tensorflow` should be installed,
    this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch Linux results in an incorrect installation).
    Please make sure `tensorflow` is installed as per your systems requirements.
-   Also, make sure Keras 2.1.2 is installed.
+   Also, make sure Keras 2.1.3 is installed.
 3) As of writing, this repository requires the master branch of `keras-resnet` (run `pip install --user --upgrade git+https://github.com/broadinstitute/keras-resnet`).
 4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset by running `pip install --user git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI`.
 
@@ -166,8 +166,8 @@ Example output images using `keras-retinanet` are shown below.
 </p>
 
 ### Notes
-* This repository requires Keras 2.1.2.
-* This repository is tested using OpenCV 3.3.
+* This repository requires Keras 2.1.3.
+* This repository is tested using OpenCV 3.4.
 * Warnings such as `UserWarning: Output "non_maximum_suppression_1" missing from loss dictionary.` can safely be ignored. These warnings indicate no loss is connected to these outputs, but they are intended to be outputs of the network for the user (ie. resulting network detections) and not loss outputs.
 
 Contributions to this project are welcome.
