@@ -38,6 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.open_images import OpenImagesGenerator
 from ..models.resnet import resnet50_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
@@ -163,6 +164,24 @@ def create_generators(args):
             )
         else:
             validation_generator = None
+    elif args.dataset_type == 'oid':
+        train_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='train',
+            labels_filter=args.labels_filter,
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
+        )
+
+        if args.val_annotations:
+            validation_generator = OpenImagesGenerator(
+                args.main_dir,
+                subset='validation',
+                labels_filter=args.labels_filter,
+                batch_size=args.batch_size
+            )
+        else:
+            validation_generator = None
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -202,6 +221,11 @@ def parse_args(args):
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+
+    oid_parser = subparsers.add_parser('oid')
+    oid_parser.add_argument('main_dir', help='Path to dataset directory')
+    oid_parser.add_argument('subset', help='train/validation/test')
+    oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', default=None)
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
