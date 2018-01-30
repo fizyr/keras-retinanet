@@ -75,8 +75,9 @@ class TransformParameters:
     """ Struct holding parameters determining how to apply a transformation to an image.
 
     # Arguments
-        fill_mode:             Same as for keras.preprocessing.image.apply_transform
-        cval:                  Same as for keras.preprocessing.image.apply_transform
+        fill_mode:             One of: 'constant', 'nearest', 'reflect', 'wrap'
+        interpolation:         One of: 'nearest', 'linear', 'cubic', 'area', 'lanczos4'
+        cval:                  Fill value to use with fill_mode='constant'
         data_format:           Same as for keras.preprocessing.image.apply_transform
         relative_translation:  If true (the default), interpret translation as a factor of the image size.
                                If false, interpret it as absolute pixels.
@@ -84,12 +85,14 @@ class TransformParameters:
     def __init__(
         self,
         fill_mode            = 'nearest',
+        interpolation        = 'linear',
         cval                 = 0,
         data_format          = None,
         relative_translation = True,
     ):
         self.fill_mode            = fill_mode
         self.cval                 = cval
+        self.interpolation        = interpolation
         self.relative_translation = relative_translation
 
         if data_format is None:
@@ -102,6 +105,28 @@ class TransformParameters:
             self.channel_axis = 2
         else:
             raise ValueError("invalid data_format, expected 'channels_first' or 'channels_last', got '{}'".format(data_format))
+
+    def cvBorderMode(self):
+        if self.fill_mode == 'constant':
+            return cv2.BORDER_CONSTANT
+        if self.fill_mode == 'nearest':
+            return cv2.BORDER_REPLICATE
+        if self.fill_mode == 'reflect':
+            return cv2.BORDER_REFLECT_101
+        if self.fill_mode == 'wrap':
+            return cv2.BORDER_WRAP
+
+    def cvInterpolation(self):
+        if self.interpolation == 'nearest':
+            return cv2.INTER_NEAREST
+        if self.interpolation == 'linear':
+            return cv2.INTER_LINEAR
+        if self.interpolation == 'cubic':
+            return cv2.INTER_CUBIC
+        if self.interpolation == 'area':
+            return cv2.INTER_AREA
+        if self.interpolation == 'lanczos4':
+            return cv2.INTER_LANCZOS4
 
 
 def apply_transform(matrix, image, params):
@@ -118,37 +143,21 @@ def apply_transform(matrix, image, params):
       image:  The image to transform.
       params: The transform parameters (see TransformParameters)
     """
-    # Scipy interprets the matrix as a transformation from the original canvas to the changed image,
-    # which is opposite of what you would normally expect.
-    # So we invert the transformation before passing it to scipy.
-    # Otherwise, a scaling of (3, 3) would actually shrink the image contents by a factor 3.
-    matrix = np.linalg.inv(matrix)
+    if params.channel_axis != 2:
+        image = np.moveaxis(image, params.channel_axis, 2)
 
-    # Scipy also has the origin of linear transformations at the *center* of pixel (0, 0).
-    # We need to adjust, because that's insane.
-    # We want the origin precisely at the top left corner of the image.
-    matrix = change_transform_origin(matrix, (-0.5, -0.5))
+    output = cv2.warpAffine(
+        image,
+        matrix[:2, :],
+        dsize       = (image.shape[1], image.shape[0]),
+        flags       = params.cvInterpolation(),
+        borderMode  = params.cvBorderMode(),
+        borderValue = params.cval,
+    )
 
-    # The first axis of an image stored as numpy array is the Y axis.
-    # The matrix has to be adjusted to match that convention.
-    matrix[:2, :2] = matrix[1::-1, 1::-1]
-    matrix[:2,  2] = matrix[1::-1, 2]
-
-    # Apply the transformation to each channel separately.
-    # For that we need the first axis to represent the channels so we can loop over them.
-    image    = np.moveaxis(image, params.channel_axis, 0)
-    channels = map(lambda channel: ndi.interpolation.affine_transform(
-        channel,
-        matrix,
-        order=0,
-        mode=params.fill_mode,
-        cval=params.cval
-    ), image)
-
-    # Merge the channels back into an image.
-    image = np.stack(channels, axis=0)
-    image = np.moveaxis(image, 0, params.channel_axis)
-    return image
+    if params.channel_axis != 2:
+        output = np.moveaxis(output, 2, params.channel_axis)
+    return output
 
 
 def resize_image(img, min_side=600, max_side=1024):
