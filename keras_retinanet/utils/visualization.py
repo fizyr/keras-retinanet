@@ -44,36 +44,51 @@ def draw_caption(image, box, caption):
     cv2.putText(image, caption, (b[0], b[1] - 10), cv2.FONT_HERSHEY_PLAIN, 1, (255, 255, 255), 1)
 
 
+def draw_boxes(image, boxes, color, thickness=2):
+    """ Draws boxes on an image with a given color.
+
+    # Arguments
+        image     : The image to draw on.
+        boxes     : A [N, 4] matrix (x1, y1, x2, y2).
+        color     : The color of the boxes.
+        thickness : The thickness of the lines to draw boxes with.
+    """
+    for b in boxes:
+        draw_box(image, b, color, thickness=thickness)
+
+
 def draw_detections(image, detections, color=(255, 0, 0), generator=None):
     """ Draws detections in an image.
 
     # Arguments
         image      : The image to draw on.
-        detections : A np.ndarray of shape (num_detections, 4 + num_classes) to draw on the image.
+        detections : A [N, 4 + num_classes] matrix (x1, y1, x2, y2, cls_1, cls_2, ...).
         color      : The color of the boxes.
         generator  : (optional) Generator which can map label to class name.
     """
-    for d in detections:
-        draw_box(image, d, color)
+    draw_boxes(image, detections, color=color)
 
+    # draw labels
+    for d in detections:
         label   = np.argmax(d[4:])
         score   = d[4 + label]
         caption = (generator.label_to_name(label) if generator else label) + ': {0:.2f}'.format(score)
         draw_caption(image, d, caption)
 
 
-def draw_annotations(image, boxes, color=(0, 255, 0), generator=None):
+def draw_annotations(image, annotations, color=(0, 255, 0), generator=None):
     """ Draws annotations in an image.
 
     # Arguments
-        image     : The image to draw on.
-        boxes     : A np.ndarray of shape (num_annotations, 5) to draw on the image.
-        color     : The color of the boxes.
-        generator : (optional) Generator which can map label to class name.
+        image       : The image to draw on.
+        annotations : A [N, 5] matrix (x1, y1, x2, y2, label).
+        color       : The color of the boxes.
+        generator   : (optional) Generator which can map label to class name.
     """
-    for b in boxes:
-        draw_box(image, b, color)
+    draw_boxes(image, annotations, color)
 
+    # draw labels
+    for b in annotations:
         label   = b[4]
         caption = '{}'.format(generator.label_to_name(label) if generator else label)
         draw_caption(image, b, caption)
