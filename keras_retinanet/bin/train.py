@@ -168,6 +168,7 @@ def create_generators(args):
         train_generator = OpenImagesGenerator(
             args.main_dir,
             subset='train',
+            version=args.version,
             labels_filter=args.labels_filter,
             transform_generator=transform_generator,
             batch_size=args.batch_size
@@ -177,6 +178,7 @@ def create_generators(args):
             validation_generator = OpenImagesGenerator(
                 args.main_dir,
                 subset='validation',
+                version=args.version,
                 labels_filter=args.labels_filter,
                 batch_size=args.batch_size
             )
@@ -224,7 +226,8 @@ def parse_args(args):
 
     oid_parser = subparsers.add_parser('oid')
     oid_parser.add_argument('main_dir', help='Path to dataset directory')
-    oid_parser.add_argument('subset', help='train/validation/test')
+    oid_parser.add_argument('subset', help='Argument for loading a subset from train/validation/test.')
+    oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
     oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', default=None)
 
     csv_parser = subparsers.add_parser('csv')

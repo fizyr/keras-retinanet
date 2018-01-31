@@ -4,7 +4,6 @@ import os
 
 import numpy as np
 from PIL import Image
-from tqdm import tqdm
 
 from .generator import Generator
 from ..utils.image import read_image_bgr
@@ -54,7 +53,7 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
         reader.next()
 
         images_sizes = dict()
-        for row in tqdm(reader, total=cnt):
+        for line, row in enumerate(reader):
             frame = row['ImageID']
 
             class_name = row['LabelName']
@@ -85,12 +84,18 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
             y1_abs = int(round(y1 * height))
             y2_abs = int(round(y2 * height))
 
-            if y2_abs <= y1_abs:
-                print ('{} w: {} h: {}'.format(row, width, height))
+            # Check that the bounding box is valid.
+            if x2 <= x1:
+                raise ValueError('line {}: x2 ({}) must be higher than x1 ({})'.format(line, x2, x1))
+            if y2 <= y1:
+                raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
+
+            if y2_abs == y1_abs:
+                print ('filtering line {}: rounding y2 ({}) and y1 ({}) makes them equal'.format(line, y2, y1))
                 continue
 
-            if x2_abs <= x1_abs:
-                print ('{} w: {} h: {}'.format(row, width, height))
+            if x2_abs == x1_abs:
+                print ('filtering line {}: rounding x2 ({}) and x1 ({}) makes them equal'.format(line, x2, x1))
                 continue
 
             img_id = row['ImageID']
@@ -108,24 +113,24 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
 
 class OpenImagesGenerator(Generator):
     def __init__(
-            self, main_dir, subset, labels_filter,
+            self, main_dir, subset, version, labels_filter,
             **kwargs
     ):
-        metadata_dir = os.path.join(main_dir, '2017_11')
-        fname_json = os.path.join(metadata_dir, subset, subset + '.json')
         self.base_dir = os.path.join(main_dir, 'images', subset)
 
+        metadata_dir = os.path.join(main_dir, version)
+        annotation_cache_json = os.path.join(metadata_dir, subset, subset + '.json')
         labels_dict = None if labels_filter is None else dict([(l, i) for i, l in enumerate(labels_filter)])
 
         print ('loading {} subset'.format(subset))
         self.id2labels_dict, cls_index_dict = get_labels(metadata_dir)
 
-        if os.path.exists(fname_json):
-            with open(fname_json, 'r') as f:
+        if os.path.exists(annotation_cache_json):
+            with open(annotation_cache_json, 'r') as f:
                 self.annotations = json.loads(f.read())
         else:
             self.annotations = generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_dict)
-            json.dump(self.annotations, open(fname_json, "w"))
+            json.dump(self.annotations, open(annotation_cache_json, "w"))
 
         if labels_dict is not None:
             filtered_annotations = dict()
