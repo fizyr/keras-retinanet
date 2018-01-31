@@ -22,7 +22,7 @@ import warnings
 
 import keras
 
-from ..utils.anchors import anchor_targets_bbox
+from ..utils.anchors import anchor_targets_bbox, bbox_transform
 from ..utils.image import (
     TransformParameters,
     adjust_transform_for_image,
@@ -182,14 +182,14 @@ class Generator(object):
     def anchor_targets(
         self,
         image_shape,
-        boxes,
+        annotations,
         num_classes,
         mask_shape=None,
         negative_overlap=0.4,
         positive_overlap=0.5,
         **kwargs
     ):
-        return anchor_targets_bbox(image_shape, boxes, num_classes, mask_shape, negative_overlap, positive_overlap, **kwargs)
+        return anchor_targets_bbox(image_shape, annotations, num_classes, mask_shape, negative_overlap, positive_overlap, **kwargs)
 
     def compute_targets(self, image_group, annotations_group):
         # get the max image shape
@@ -199,7 +199,9 @@ class Generator(object):
         labels_group     = [None] * self.batch_size
         regression_group = [None] * self.batch_size
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
-            labels_group[index], regression_group[index] = self.anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
+            # compute regression targets
+            labels_group[index], annotations, anchors = self.anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
+            regression_group[index] = bbox_transform(anchors, annotations)
 
             # append anchor states to regression targets (necessary for filtering 'ignore', 'positive' and 'negative' anchors)
             anchor_states           = np.max(labels_group[index], axis=1, keepdims=True)
