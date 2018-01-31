@@ -16,13 +16,13 @@ limitations under the License.
 
 from __future__ import division
 import keras
-import keras.preprocessing.image
 import time
 import numpy as np
+import scipy.ndimage as ndi
 import cv2
 import PIL
 
-from .transform import change_transform_origin, transform_aabb, colvec
+from .transform import change_transform_origin, transform_aabb
 
 
 def read_image_bgr(path):
@@ -75,8 +75,9 @@ class TransformParameters:
     """ Struct holding parameters determining how to apply a transformation to an image.
 
     # Arguments
-        fill_mode:             Same as for keras.preprocessing.image.apply_transform
-        cval:                  Same as for keras.preprocessing.image.apply_transform
+        fill_mode:             One of: 'constant', 'nearest', 'reflect', 'wrap'
+        interpolation:         One of: 'nearest', 'linear', 'cubic', 'area', 'lanczos4'
+        cval:                  Fill value to use with fill_mode='constant'
         data_format:           Same as for keras.preprocessing.image.apply_transform
         relative_translation:  If true (the default), interpret translation as a factor of the image size.
                                If false, interpret it as absolute pixels.
@@ -84,12 +85,14 @@ class TransformParameters:
     def __init__(
         self,
         fill_mode            = 'nearest',
+        interpolation        = 'linear',
         cval                 = 0,
         data_format          = None,
         relative_translation = True,
     ):
         self.fill_mode            = fill_mode
         self.cval                 = cval
+        self.interpolation        = interpolation
         self.relative_translation = relative_translation
 
         if data_format is None:
@@ -103,16 +106,58 @@ class TransformParameters:
         else:
             raise ValueError("invalid data_format, expected 'channels_first' or 'channels_last', got '{}'".format(data_format))
 
+    def cvBorderMode(self):
+        if self.fill_mode == 'constant':
+            return cv2.BORDER_CONSTANT
+        if self.fill_mode == 'nearest':
+            return cv2.BORDER_REPLICATE
+        if self.fill_mode == 'reflect':
+            return cv2.BORDER_REFLECT_101
+        if self.fill_mode == 'wrap':
+            return cv2.BORDER_WRAP
 
-def apply_transform(transform, image, params):
-    """ Wrapper around keras.preprocessing.image.apply_transform using TransformParameters. """
-    return keras.preprocessing.image.apply_transform(
+    def cvInterpolation(self):
+        if self.interpolation == 'nearest':
+            return cv2.INTER_NEAREST
+        if self.interpolation == 'linear':
+            return cv2.INTER_LINEAR
+        if self.interpolation == 'cubic':
+            return cv2.INTER_CUBIC
+        if self.interpolation == 'area':
+            return cv2.INTER_AREA
+        if self.interpolation == 'lanczos4':
+            return cv2.INTER_LANCZOS4
+
+
+def apply_transform(matrix, image, params):
+    """
+    Apply a transformation to an image.
+
+    The origin of transformation is at the top left corner of the image.
+
+    The matrix is interpreted such that a point (x, y) on the original image is moved to transform * (x, y) in the generated image.
+    Mathematically speaking, that means that the matrix is a transformation from the transformed image space to the original image space.
+
+    Parameters:
+      matrix: A homogenous 3 by 3 matrix holding representing the transformation to apply.
+      image:  The image to transform.
+      params: The transform parameters (see TransformParameters)
+    """
+    if params.channel_axis != 2:
+        image = np.moveaxis(image, params.channel_axis, 2)
+
+    output = cv2.warpAffine(
         image,
-        transform,
-        channel_axis = params.channel_axis,
-        fill_mode    = params.fill_mode,
-        cval         = params.cval
+        matrix[:2, :],
+        dsize       = (image.shape[1], image.shape[0]),
+        flags       = params.cvInterpolation(),
+        borderMode  = params.cvBorderMode(),
+        borderValue = params.cval,
     )
+
+    if params.channel_axis != 2:
+        output = np.moveaxis(output, 2, params.channel_axis)
+    return output
 
 
 def resize_image(img, min_side=600, max_side=1024):

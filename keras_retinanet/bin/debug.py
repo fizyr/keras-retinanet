@@ -37,14 +37,14 @@ from ..utils.visualization import draw_annotations
 def create_generator(args):
     # create random transform generator for augmenting training data
     transform_generator = random_transform_generator(
-        # min_rotation=-0.1,
-        # max_rotation=0.1,
-        # min_translation=(-0.1, -0.1),
-        # max_translation=(0.1, 0.1),
-        # min_shear=-0.1,
-        # max_shear=0.1,
-        # min_scaling=(0.9, 0.9),
-        # max_scaling=(1.1, 1.1),
+        min_rotation=-0.1,
+        max_rotation=0.1,
+        min_translation=(-0.1, -0.1),
+        max_translation=(0.1, 0.1),
+        min_shear=-0.1,
+        max_shear=0.1,
+        min_scaling=(0.9, 0.9),
+        max_scaling=(1.1, 1.1),
         flip_x_chance=0.5,
         flip_y_chance=0.5,
     )
@@ -93,6 +93,7 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
+    parser.add_argument('-l', '--loop', help='Loop forever, even if the dataset is exhausted.', action='store_true')
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
     parser.add_argument('--annotations', help='Show annotations on the image.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
@@ -100,18 +101,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def main(args=None):
-    # parse arguments
-    if args is None:
-        args = sys.argv[1:]
-    args = parse_args(args)
-
-    # create the generator
-    generator = create_generator(args)
-
-    # create the display window
-    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
-
+def run(generator, args):
     # display images, one at a time
     for i in range(generator.size()):
         # load the data
@@ -134,7 +124,27 @@ def main(args=None):
 
         cv2.imshow('Image', image)
         if cv2.waitKey() == ord('q'):
-            break
+            return False
+    return True
+
+
+def main(args=None):
+    # parse arguments
+    if args is None:
+        args = sys.argv[1:]
+    args = parse_args(args)
+
+    # create the generator
+    generator = create_generator(args)
+
+    # create the display window
+    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+
+    if args.loop:
+        while run(generator, args):
+            pass
+    else:
+        run(generator, args)
 
 if __name__ == '__main__':
     main()
