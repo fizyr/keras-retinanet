@@ -225,7 +225,7 @@ def parse_args(args):
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
 
     oid_parser = subparsers.add_parser('oid')
-    oid_parser.add_argument('main_dir', help='Path to dataset directory')
+    oid_parser.add_argument('main_dir', help='Path to dataset directory.')
     oid_parser.add_argument('subset', help='Argument for loading a subset from train/validation/test.')
     oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
     oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', default=None)

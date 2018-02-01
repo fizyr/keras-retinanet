@@ -1,6 +1,7 @@
 import csv
 import json
 import os
+import warnings
 
 import numpy as np
 from PIL import Image
@@ -16,24 +17,25 @@ def get_labels(metadata_dir):
     description_table = {}
     with open(description_path) as f:
         for row in csv.reader(f):
+            # make sure the csv row is not empty (usually the last one)
             if len(row):
                 description_table[row[0]] = row[1].replace("\"", "").replace("'", "").replace('`', '')
 
     with open(trainable_classes_path, 'rb') as f:
         trainable_classes = f.read().split('\n')
 
-    id2labels_dict = dict([(i, description_table[c]) for i, c in enumerate(trainable_classes)])
-    cls_index_dict = dict([(c, i) for i, c in enumerate(trainable_classes)])
+    id_to_labels = dict([(i, description_table[c]) for i, c in enumerate(trainable_classes)])
+    cls_index = dict([(c, i) for i, c in enumerate(trainable_classes)])
 
-    return id2labels_dict, cls_index_dict
+    return id_to_labels, cls_index
 
 
-def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_dict):
+def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index):
     annotations_path = os.path.join(metadata_dir, subset, 'annotations-human-bbox.csv')
 
     cnt = 0
-    with open(annotations_path, 'r') as csvfile:
-        reader = csv.DictReader(csvfile,
+    with open(annotations_path, 'r') as csv_file:
+        reader = csv.DictReader(csv_file,
                                 fieldnames=['ImageID', 'Source', 'LabelName',
                                             'Confidence', 'XMin', 'XMax', 'YMin',
                                             'YMax'])
@@ -41,27 +43,23 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
         for _ in reader:
             cnt += 1
 
-        print ('There are {} lines in subset: {}'.format(cnt, subset))
-
     id_annotations = dict()
-
-    with open(annotations_path, 'r') as csvfile:
-        reader = csv.DictReader(csvfile,
+    with open(annotations_path, 'r') as csv_file:
+        reader = csv.DictReader(csv_file,
                                 fieldnames=['ImageID', 'Source', 'LabelName',
                                             'Confidence', 'XMin', 'XMax', 'YMin',
                                             'YMax'])
         reader.next()
 
-        images_sizes = dict()
+        images_sizes = {}
         for line, row in enumerate(reader):
             frame = row['ImageID']
-
             class_name = row['LabelName']
 
-            if class_name not in cls_index_dict:
+            if class_name not in cls_index:
                 continue
 
-            cls_id = cls_index_dict[class_name]
+            cls_id = cls_index[class_name]
 
             img_path = os.path.join(main_dir, 'images', subset, frame + '.jpg')
             if frame in images_sizes:
@@ -79,10 +77,10 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
             y1 = float(row['YMin'])
             y2 = float(row['YMax'])
 
-            x1_abs = int(round(x1 * width))
-            x2_abs = int(round(x2 * width))
-            y1_abs = int(round(y1 * height))
-            y2_abs = int(round(y2 * height))
+            x1_int = int(round(x1 * width))
+            x2_int = int(round(x2 * width))
+            y1_int = int(round(y1 * height))
+            y2_int = int(round(y2 * height))
 
             # Check that the bounding box is valid.
             if x2 <= x1:
@@ -90,20 +88,18 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
             if y2 <= y1:
                 raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
 
-            if y2_abs == y1_abs:
+            if y2_int == y1_int:
                 print ('filtering line {}: rounding y2 ({}) and y1 ({}) makes them equal'.format(line, y2, y1))
                 continue
 
-            if x2_abs == x1_abs:
-                print ('filtering line {}: rounding x2 ({}) and x1 ({}) makes them equal'.format(line, x2, x1))
+            if x2_int == x1_int:
+                warnings.warn('filtering line {}: rounding x2 ({}) and x1 ({}) makes them equal'.format(line, x2, x1))
                 continue
 
             img_id = row['ImageID']
-
             annotation = {'cls_id': cls_id, 'x1': x1, 'x2': x2, 'y1': y1, 'y2': y2}
 
             if img_id in id_annotations:
-
                 annotations = id_annotations[img_id]
                 annotations['boxes'].append(annotation)
             else:
@@ -113,83 +109,97 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_d
 
 class OpenImagesGenerator(Generator):
     def __init__(
-            self, main_dir, subset, version, labels_filter,
+            self, main_dir, subset, version='2017_11', labels_filter=None,
             **kwargs
     ):
         self.base_dir = os.path.join(main_dir, 'images', subset)
 
         metadata_dir = os.path.join(main_dir, version)
         annotation_cache_json = os.path.join(metadata_dir, subset, subset + '.json')
-        labels_dict = None if labels_filter is None else dict([(l, i) for i, l in enumerate(labels_filter)])
 
-        print ('loading {} subset'.format(subset))
-        self.id2labels_dict, cls_index_dict = get_labels(metadata_dir)
+        self.id_to_labels, cls_index = get_labels(metadata_dir)
 
         if os.path.exists(annotation_cache_json):
             with open(annotation_cache_json, 'r') as f:
                 self.annotations = json.loads(f.read())
         else:
-            self.annotations = generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index_dict)
+            self.annotations = generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index)
             json.dump(self.annotations, open(annotation_cache_json, "w"))
 
-        if labels_dict is not None:
-            filtered_annotations = dict()
+        if labels_filter is not None:
+            self.id_to_labels, self.annotations = self.__filter_data(labels_filter)
 
-            for k in self.annotations:
-                img_ann = self.annotations[k]
-
-                filtered_boxes = []
-                for ann in img_ann['boxes']:
-                    cls_id = ann['cls_id']
-                    label = self.id2labels_dict[cls_id]
-                    if label in labels_dict:
-                        ann['cls_id'] = labels_dict[label]
-                        filtered_boxes.append(ann)
-
-                if len(filtered_boxes) > 0:
-                    filtered_annotations[k] = {'w': img_ann['w'], 'h': img_ann['h'], 'boxes': filtered_boxes}
-
-            self.id2labels_dict = dict([(labels_dict[k], k) for k in labels_dict])
-            self.annotations = filtered_annotations
-
-        self.id2imageid = dict()
+        self.id_to_image_id = dict()
         for i, k in enumerate(self.annotations):
-            self.id2imageid[i] = k
+            self.id_to_image_id[i] = k
 
         super(OpenImagesGenerator, self).__init__(**kwargs)
+
+    def __filter_data(self, labels_filter):
+        """
+        If you want to work with a subset of the labels just set a list with trainable labels
+        :param labels_filter: Ex: labels_filter = ['Helmet', 'Hat', 'Analog television']. This will bring you the
+        'Helmet' label but also: 'bicycle helmet', 'welding helmet', 'ski helmet' etc...
+        :return:
+        """
+
+        labels_to_id = dict([(l, i) for i, l in enumerate(labels_filter)])
+
+        sub_labels_to_id = {}
+        for l in labels_filter:
+            label = str.lower(l)
+            for v in [v for v in self.id_to_labels.values() if label in str.lower(v)]:
+                sub_labels_to_id[v] = labels_to_id[l]
+
+        filtered_annotations = {}
+        for k in self.annotations:
+            img_ann = self.annotations[k]
+
+            filtered_boxes = []
+            for ann in img_ann['boxes']:
+                cls_id = ann['cls_id']
+                label = self.id_to_labels[cls_id]
+                if label in sub_labels_to_id:
+                    ann['cls_id'] = sub_labels_to_id[label]
+                    filtered_boxes.append(ann)
+
+            if len(filtered_boxes) > 0:
+                filtered_annotations[k] = {'w': img_ann['w'], 'h': img_ann['h'], 'boxes': filtered_boxes}
+
+        id_to_labels = dict([(labels_to_id[k], k) for k in labels_to_id])
+        return id_to_labels, filtered_annotations
 
     def size(self):
         return len(self.annotations)
 
     def num_classes(self):
-        return len(self.id2labels_dict)
+        return len(self.id_to_labels)
 
     def name_to_label(self, name):
         raise NotImplementedError()
 
     def label_to_name(self, label):
-        return self.id2labels_dict[label]
+        return self.id_to_labels[label]
 
     def image_aspect_ratio(self, image_index):
-        img_annotations = self.annotations[self.id2imageid[image_index]]
+        img_annotations = self.annotations[self.id_to_image_id[image_index]]
         height, width = img_annotations['h'], img_annotations['w']
         return float(width) / float(height)
 
     def image_path(self, image_index):
-        path = os.path.join(self.base_dir, self.id2imageid[image_index] + '.jpg')
+        path = os.path.join(self.base_dir, self.id_to_image_id[image_index] + '.jpg')
         return path
 
     def load_image(self, image_index):
         return read_image_bgr(self.image_path(image_index))
 
     def load_annotations(self, image_index):
-        image_annotations = self.annotations[self.id2imageid[image_index]]
+        image_annotations = self.annotations[self.id_to_image_id[image_index]]
 
         labels = image_annotations['boxes']
         height, width = image_annotations['h'], image_annotations['w']
 
         boxes = np.zeros((len(labels), 5))
-
         for idx, ann in enumerate(labels):
             cls_id = ann['cls_id']
             x1 = ann['x1'] * width
