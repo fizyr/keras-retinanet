@@ -109,13 +109,13 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index):
 
 class OpenImagesGenerator(Generator):
     def __init__(
-            self, main_dir, subset, version='2017_11', labels_filter=None,
+            self, main_dir, subset, version='2017_11',
+            labels_filter=None, annotation_cache_dir='.',
             **kwargs
     ):
         self.base_dir = os.path.join(main_dir, 'images', subset)
-
         metadata_dir = os.path.join(main_dir, version)
-        annotation_cache_json = os.path.join(metadata_dir, subset, subset + '.json')
+        annotation_cache_json = os.path.join('.', subset + '.json')
 
         self.id_to_labels, cls_index = get_labels(metadata_dir)
 

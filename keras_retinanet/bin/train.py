@@ -229,6 +229,8 @@ def parse_args(args):
     oid_parser.add_argument('subset', help='Argument for loading a subset from train/validation/test.')
     oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
     oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', default=None)
+    oid_parser.add_argument('--annotation_cache_dir', help='Path to store annotation cache.',
+                            default='/media/work2/OpenImages/2017_11')
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
