@@ -87,6 +87,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     # save the prediction model
     if args.snapshots:
+        # ensure directory created first; otherwise h5py will error after epoch.
+        os.makedirs(args.snapshot_path, exist_ok=True)
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
