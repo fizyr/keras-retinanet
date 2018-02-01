@@ -9,12 +9,13 @@ setuptools.setup(
     maintainer='Hans Gaiser',
     maintainer_email='h.gaiser@fizyr.com',
     packages=setuptools.find_packages(),
-    install_requires=['keras', 'keras-resnet', 'six'],
+    install_requires=['keras', 'keras-resnet', 'six', 'scipy'],
     entry_points = {
         'console_scripts': [
             'retinanet-train=keras_retinanet.bin.train:main',
             'retinanet-evaluate-coco=keras_retinanet.bin.evaluate_coco:main',
             'retinanet-evaluate=keras_retinanet.bin.evaluate:main',
+            'retinanet-debug=keras_retinanet.bin.debug:main',
         ],
     }
 )

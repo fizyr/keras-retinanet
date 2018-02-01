@@ -19,7 +19,7 @@ import numpy as np
 
 def anchor_targets_bbox(
     image_shape,
-    boxes,
+    annotations,
     num_classes,
     mask_shape=None,
     negative_overlap=0.4,
@@ -31,9 +31,9 @@ def anchor_targets_bbox(
     # label: 1 is positive, 0 is negative, -1 is dont care
     labels = np.ones((anchors.shape[0], num_classes)) * -1
 
-    if boxes.shape[0]:
-        # obtain indices of gt boxes with the greatest overlap
-        overlaps             = compute_overlap(anchors, boxes[:, :4])
+    if annotations.shape[0]:
+        # obtain indices of gt annotations with the greatest overlap
+        overlaps             = compute_overlap(anchors, annotations[:, :4])
         argmax_overlaps_inds = np.argmax(overlaps, axis=1)
         max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
@@ -41,25 +41,24 @@ def anchor_targets_bbox(
         labels[max_overlaps < negative_overlap, :] = 0
 
         # compute box regression targets
-        boxes            = boxes[argmax_overlaps_inds]
-        bbox_reg_targets = bbox_transform(anchors, boxes)
+        annotations = annotations[argmax_overlaps_inds]
 
         # fg label: above threshold IOU
         positive_indices = max_overlaps >= positive_overlap
         labels[positive_indices, :] = 0
-        labels[positive_indices, boxes[positive_indices, 4].astype(int)] = 1
+        labels[positive_indices, annotations[positive_indices, 4].astype(int)] = 1
     else:
         # no annotations? then everything is background
         labels[:] = 0
-        bbox_reg_targets = np.zeros_like(anchors)
+        annotations = np.zeros_like(anchors)
 
-    # ignore boxes outside of image
+    # ignore annotations outside of image
     mask_shape         = image_shape if mask_shape is None else mask_shape
     anchors_centers    = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
     indices            = np.logical_or(anchors_centers[:, 0] >= mask_shape[1], anchors_centers[:, 1] >= mask_shape[0])
     labels[indices, :] = -1
 
-    return labels, bbox_reg_targets
+    return labels, annotations, anchors
 
 
 def anchors_for_shape(

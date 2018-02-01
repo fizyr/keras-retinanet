@@ -20,6 +20,7 @@ import argparse
 import os
 import sys
 import cv2
+import numpy as np
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -31,20 +32,20 @@ if __name__ == "__main__" and __package__ is None:
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..utils.transform import random_transform_generator
-from ..utils.visualization import draw_annotations
+from ..utils.visualization import draw_annotations, draw_boxes
 
 
 def create_generator(args):
     # create random transform generator for augmenting training data
     transform_generator = random_transform_generator(
-        # min_rotation=-0.1,
-        # max_rotation=0.1,
-        # min_translation=(-0.1, -0.1),
-        # max_translation=(0.1, 0.1),
-        # min_shear=-0.1,
-        # max_shear=0.1,
-        # min_scaling=(0.9, 0.9),
-        # max_scaling=(1.1, 1.1),
+        min_rotation=-0.1,
+        max_rotation=0.1,
+        min_translation=(-0.1, -0.1),
+        max_translation=(0.1, 0.1),
+        min_shear=-0.1,
+        max_shear=0.1,
+        min_scaling=(0.9, 0.9),
+        max_scaling=(1.1, 1.1),
         flip_x_chance=0.5,
         flip_y_chance=0.5,
     )
@@ -93,11 +94,50 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
+    parser.add_argument('-l', '--loop', help='Loop forever, even if the dataset is exhausted.', action='store_true')
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
-    parser.add_argument('--annotations', help='Show annotations on the image.', action='store_true')
+    parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
+    parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
 
     return parser.parse_args(args)
+
+
+def run(generator, args):
+    # display images, one at a time
+    for i in range(generator.size()):
+        # load the data
+        image       = generator.load_image(i)
+        annotations = generator.load_annotations(i)
+
+        # apply random transformations
+        if args.random_transform:
+            image, annotations = generator.random_transform_group_entry(image, annotations)
+
+        # resize the image and annotations
+        if args.resize:
+            image, image_scale = generator.resize_image(image)
+            annotations[:, :4] *= image_scale
+
+        # draw anchors on the image
+        if args.anchors:
+            labels, _, anchors = generator.anchor_targets(image.shape, annotations, generator.num_classes())
+            draw_boxes(image, anchors[np.max(labels, axis=1) == 1], (255, 255, 0), thickness=1)
+
+        # draw annotations on the image
+        if args.annotations:
+            # draw annotations in red
+            draw_annotations(image, annotations, color=(0, 0, 255), generator=generator)
+
+            # draw regressed anchors in green to override most red annotations
+            # result is that annotations without anchors are red, with anchors are green
+            labels, boxes, _ = generator.anchor_targets(image.shape, annotations, generator.num_classes())
+            draw_boxes(image, boxes[np.max(labels, axis=1) == 1], (0, 255, 0))
+
+        cv2.imshow('Image', image)
+        if cv2.waitKey() == ord('q'):
+            return False
+    return True
 
 
 def main(args=None):
@@ -112,29 +152,11 @@ def main(args=None):
     # create the display window
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
 
-    # display images, one at a time
-    for i in range(generator.size()):
-        # load the data
-        image       = generator.load_image(i)
-        annotations = generator.load_annotations(i)
-
-        # apply random transformations
-        if args.random_transform:
-            image, annotations = generator.random_transform_group_entry(image, annotations)
-
-        # resize the image and annotations
-        if args.resize:
-            image, image_scale = generator.resize_image(image)
-            if args.annotations:
-                annotations[:, :4] *= image_scale
-
-        # draw annotations on the image
-        if args.annotations:
-            draw_annotations(image, annotations, generator=generator)
-
-        cv2.imshow('Image', image)
-        if cv2.waitKey() == ord('q'):
-            break
+    if args.loop:
+        while run(generator, args):
+            pass
+    else:
+        run(generator, args)
 
 if __name__ == '__main__':
     main()
