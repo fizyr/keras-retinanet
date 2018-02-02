@@ -224,10 +224,13 @@ def parse_args(args):
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
 
+    def csv_list(string):
+        return string.split(',')
+
     oid_parser = subparsers.add_parser('oid')
     oid_parser.add_argument('main_dir', help='Path to dataset directory.')
     oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
-    oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', default=None)
+    oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', type=csv_list, default=None)
     oid_parser.add_argument('--annotation_cache_dir', help='Path to store annotation cache.', default='.')
 
     csv_parser = subparsers.add_parser('csv')
