@@ -66,7 +66,7 @@ For training on [OID](https://github.com/openimages/dataset), run:
 keras_retinanet/bin/train.py oid /path/to/OID 2017_11
 
 # Using the installed script:
-retinanet-train pascal /path/to/OID train 2017_11
+retinanet-train pascal oid /path/to/OID train 2017_11
 ```
 
 For training on a custom dataset, a CSV file can be used as a way to pass the data.
