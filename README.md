@@ -62,14 +62,15 @@ The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/k
 For training on [OID](https://github.com/openimages/dataset), run:
 ```shell
 # Running directly from the repository:
-keras_retinanet/bin/train.py oid /path/to/OID 2017_11
+keras_retinanet/bin/train.py oid /path/to/OID
 
 # Using the installed script:
-retinanet-train oid /path/to/OID 2017_11
+retinanet-train oid /path/to/OID
 
-You can specify a list of labels if you want to train on a subset
-by adding the parameter labels_filter:
-    labels_filter = ["Helmet", "Tree", "Stop sign", "Traffic light"]
+You can also specify a list of labels if you want to train on a subset
+by adding the argument 'labels_filter':
+
+keras_retinanet/bin/train.py oid /path/to/OID --labels_filter='['Helmet', 'Tree']'
 ```
 
 For training on a custom dataset, a CSV file can be used as a way to pass the data.
