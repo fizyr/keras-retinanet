@@ -105,7 +105,7 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index):
                 raise ValueError('line {}: y2 ({}) must be higher than y1 ({})'.format(line, y2, y1))
 
             if y2_int == y1_int:
-                print ('filtering line {}: rounding y2 ({}) and y1 ({}) makes them equal'.format(line, y2, y1))
+                warnings.warn('filtering line {}: rounding y2 ({}) and y1 ({}) makes them equal'.format(line, y2, y1))
                 continue
 
             if x2_int == x1_int:
