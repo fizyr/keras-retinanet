@@ -113,6 +113,20 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     lr_scheduler = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
     callbacks.append(lr_scheduler)
 
+    if args.log_dir:
+        tb = keras.callbacks.TensorBoard(
+            log_dir                 = args.log_dir,
+            histogram_freq          = 0,
+            batch_size              = args.batch_size,
+            write_graph             = True,
+            write_grads             = False,
+            write_images            = False,
+            embeddings_freq         = 0,
+            embeddings_layer_names  = None,
+            embeddings_metadata     = None
+        )
+        callbacks.append(tb)
+
     return callbacks
 
 
@@ -220,6 +234,7 @@ def parse_args(args):
     parser.add_argument('--epochs',        help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
+    parser.add_argument('--log-dir',       help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
 
