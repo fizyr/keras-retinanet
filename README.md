@@ -59,6 +59,16 @@ The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/k
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.623
 ```
 
+### Usage
+For training on [OID](https://github.com/openimages/dataset), run:
+```shell
+# Running directly from the repository:
+keras_retinanet/bin/train.py oid /path/to/OID 2017_11
+
+# Using the installed script:
+retinanet-train pascal /path/to/OID train 2017_11
+```
+
 For training on a custom dataset, a CSV file can be used as a way to pass the data.
 See below for more details on the format of these CSV files.
 To train using your CSV, run:
