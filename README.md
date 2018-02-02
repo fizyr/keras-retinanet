@@ -66,7 +66,11 @@ For training on [OID](https://github.com/openimages/dataset), run:
 keras_retinanet/bin/train.py oid /path/to/OID 2017_11
 
 # Using the installed script:
-retinanet-train pascal oid /path/to/OID train 2017_11
+retinanet-train oid /path/to/OID 2017_11
+
+You can specify a list of labels if you want to train on a subset
+by adding the parameter labels_filter:
+    labels_filter = ["Helmet", "Tree", "Stop sign", "Traffic light"]
 ```
 
 For training on a custom dataset, a CSV file can be used as a way to pass the data.
