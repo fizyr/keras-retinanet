@@ -170,20 +170,19 @@ def create_generators(args):
             subset='train',
             version=args.version,
             labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
             transform_generator=transform_generator,
             batch_size=args.batch_size
         )
 
-        if args.val_annotations:
-            validation_generator = OpenImagesGenerator(
-                args.main_dir,
-                subset='validation',
-                version=args.version,
-                labels_filter=args.labels_filter,
-                batch_size=args.batch_size
-            )
-        else:
-            validation_generator = None
+        validation_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='validation',
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            batch_size=args.batch_size
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
