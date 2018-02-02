@@ -31,6 +31,7 @@ if __name__ == "__main__" and __package__ is None:
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes
 
@@ -71,6 +72,15 @@ def create_generator(args):
             args.classes,
             transform_generator=transform_generator
         )
+    elif args.dataset_type == 'oid':
+        generator = OpenImagesGenerator(
+            args.main_dir,
+            subset=args.subset,
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            transform_generator=transform_generator
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -89,6 +99,16 @@ def parse_args(args):
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
     pascal_parser.add_argument('--pascal-set',  help='Name of the set to show (defaults to test).', default='test')
+
+    def csv_list(string):
+        return string.split(',')
+
+    oid_parser = subparsers.add_parser('oid')
+    oid_parser.add_argument('main_dir', help='Path to dataset directory.')
+    oid_parser.add_argument('subset', help='Argument for loading a subset from train/validation/test.')
+    oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
+    oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', type=csv_list, default=None)
+    oid_parser.add_argument('--annotation_cache_dir', help='Path to store annotation cache.', default='.')
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
