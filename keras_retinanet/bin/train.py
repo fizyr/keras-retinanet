@@ -38,6 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.open_images import OpenImagesGenerator
 from ..models.resnet import resnet50_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
@@ -165,6 +166,25 @@ def create_generators(args):
             )
         else:
             validation_generator = None
+    elif args.dataset_type == 'oid':
+        train_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='train',
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
+        )
+
+        validation_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='validation',
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            batch_size=args.batch_size
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -204,6 +224,15 @@ def parse_args(args):
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+
+    def csv_list(string):
+        return string.split(',')
+
+    oid_parser = subparsers.add_parser('oid')
+    oid_parser.add_argument('main_dir', help='Path to dataset directory.')
+    oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
+    oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', type=csv_list, default=None)
+    oid_parser.add_argument('--annotation_cache_dir', help='Path to store annotation cache.', default='.')
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
