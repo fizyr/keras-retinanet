@@ -250,8 +250,9 @@ def parse_args(args):
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
-    group.add_argument('--imagenet-weights',  help='Initialize the model with pretrained imagenet weights. This is the default behaviour.', action='store_true', default=True)
+    group.add_argument('--imagenet-weights',  help='Initialize the model with pretrained imagenet weights. This is the default behaviour.', action='store_const', const=True, default=True)
     group.add_argument('--weights',           help='Initialize the model with weights from a file.')
+    group.add_argument('--no-weights',        help='Don\'t initialize the model with any weights.', dest='imagenet_weights', action='store_const', const=False)
 
     parser.add_argument('--batch-size',    help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu',           help='Id of the GPU to use (as reported by nvidia-smi).')
@@ -291,7 +292,7 @@ def main(args=None):
     else:
         weights = args.weights
         # default to imagenet if nothing else is specified
-        if weights is None:
+        if weights is None and args.imagenet_weights:
             weights = download_imagenet(RESNET_BACKBONE)
 
         print('Creating model, this may take a second...')
