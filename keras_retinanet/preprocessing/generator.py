@@ -234,7 +234,7 @@ class Generator(object):
         # compute network targets
         targets = self.compute_targets(image_group, annotations_group)
 
-        return inputs, targets
+        return inputs, targets, annotations_group
 
     def __next__(self):
         return self.next()
@@ -248,4 +248,5 @@ class Generator(object):
             group = self.groups[self.group_index]
             self.group_index = (self.group_index + 1) % len(self.groups)
 
-        return self.compute_input_output(group)
+        inputs, targets, _ = self.compute_input_output(group)
+        return inputs, targets

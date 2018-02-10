@@ -28,28 +28,34 @@ if __name__ == "__main__" and __package__ is None:
     import keras_retinanet.bin
     __package__ = "keras_retinanet.bin"
 
+import keras
+
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes
+from ..utils.anchors import anchors_for_shape
+from .. import backend
 
 
 def create_generator(args):
     # create random transform generator for augmenting training data
-    transform_generator = random_transform_generator(
-        min_rotation=-0.1,
-        max_rotation=0.1,
-        min_translation=(-0.1, -0.1),
-        max_translation=(0.1, 0.1),
-        min_shear=-0.1,
-        max_shear=0.1,
-        min_scaling=(0.9, 0.9),
-        max_scaling=(1.1, 1.1),
-        flip_x_chance=0.5,
-        flip_y_chance=0.5,
-    )
+    transform_generator = None
+    if args.random_transform:
+        transform_generator = random_transform_generator(
+            min_rotation=-0.1,
+            max_rotation=0.1,
+            min_translation=(-0.1, -0.1),
+            max_translation=(0.1, 0.1),
+            min_shear=-0.1,
+            max_shear=0.1,
+            min_scaling=(0.9, 0.9),
+            max_scaling=(1.1, 1.1),
+            flip_x_chance=0.5,
+            flip_y_chance=0.5,
+        )
 
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
@@ -58,19 +64,22 @@ def create_generator(args):
         generator = CocoGenerator(
             args.coco_path,
             args.coco_set,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
         )
     elif args.dataset_type == 'pascal':
         generator = PascalVocGenerator(
             args.pascal_path,
             args.pascal_set,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
         )
     elif args.dataset_type == 'csv':
         generator = CSVGenerator(
             args.annotations,
             args.classes,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
         )
     elif args.dataset_type == 'oid':
         generator = OpenImagesGenerator(
@@ -79,7 +88,8 @@ def create_generator(args):
             version=args.version,
             labels_filter=args.labels_filter,
             annotation_cache_dir=args.annotation_cache_dir,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
@@ -115,7 +125,7 @@ def parse_args(args):
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
     parser.add_argument('-l', '--loop', help='Loop forever, even if the dataset is exhausted.', action='store_true')
-    parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
+    parser.add_argument('--batch-size', help='Batch size of the generator.', type=int, default=1)
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
     parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
@@ -125,38 +135,42 @@ def parse_args(args):
 
 def run(generator, args):
     # display images, one at a time
-    for i in range(generator.size()):
-        # load the data
-        image       = generator.load_image(i)
-        annotations = generator.load_annotations(i)
+    for group in generator.groups:
+        inputs, targets, annotations = generator.compute_input_output(group)
 
-        # apply random transformations
-        if args.random_transform:
-            image, annotations = generator.random_transform_group_entry(image, annotations)
+        # compute regressed anchors
+        anchor_state = targets[0][:, :, 4]
+        anchors      = anchors_for_shape(inputs.shape[1:])
+        anchors      = np.tile(anchors, (args.batch_size, 1, 1))
+        anchors_     = keras.backend.variable(anchors)
+        deltas       = keras.backend.variable(targets[0][:, :, :4])
+        boxes        = backend.bbox_transform_inv(anchors_, deltas)
+        boxes        = keras.backend.eval(boxes)
 
-        # resize the image and annotations
-        if args.resize:
-            image, image_scale = generator.resize_image(image)
-            annotations[:, :4] *= image_scale
+        for b in range(args.batch_size):
+            # compute image back to [0, 255]
+            image = inputs[b, ...]
+            image -= min(image.flatten())
+            image /= max(image.flatten())
+            image = (image * 255).astype(np.uint8)
 
-        # draw anchors on the image
-        if args.anchors:
-            labels, _, anchors = generator.anchor_targets(image.shape, annotations, generator.num_classes())
-            draw_boxes(image, anchors[np.max(labels, axis=1) == 1], (255, 255, 0), thickness=1)
+            # draw anchors on the image
+            if args.anchors:
+                draw_boxes(image, anchors[b, anchor_state[b, :] == 1, :], (255, 255, 0), thickness=1)
 
-        # draw annotations on the image
-        if args.annotations:
-            # draw annotations in red
-            draw_annotations(image, annotations, color=(0, 0, 255), generator=generator)
+            # draw annotations on the image
+            if args.annotations:
+                # draw annotations in red
+                draw_annotations(image, annotations[b], color=(0, 0, 255), generator=generator)
 
-            # draw regressed anchors in green to override most red annotations
-            # result is that annotations without anchors are red, with anchors are green
-            labels, boxes, _ = generator.anchor_targets(image.shape, annotations, generator.num_classes())
-            draw_boxes(image, boxes[np.max(labels, axis=1) == 1], (0, 255, 0))
+                # draw regressed anchors in green to override most red annotations
+                # result is that annotations without anchors are red, with anchors are green
+                draw_boxes(image, boxes[b, anchor_state[b, :] == 1, :], (0, 255, 0))
 
-        cv2.imshow('Image', image)
-        if cv2.waitKey() == ord('q'):
-            return False
+            cv2.imshow('Image', image)
+            if cv2.waitKey() == ord('q'):
+                return False
+
     return True
 
 
