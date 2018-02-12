@@ -25,5 +25,8 @@ class DatasetPlugin(IPlugin):
     def register_parser_args(self, subparser):
         raise NotImplementedError
 
+    def check_args(self, parsed_args):
+        pass
+
     def create_generators(self, args):
         raise NotImplementedError

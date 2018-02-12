@@ -245,7 +245,6 @@ def check_args(parsed_args):
         raise ValueError(
             "Multi GPU training ({}) and resuming from snapshots ({}) is not supported.".format(parsed_args.multi_gpu,
                                                                                                 parsed_args.snapshot))
-
     if 'resnet' in parsed_args.backbone:
         from ..models.resnet import validate_backbone
     elif 'mobilenet' in parsed_args.backbone:
@@ -254,6 +253,9 @@ def check_args(parsed_args):
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(parsed_args.backbone))
 
     validate_backbone(parsed_args.backbone)
+
+    for plugin in PluginManagerSingleton.get().getAllPlugins():
+        plugin.plugin_object.check_args(parsed_args)
 
     return parsed_args
 
