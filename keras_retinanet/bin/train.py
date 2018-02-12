@@ -200,16 +200,9 @@ def parse_args(args):
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
 
-    coco_parser = subparsers.add_parser('coco')
-    coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
-
-    pascal_parser = subparsers.add_parser('pascal')
-    pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
-
-    csv_parser = subparsers.add_parser('csv')
-    csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
-    csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
-    csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
+    # Invoke all loaded plugins for their subparsers.
+    for plugin in PluginManagerSingleton.get().getAllPlugins():
+        plugin.plugin_object.register_parser_args(subparsers)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--weights',  help='Weights to use for initialization (defaults to \'imagenet\').', default='imagenet')
