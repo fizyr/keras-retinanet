@@ -120,8 +120,29 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
-    lr_scheduler = keras.callbacks.ReduceLROnPlateau(monitor='loss', factor=0.1, patience=2, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=0)
-    callbacks.append(lr_scheduler)
+    callbacks.append(keras.callbacks.ReduceLROnPlateau(
+        monitor  = 'loss',
+        factor   = 0.1,
+        patience = 2,
+        verbose  = 1,
+        mode     = 'auto',
+        epsilon  = 0.0001,
+        cooldown = 0,
+        min_lr   = 0
+    ))
+
+    if args.tensorboard_dir:
+        callbacks.append(keras.callbacks.TensorBoard(
+            log_dir                = args.tensorboard_dir,
+            histogram_freq         = 0,
+            batch_size             = args.batch_size,
+            write_graph            = True,
+            write_grads            = False,
+            write_images           = False,
+            embeddings_freq        = 0,
+            embeddings_layer_names = None,
+            embeddings_metadata    = None
+        ))
 
     return callbacks
 
@@ -254,14 +275,15 @@ def parse_args(args):
     group.add_argument('--weights',           help='Initialize the model with weights from a file.')
     group.add_argument('--no-weights',        help='Don\'t initialize the model with any weights.', dest='imagenet_weights', action='store_const', const=False)
 
-    parser.add_argument('--batch-size',    help='Size of the batches.', default=1, type=int)
-    parser.add_argument('--gpu',           help='Id of the GPU to use (as reported by nvidia-smi).')
-    parser.add_argument('--multi-gpu',     help='Number of GPUs to use for parallel processing.', type=int, default=0)
-    parser.add_argument('--epochs',        help='Number of epochs to train.', type=int, default=50)
-    parser.add_argument('--steps',         help='Number of steps per epoch.', type=int, default=10000)
-    parser.add_argument('--snapshot-path', help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
-    parser.add_argument('--no-snapshots',  help='Disable saving snapshots.', dest='snapshots', action='store_false')
-    parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
+    parser.add_argument('--batch-size',      help='Size of the batches.', default=1, type=int)
+    parser.add_argument('--gpu',             help='Id of the GPU to use (as reported by nvidia-smi).')
+    parser.add_argument('--multi-gpu',       help='Number of GPUs to use for parallel processing.', type=int, default=0)
+    parser.add_argument('--epochs',          help='Number of epochs to train.', type=int, default=50)
+    parser.add_argument('--steps',           help='Number of steps per epoch.', type=int, default=10000)
+    parser.add_argument('--snapshot-path',   help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
+    parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
+    parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
+    parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
 
     return check_args(parser.parse_args(args))
 
