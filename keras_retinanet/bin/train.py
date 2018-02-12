@@ -192,6 +192,9 @@ def check_args(parsed_args):
             "Multi GPU training ({}) and resuming from snapshots ({}) is not supported.".format(parsed_args.multi_gpu,
                                                                                                 parsed_args.snapshot))
 
+    for plugin in PluginManagerSingleton.get().getAllPlugins():
+        plugin.plugin_object.check_args(parsed_args)
+
     return parsed_args
 
 
