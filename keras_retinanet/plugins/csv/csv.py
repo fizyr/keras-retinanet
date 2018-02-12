@@ -21,9 +21,10 @@ import keras_retinanet.utils.plugin as plugins
 class CSVPlugin(plugins.DatasetPlugin):
     def __init__(self):
         super(CSVPlugin, self).__init__()
+        self.dataset_type = "csv"
 
     def register_parser_args(self, subparsers):
-        csv_parser = subparsers.add_parser('csv')
+        csv_parser = subparsers.add_parser(self.dataset_type)
         csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
         csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
         csv_parser.add_argument('--val-annotations',
