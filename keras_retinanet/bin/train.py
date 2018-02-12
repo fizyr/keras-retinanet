@@ -302,6 +302,22 @@ def parse_args(args):
 
     return check_args(parser.parse_args(args))
 
+def load_plugins(plugin_path):
+    from yapsy.PluginManager import PluginManagerSingleton
+
+    pm = PluginManagerSingleton.get()
+    pl = pm.getPluginLocator()
+    pl.setPluginInfoExtension("dataset")
+    pm.setPluginLocator(pl)
+
+    plugin_path = [plugin_path] if type(plugin_path) is str else plugin_path
+    pm.setPluginPlaces(plugin_path)
+
+    # Load all plugins
+    pm.collectPlugins()
+
+    for k, n in enumerate(pm.getAllPlugins()):
+        pm.activatePluginByName(n.name)
 
 def main(args=None):
     # parse arguments
