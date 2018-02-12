@@ -304,6 +304,13 @@ def parse_args(args):
     return check_args(parser.parse_args(args))
 
 def load_plugins(plugin_path):
+    """
+    Responsible for initialising the plugin manager, setting the plugin directory to search, and loading all available
+    plugins - then activating them.
+
+    :param plugin_path: String/[Str] for plugin paths to check
+    :return: None
+    """
 
     pm = PluginManagerSingleton.get()
     pl = pm.getPluginLocator()
