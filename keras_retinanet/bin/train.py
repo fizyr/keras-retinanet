@@ -241,8 +241,16 @@ def load_plugins(plugin_path):
 
     for k, n in enumerate(pm.getAllPlugins()):
         pm.activatePluginByName(n.name)
+        print("Loaded: {}".format(n.name))
 
 def main(args=None):
+
+    #Load plugins first, as their procedures are needed for parsing args.
+    print("Loading plugins...")
+    # Load Plugins
+    load_plugins(['keras_retinanet/plugins'])
+    print("Loaded plugins.")
+
     # parse arguments
     if args is None:
         args = sys.argv[1:]
