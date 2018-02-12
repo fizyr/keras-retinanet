@@ -17,6 +17,7 @@ limitations under the License.
 """
 
 import argparse
+from yapsy.PluginManager import PluginManagerSingleton
 import os
 import sys
 
@@ -303,7 +304,6 @@ def parse_args(args):
     return check_args(parser.parse_args(args))
 
 def load_plugins(plugin_path):
-    from yapsy.PluginManager import PluginManagerSingleton
 
     pm = PluginManagerSingleton.get()
     pl = pm.getPluginLocator()
