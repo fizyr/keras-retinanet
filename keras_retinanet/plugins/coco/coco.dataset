@@ -13,11 +13,11 @@
 ;limitations under the License.
 
 [Core]
-Name = VOC Dataset
-Module = voc
+Name = Coco Dataset
+Module = coco
 
 [Documentation]
-Description = RetinaNet Definition for VOC Dataset
+Description = RetinaNet Definition for COCO Dataset
 Author = Ashley Williamson
 Version = 1.0
 Website = https://inp.io
