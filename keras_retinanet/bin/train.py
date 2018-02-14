@@ -37,9 +37,8 @@ from .. import losses
 from .. import layers
 from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
-from ..preprocessing.pascal_voc import PascalVocGenerator
-from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
+from ..models.resnet import resnet50_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 
@@ -151,52 +150,23 @@ def create_generators(args):
     # create random transform generator for augmenting training data
     transform_generator = random_transform_generator(flip_x_chance=0.5)
 
-    if args.dataset_type == 'coco':
-        # import here to prevent unnecessary dependency on cocoapi
-        from ..preprocessing.coco import CocoGenerator
-
-        train_generator = CocoGenerator(
-            args.coco_path,
-            'train2017',
-            transform_generator=transform_generator,
-            batch_size=args.batch_size
-        )
-
-        validation_generator = CocoGenerator(
-            args.coco_path,
-            'val2017',
-            batch_size=args.batch_size
-        )
-    elif args.dataset_type == 'pascal':
-        train_generator = PascalVocGenerator(
-            args.pascal_path,
-            'trainval',
-            transform_generator=transform_generator,
-            batch_size=args.batch_size
-        )
-
-        validation_generator = PascalVocGenerator(
-            args.pascal_path,
-            'test',
-            batch_size=args.batch_size
-        )
-    elif args.dataset_type == 'csv':
-        train_generator = CSVGenerator(
-            args.annotations,
-            args.classes,
-            transform_generator=transform_generator,
-            batch_size=args.batch_size
-        )
-
-        if args.val_annotations:
-            validation_generator = CSVGenerator(
-                args.val_annotations,
-                args.classes,
-                batch_size=args.batch_size
-            )
+    # Try plugins
+    for plugin in PluginManagerSingleton.get().getAllPlugins():
+        try:
+            getattr(plugin.plugin_object, 'dataset_type')
+        except AttributeError:
+            print("Plugin ({}) does not contain a definition for dataset_type and cannot be utilised.".format(plugin.name))
         else:
-            validation_generator = None
-    elif args.dataset_type == 'oid':
+            if plugin.plugin_object.dataset_type.lower() == args.dataset_type.lower():
+                if callable(getattr(plugin.plugin_object, 'create_generators', None)):
+                    generators = plugin.plugin_object.create_generators(args, transform_generator=transform_generator)
+                    return generators["train_generator"], generators["validation_generator"]
+                else:
+                    print("Plugin ({}) does not contain a definition for get_generator and cannot be utilised".format(plugin.name))
+
+
+    # Try built-in types (TODO: migrate to plugin)
+    if args.dataset_type == 'oid':
         train_generator = OpenImagesGenerator(
             args.main_dir,
             subset='train',
@@ -208,22 +178,21 @@ def create_generators(args):
             batch_size=args.batch_size
         )
 
-        if args.val_annotations:
-            validation_generator = OpenImagesGenerator(
-                args.main_dir,
-                subset='validation',
-                version=args.version,
-                labels_filter=args.labels_filter,
-                annotation_cache_dir=args.annotation_cache_dir,
-                fixed_labels=args.fixed_labels,
-                batch_size=args.batch_size
-            )
-        else:
-            validation_generator = None
-    else:
-        raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
+        if not args.val_annotations:
+            return train_generator, None
 
-    return train_generator, validation_generator
+        validation_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='validation',
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            fixed_labels=args.fixed_labels,
+            batch_size=args.batch_size
+        )
+        return train_generator, validation_generator
+
+    raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
 
 def check_args(parsed_args):
@@ -328,11 +297,10 @@ def load_plugins(plugin_path):
         print("Loaded: {}".format(n.name))
 
 def main(args=None):
-
     #Load plugins first, as their procedures are needed for parsing args.
     print("Loading plugins...")
     # Load Plugins
-    load_plugins(['keras_retinanet/plugins'])
+    load_plugins(['plugins'])
     print("Loaded plugins.")
 
     # parse arguments
