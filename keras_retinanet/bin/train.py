@@ -109,8 +109,10 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         checkpoint = RedirectModel(checkpoint, prediction_model)
         callbacks.append(checkpoint)
 
+    tensorboard_callback = None
+
     if args.tensorboard_dir:
-        tensorb = keras.callbacks.TensorBoard(
+        tensorboard_callback = keras.callbacks.TensorBoard(
             log_dir                = args.tensorboard_dir,
             histogram_freq         = 0,
             batch_size             = args.batch_size,
@@ -121,7 +123,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             embeddings_layer_names = None,
             embeddings_metadata    = None
         )
-        callbacks.append(tensorb)
+        callbacks.append(tensorboard_callback)
 
     if args.evaluation and validation_generator:
         if args.dataset_type == 'coco':
@@ -130,10 +132,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             # use prediction model for evaluation
             evaluation = CocoEval(validation_generator)
         else:
-            if args.tensorboard_dir:
-                evaluation = Evaluate(validation_generator, tensorboard=tensorb)
-            else:
-                evaluation = Evaluate(validation_generator)
+            evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
