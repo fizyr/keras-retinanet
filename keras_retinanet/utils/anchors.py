@@ -171,15 +171,19 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     elif not isinstance(std, np.ndarray):
         raise ValueError('Expected std to be a np.ndarray, list or tuple. Received: {}'.format(type(std)))
 
-    anchor_widths  = anchors[:, 2] - anchors[:, 0] + 1.0
-    anchor_heights = anchors[:, 3] - anchors[:, 1] + 1.0
+    anchor_widths  = anchors[:, 2] - anchors[:, 0]
+    anchor_heights = anchors[:, 3] - anchors[:, 1]
     anchor_ctr_x   = anchors[:, 0] + 0.5 * anchor_widths
     anchor_ctr_y   = anchors[:, 1] + 0.5 * anchor_heights
 
-    gt_widths  = gt_boxes[:, 2] - gt_boxes[:, 0] + 1.0
-    gt_heights = gt_boxes[:, 3] - gt_boxes[:, 1] + 1.0
+    gt_widths  = gt_boxes[:, 2] - gt_boxes[:, 0]
+    gt_heights = gt_boxes[:, 3] - gt_boxes[:, 1]
     gt_ctr_x   = gt_boxes[:, 0] + 0.5 * gt_widths
     gt_ctr_y   = gt_boxes[:, 1] + 0.5 * gt_heights
+
+    # clip widths to 1
+    gt_widths  = np.maximum(gt_widths, 1)
+    gt_heights = np.maximum(gt_heights, 1)
 
     targets_dx = (gt_ctr_x - anchor_ctr_x) / anchor_widths
     targets_dy = (gt_ctr_y - anchor_ctr_y) / anchor_heights
@@ -204,15 +208,15 @@ def compute_overlap(a, b):
     -------
     overlaps: (N, K) ndarray of overlap between boxes and query_boxes
     """
-    area = (b[:, 2] - b[:, 0] + 1) * (b[:, 3] - b[:, 1] + 1)
+    area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
 
-    iw = np.minimum(np.expand_dims(a[:, 2], axis=1), b[:, 2]) - np.maximum(np.expand_dims(a[:, 0], 1), b[:, 0]) + 1
-    ih = np.minimum(np.expand_dims(a[:, 3], axis=1), b[:, 3]) - np.maximum(np.expand_dims(a[:, 1], 1), b[:, 1]) + 1
+    iw = np.minimum(np.expand_dims(a[:, 2], axis=1), b[:, 2]) - np.maximum(np.expand_dims(a[:, 0], 1), b[:, 0])
+    ih = np.minimum(np.expand_dims(a[:, 3], axis=1), b[:, 3]) - np.maximum(np.expand_dims(a[:, 1], 1), b[:, 1])
 
     iw = np.maximum(iw, 0)
     ih = np.maximum(ih, 0)
 
-    ua = np.expand_dims((a[:, 2] - a[:, 0] + 1) * (a[:, 3] - a[:, 1] + 1), axis=1) + area - iw * ih
+    ua = np.expand_dims((a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1]), axis=1) + area - iw * ih
 
     ua = np.maximum(ua, np.finfo(float).eps)
 
