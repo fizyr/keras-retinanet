@@ -158,13 +158,17 @@ def create_generators(args):
             args.coco_path,
             'train2017',
             transform_generator=transform_generator,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=800,
+            image_max_side=1333,
         )
 
         validation_generator = CocoGenerator(
             args.coco_path,
             'val2017',
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=800,
+            image_max_side=1333,
         )
     elif args.dataset_type == 'pascal':
         train_generator = PascalVocGenerator(
