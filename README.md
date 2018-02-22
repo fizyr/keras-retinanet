@@ -23,6 +23,11 @@ If you installed `keras-retinanet` correctly, the train script will be installed
 However, if you make local modifications to the `keras-retinanet` repository, you should run the script directly from the repository.
 That will ensure that your local changes will be used by the train script.
 
+The default backbone is 'resnet50'. You can change this using the '--backbone=xxx' argument in the running script.
+xxx can be one of the backbones in resnet models (resnet50, resnet101, resnet152) or mobilenet models 
+(mobilenet128_1.0, mobilenet128_0.75, mobilenet160_1.0, etc). The different options are defined by each model in 
+their corresponding python scripts (resnet.py, mobilenet.py, etc).
+
 ### Usage
 For training on [Pascal VOC](http://host.robots.ox.ac.uk/pascal/VOC/), run:
 ```shell

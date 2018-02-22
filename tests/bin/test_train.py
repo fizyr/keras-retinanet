@@ -17,7 +17,6 @@ limitations under the License.
 import keras_retinanet.bin.train
 
 import warnings
-import sys
 
 
 def test_coco():
