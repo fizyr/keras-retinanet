@@ -244,6 +244,8 @@ def check_args(parsed_args):
         from ..models.resnet import validate_backbone
     elif 'mobilenet' in parsed_args.backbone:
         from ..models.mobilenet import validate_backbone
+    elif 'vgg' in parsed_args.backbone:
+        from ..models.vgg import validate_backbone
     else:
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(parsed_args.backbone))
 
@@ -293,6 +295,7 @@ def parse_args(args):
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
+    parser.add_argument('--true-shapes',     help='Use actual model to compute shapes of layers used for FPN.', dest='true_shapes', action='store_true', default=False)
 
     return check_args(parser.parse_args(args))
 
@@ -318,6 +321,8 @@ def main(args=None):
         from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
     elif 'mobilenet' in args.backbone:
         from ..models.mobilenet import mobilenet_retinanet as retinanet, custom_objects, download_imagenet
+    elif 'vgg' in args.backbone:
+        from ..models.vgg import vgg_retinanet as retinanet, custom_objects, download_imagenet
     else:
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(args.backbone))
 
@@ -338,6 +343,12 @@ def main(args=None):
 
     # print model summary
     print(model.summary())
+
+    # this lets the generator compute backbone layer shapes using the actual backbone model
+    if args.true_shapes:
+        train_generator.model = model
+        if validation_generator is not None:
+            validation_generator.model = model
 
     # create the callbacks
     callbacks = create_callbacks(

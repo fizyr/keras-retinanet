@@ -61,13 +61,36 @@ def anchor_targets_bbox(
     return labels, annotations, anchors
 
 
+def layer_shapes(image_shape, model):
+    """Compute layer shapes given input image shape and the model.
+
+    :param image_shape:
+    :param model:
+    :return:
+    """
+    shape = {
+        model.layers[0].name: (None,) + image_shape,
+    }
+
+    for layer in model.layers[1:]:
+        nodes = layer._inbound_nodes
+        for node in nodes:
+            inputs = [shape[lr.name] for lr in node.inbound_layers]
+            if not inputs:
+                continue
+            shape[layer.name] = layer.compute_output_shape(inputs[0] if len(inputs) == 1 else inputs)
+
+    return shape
+
+
 def anchors_for_shape(
     image_shape,
     pyramid_levels=None,
     ratios=None,
     scales=None,
     strides=None,
-    sizes=None
+    sizes=None,
+    model=None,
 ):
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
@@ -80,17 +103,18 @@ def anchors_for_shape(
     if scales is None:
         scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
 
-    # skip the first two levels
-    image_shape = np.array(image_shape[:2])
-    for i in range(pyramid_levels[0] - 1):
-        image_shape = (image_shape + 1) // 2
+    if model is None:  # guess shapes
+        image_shape = np.array(image_shape[:2])
+        image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
+    else:  # compute shapes based on the actual model
+        shape = layer_shapes(image_shape, model)
+        image_shapes = [shape[name][1:3] for name in ["P3", "P4", "P5", "P6", "P7"]]
 
     # compute anchors over all pyramid levels
     all_anchors = np.zeros((0, 4))
     for idx, p in enumerate(pyramid_levels):
-        image_shape     = (image_shape + 1) // 2
         anchors         = generate_anchors(base_size=sizes[idx], ratios=ratios, scales=scales)
-        shifted_anchors = shift(image_shape, strides[idx], anchors)
+        shifted_anchors = shift(image_shapes[idx], strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
     return all_anchors

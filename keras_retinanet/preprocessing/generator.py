@@ -43,6 +43,7 @@ class Generator(object):
         image_min_side=600,
         image_max_side=1024,
         transform_parameters=None,
+        model=None,
     ):
         self.transform_generator  = transform_generator
         self.batch_size           = int(batch_size)
@@ -51,6 +52,7 @@ class Generator(object):
         self.image_min_side       = image_min_side
         self.image_max_side       = image_max_side
         self.transform_parameters = transform_parameters or TransformParameters()
+        self.model                = model
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -200,7 +202,8 @@ class Generator(object):
         regression_group = [None] * self.batch_size
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             # compute regression targets
-            labels_group[index], annotations, anchors = self.anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
+            labels_group[index], annotations, anchors = self.anchor_targets(
+                max_shape, annotations, self.num_classes(), mask_shape=image.shape, model=self.model)
             regression_group[index] = bbox_transform(anchors, annotations)
 
             # append anchor states to regression targets (necessary for filtering 'ignore', 'positive' and 'negative' anchors)

@@ -73,7 +73,8 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, **kwargs):
         resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
 
     # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, **kwargs)
+    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet,
+                                     backbone_layers=["res3d_relu", "res4f_relu", "res5c_relu"], **kwargs)
 
     return model
 

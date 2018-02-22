@@ -177,6 +177,7 @@ def __build_anchors(anchor_parameters, features):
 def retinanet(
     inputs,
     backbone,
+    backbone_layers,
     num_classes,
     anchor_parameters       = AnchorParameters.default,
     create_pyramid_features = __create_pyramid_features,
@@ -186,7 +187,7 @@ def retinanet(
     if submodels is None:
         submodels = default_submodels(num_classes, anchor_parameters)
 
-    _, C3, C4, C5 = backbone.outputs  # we ignore C2
+    C3, C4, C5 = [backbone.get_layer(name).output for name in backbone_layers]
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
     features = create_pyramid_features(C3, C4, C5)
