@@ -244,6 +244,8 @@ def check_args(parsed_args):
         from ..models.resnet import validate_backbone
     elif 'mobilenet' in parsed_args.backbone:
         from ..models.mobilenet import validate_backbone
+    elif 'densenet' in parsed_args.backbone:
+        from ..models.densenet import validate_backbone
     else:
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(parsed_args.backbone))
 
@@ -318,6 +320,8 @@ def main(args=None):
         from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
     elif 'mobilenet' in args.backbone:
         from ..models.mobilenet import mobilenet_retinanet as retinanet, custom_objects, download_imagenet
+    elif 'densenet' in args.backbone:
+        from ..models.densenet import densenet_retinanet as retinanet, custom_objects, download_imagenet
     else:
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(args.backbone))
 
