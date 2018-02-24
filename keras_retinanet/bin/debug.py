@@ -149,7 +149,7 @@ def run(generator, args):
         # draw annotations on the image
         if args.annotations:
             # draw annotations in red
-            draw_annotations(image, annotations, color=(0, 0, 255), generator=generator)
+            draw_annotations(image, annotations, color=(255, 0, 0), generator=generator)
 
             # draw regressed anchors in green to override most red annotations
             # result is that annotations without anchors are red, with anchors are green
