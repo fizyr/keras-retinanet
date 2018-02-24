@@ -26,14 +26,10 @@ class CSVPlugin(plugins.DatasetPlugin):
         super(CSVPlugin, self).__init__()
         self.dataset_type = "csv"
 
-    def register_parser_args(self, subparsers):
-        csv_parser = subparsers.add_parser(self.dataset_type)
-        csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
-        csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
-        csv_parser.add_argument('--val-annotations',
-                                help='Path to CSV file containing annotations for validation (optional).')
-
-        return csv_parser
+    def register_parser_args(self, subparser):
+        subparser.add_argument('annotations',       help='Path to a CSV file containing annotations for training.')
+        subparser.add_argument('classes',           help='Path to a CSV file containing class label mapping.')
+        subparser.add_argument('--val-annotations', help='Path to a CSV file containing annotations for validation (optional).')
 
     def create_generators(self, args, transform_generator=None):
         train_generator = CSVGenerator(

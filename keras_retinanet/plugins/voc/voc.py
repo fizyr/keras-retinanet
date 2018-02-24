@@ -27,11 +27,8 @@ class VocPlugin(plugins.DatasetPlugin):
         self.dataset_type = "pascal"
 
 
-    def register_parser_args(self, subparsers):
-        pascal_parser = subparsers.add_parser(self.dataset_type)
-        pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
-
-        return pascal_parser
+    def register_parser_args(self, subparser):
+        subparser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
 
     def create_generators(self, args, transform_generator=None):
         train_generator = PascalVocGenerator(

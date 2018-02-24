@@ -227,8 +227,8 @@ def parse_args(args, dataset_plugins):
     subparsers.required = True
 
     # let all plugins register their arguments.
-    for plugin in dataset_plugins.values():
-        plugin.register_parser_args(subparsers)
+    for name, plugin in dataset_plugins.items():
+        plugin.register_parser_args(subparsers.add_parser(name))
 
     def csv_list(string):
         return string.split(',')

@@ -26,11 +26,8 @@ class CocoPlugin(plugins.DatasetPlugin):
         super(CocoPlugin, self).__init__()
         self.dataset_type = "coco"
 
-    def register_parser_args(self, subparsers):
-        coco_parser = subparsers.add_parser(self.dataset_type)
-        coco_parser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
-
-        return coco_parser
+    def register_parser_args(self, subparser):
+        subparser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
 
     def create_generators(self, args, transform_generator=None):
         train_generator = CocoGenerator(
