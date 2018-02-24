@@ -331,6 +331,13 @@ def main(args=None):
     if args.snapshot is not None:
         print('Loading model, this may take a second...')
         model            = keras.models.load_model(args.snapshot, custom_objects=custom_objects)
+        model.compile(
+            loss={
+                'regression'    : losses.smooth_l1(),
+                'classification': losses.focal()
+            },
+            optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+        )
         training_model   = model
         prediction_model = model
     else:
