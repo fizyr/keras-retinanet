@@ -13,7 +13,7 @@
 ;limitations under the License.
 
 [Core]
-Name = VOC Dataset
+Name = pascal
 Module = voc
 
 [Documentation]

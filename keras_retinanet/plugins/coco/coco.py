@@ -24,7 +24,6 @@ from keras_retinanet.preprocessing.coco import CocoGenerator
 class CocoPlugin(plugins.DatasetPlugin):
     def __init__(self):
         super(CocoPlugin, self).__init__()
-        self.dataset_type = "coco"
 
     def register_parser_args(self, subparser):
         subparser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')

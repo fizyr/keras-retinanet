@@ -24,8 +24,6 @@ from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
 class VocPlugin(plugins.DatasetPlugin):
     def __init__(self):
         super(VocPlugin, self).__init__()
-        self.dataset_type = "pascal"
-
 
     def register_parser_args(self, subparser):
         subparser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')

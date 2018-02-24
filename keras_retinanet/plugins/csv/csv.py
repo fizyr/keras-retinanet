@@ -24,7 +24,6 @@ from keras_retinanet.preprocessing.csv_generator import CSVGenerator
 class CSVPlugin(plugins.DatasetPlugin):
     def __init__(self):
         super(CSVPlugin, self).__init__()
-        self.dataset_type = "csv"
 
     def register_parser_args(self, subparser):
         subparser.add_argument('annotations',       help='Path to a CSV file containing annotations for training.')
