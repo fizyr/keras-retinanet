@@ -264,6 +264,7 @@ def parse_args(args, dataset_plugins):
 
     return check_args(parser.parse_args(args), dataset_plugins)
 
+
 def main(args=None):
     # make sure keras is the minimum required version
     check_keras_version()

@@ -46,4 +46,3 @@ class CocoPlugin(plugins.DatasetPlugin):
             "train_generator": train_generator,
             "validation_generator": validation_generator
         }
-
