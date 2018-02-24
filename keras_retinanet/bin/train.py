@@ -17,7 +17,6 @@ limitations under the License.
 """
 
 import argparse
-from yapsy.PluginManager import PluginManagerSingleton
 import os
 import sys
 
@@ -41,6 +40,7 @@ from ..preprocessing.open_images import OpenImagesGenerator
 from ..models.resnet import resnet50_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
+from ..utils.plugin import load_dataset_plugins
 
 
 def get_session():
@@ -146,24 +146,15 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     return callbacks
 
 
-def create_generators(args):
+def create_generators(args, dataset_plugins):
     # create random transform generator for augmenting training data
     transform_generator = random_transform_generator(flip_x_chance=0.5)
 
     # Try plugins
-    for plugin in PluginManagerSingleton.get().getAllPlugins():
-        try:
-            getattr(plugin.plugin_object, 'dataset_type')
-        except AttributeError:
-            print("Plugin ({}) does not contain a definition for dataset_type and cannot be utilised.".format(plugin.name))
-        else:
-            if plugin.plugin_object.dataset_type.lower() == args.dataset_type.lower():
-                if callable(getattr(plugin.plugin_object, 'create_generators', None)):
-                    generators = plugin.plugin_object.create_generators(args, transform_generator=transform_generator)
-                    return generators["train_generator"], generators["validation_generator"]
-                else:
-                    print("Plugin ({}) does not contain a definition for get_generator and cannot be utilised".format(plugin.name))
-
+    if args.dataset_type in dataset_plugins:
+        plugin     = dataset_plugins[args.dataset_type]
+        generators = plugin.create_generators(args, transform_generator=transform_generator)
+        return generators["train_generator"], generators["validation_generator"]
 
     # Try built-in types (TODO: migrate to plugin)
     if args.dataset_type == 'oid':
@@ -195,7 +186,7 @@ def create_generators(args):
     raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
 
-def check_args(parsed_args):
+def check_args(parsed_args, dataset_plugins):
     """
     Function to check for inherent contradictions within parsed arguments.
     For example, batch_size < num_gpus
@@ -223,20 +214,21 @@ def check_args(parsed_args):
 
     validate_backbone(parsed_args.backbone)
 
-    for plugin in PluginManagerSingleton.get().getAllPlugins():
-        plugin.plugin_object.check_args(parsed_args)
+    # let the selected dataset check args too
+    if parsed_args.dataset_type in dataset_plugins:
+        dataset_plugins[parsed_args.dataset_type].check_args(parsed_args)
 
     return parsed_args
 
 
-def parse_args(args):
+def parse_args(args, dataset_plugins):
     parser     = argparse.ArgumentParser(description='Simple training script for training a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
 
-    # Invoke all loaded plugins for their subparsers.
-    for plugin in PluginManagerSingleton.get().getAllPlugins():
-        plugin.plugin_object.register_parser_args(subparsers)
+    # let all plugins register their arguments.
+    for plugin in dataset_plugins.values():
+        plugin.register_parser_args(subparsers)
 
     def csv_list(string):
         return string.split(',')
@@ -270,46 +262,19 @@ def parse_args(args):
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
 
-    return check_args(parser.parse_args(args))
-
-def load_plugins(plugin_path):
-    """
-    Responsible for initialising the plugin manager, setting the plugin directory to search, and loading all available
-    plugins - then activating them.
-
-    :param plugin_path: String/[Str] for plugin paths to check
-    :return: None
-    """
-
-    pm = PluginManagerSingleton.get()
-    pl = pm.getPluginLocator()
-    pl.setPluginInfoExtension("dataset")
-    pm.setPluginLocator(pl)
-
-    plugin_path = [plugin_path] if type(plugin_path) is str else plugin_path
-    pm.setPluginPlaces(plugin_path)
-
-    # Load all plugins
-    pm.collectPlugins()
-
-    for k, n in enumerate(pm.getAllPlugins()):
-        pm.activatePluginByName(n.name)
-        print("Loaded: {}".format(n.name))
+    return check_args(parser.parse_args(args), dataset_plugins)
 
 def main(args=None):
-    #Load plugins first, as their procedures are needed for parsing args.
-    print("Loading plugins...")
-    # Load Plugins
-    load_plugins(['plugins'])
-    print("Loaded plugins.")
+    # make sure keras is the minimum required version
+    check_keras_version()
+
+    # load plugins
+    dataset_plugins = load_dataset_plugins(['plugins'])
 
     # parse arguments
     if args is None:
         args = sys.argv[1:]
-    args = parse_args(args)
-
-    # make sure keras is the minimum required version
-    check_keras_version()
+    args = parse_args(args, dataset_plugins)
 
     # optionally choose specific GPU
     if args.gpu:
@@ -317,7 +282,7 @@ def main(args=None):
     keras.backend.tensorflow_backend.set_session(get_session())
 
     # create the generators
-    train_generator, validation_generator = create_generators(args)
+    train_generator, validation_generator = create_generators(args, dataset_plugins)
 
     if 'resnet' in args.backbone:
         from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
