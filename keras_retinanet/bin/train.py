@@ -230,7 +230,11 @@ def main(args=None):
     check_keras_version()
 
     # load plugins
-    dataset_plugins = load_dataset_plugins(['plugins'])
+    plugin_dirs = [os.path.join(os.path.dirname(__file__), '../plugins')]
+    if 'HOME' in os.environ:
+        plugin_dirs.append(os.path.join(os.environ['HOME'], '.local/lib/keras-retinanet/plugins'))
+
+    dataset_plugins = load_dataset_plugins(plugin_dirs)
 
     # parse arguments
     if args is None:
