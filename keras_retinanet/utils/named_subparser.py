@@ -18,17 +18,13 @@ import argparse
 
 
 class NamedSubparser:
-    def __init__(self, name, *extra_names, dest=None, required=False, repeated=False, help=None):
-        if dest is None:
-            dest = name.lstrip('-').replace('-', '_')
-
-        self.name     = name
-        self.names    = [name]
-        self.names.extend(extra_names)
-        self.dest     = dest
-        self.required = required
-        self.repeated = repeated
-        self.help     = help
+    def __init__(self, *args, **kwargs):
+        self.name     = args[0]
+        self.names    = args
+        self.dest     = kwargs.get('dest', self.name.lstrip('-').replace('-', '_'))
+        self.required = kwargs.get('required', False)
+        self.repeated = kwargs.get('repeated', False)
+        self.help     = kwargs.get('help', None)
         self.options  = {}
 
     def choices(self):
@@ -67,12 +63,15 @@ class SubNamespace:
 
 class ArgumentParser(argparse.ArgumentParser):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self.__super().__init__(*args, **kwargs)
         self.__args               = args
         self.__kwargs             = kwargs
         self.__kwargs['parents']  = [self]
         self.__kwargs['add_help'] = False
         self.__subparsers         = {}
+
+    def __super(self):
+        return super(ArgumentParser, self)
 
     def print_help(self, file=None):
         # TODO: Print subparser options help
@@ -132,7 +131,7 @@ class ArgumentParser(argparse.ArgumentParser):
             yield subparser, sub_namespace, unknown
 
     def parse_known_args(self, args=None, namespace=None):
-        namespace, unknown = super().parse_known_args(args, namespace)
+        namespace, unknown = self.__super().parse_known_args(args, namespace)
         leftover           = []
 
         with_named_subparsers = self.__with_named_subparsers()
