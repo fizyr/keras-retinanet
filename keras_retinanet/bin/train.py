@@ -175,8 +175,8 @@ def check_args(parsed_args, dataset_plugins):
 
     # let the selected dataset check args too
     dataset_plugins[parsed_args.dataset.name].check_args(parsed_args.dataset.args)
-    if parsed_args.evaluate:
-        dataset_plugins[parsed_args.evaluate.name].check_args(parsed_args.evaluate.args)
+    if parsed_args.validate:
+        dataset_plugins[parsed_args.validate.name].check_args(parsed_args.validate.args)
 
     return parsed_args
 
@@ -210,10 +210,8 @@ def parse_args(args, dataset_plugins):
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
 
-    train_dataset      = NamedSubparser('--dataset',  required=True)
-    validation_dataset = NamedSubparser('--evaluate', required=False)
-    parser.add_named_subparser(train_dataset)
-    parser.add_named_subparser(validation_dataset)
+    train_dataset      = parser.add_named_subparser(['--dataset'], required=True)
+    validation_dataset = parser.add_named_subparser(['--validate'])
 
     # let all plugins register their arguments.
     for name, plugin in dataset_plugins.items():
@@ -259,8 +257,8 @@ def main(args=None):
 
     # make the validation data generator
     validation_generator = None
-    if args.evaluate:
-        validation_generator = create_generator(arg.evaluate, dataset_plugins, batch_size=args.batch_size)
+    if args.validate:
+        validation_generator = create_generator(arg.validate, dataset_plugins, batch_size=args.batch_size)
 
     if 'resnet' in args.backbone:
         from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
