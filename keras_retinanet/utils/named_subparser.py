@@ -76,10 +76,10 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def print_help(self, file=None):
         # TODO: Print subparser options help
-        return self.__with_named_subparsers().print_help(self, file=file)
+        return self.__with_named_subparsers().print_help(file=file)
 
     def print_usage(self, file=None):
-        return self.__with_named_subparsers().print_usage(self, file=file)
+        return self.__with_named_subparsers().print_usage(file=file)
 
     def __with_named_subparsers(self):
         result = argparse.ArgumentParser(*self.__args, **self.__kwargs)
