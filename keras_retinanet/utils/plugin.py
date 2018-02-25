@@ -27,31 +27,40 @@ def load_plugins(extension, paths, check=None):
     manager.collectPlugins()
 
     result = {}
-    for plugin in manager.getAllPlugins():
-        plugin.activate()
-        name   = plugin.name
-        plugin = plugin.plugin_object
+    for info in manager.getAllPlugins():
+        manager.activatePluginByName(info.name)
+        name   = info.name
+        plugin = info.plugin_object
         if check is not None:
-            if not check(plugin.name, plugin.plugin_object):
+            if not check(name, plugin):
                 continue
         result[name] = plugin
     return result
 
 
+def _check_function(plugin, function_name, plugin_type, plugin_name):
+    if not hasattr(plugin, function_name):
+        warn("{} plugin `{}' is missing a `{}' function".format(plugin_type, plugin_name, function_name))
+        return False
+
+    if not callable(getattr(plugin, function_name)):
+        warn("{} plugin `{}' attribute `{}' is not callable".format(plugin_type, plugin_name, function_name))
+        return False
+    return True
+
+
 def check_dataset_plugin(name, plugin):
-    if not hasattr(plugin, 'create_generators'):
-        warn("dataset plugin `{}' is missing a `create_generators' function".format(name))
+    if not _check_function(plugin, 'create_generator',     'dataset', name):
         return False
-
-    if not callable(plugin.create_generators):
-        warn("dataset plugin `{}' attribute `create_generators' is not callable".format(name))
+    if not _check_function(plugin, 'register_parser_args', 'dataset', name):
         return False
-
+    if not _check_function(plugin, 'check_args', 'dataset', name):
+        return False
     return True
 
 
 def load_dataset_plugins(paths):
-    return load_plugins('.dataset', paths, check=check_dataset_plugin)
+    return load_plugins('dataset', paths, check=check_dataset_plugin)
 
 
 class DatasetPlugin(IPlugin):
@@ -65,5 +74,5 @@ class DatasetPlugin(IPlugin):
     def check_args(self, parsed_args):
         pass
 
-    def create_generators(self, args):
+    def create_generator(self, args):
         raise NotImplementedError

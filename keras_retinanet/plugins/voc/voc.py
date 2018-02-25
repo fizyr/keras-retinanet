@@ -26,23 +26,12 @@ class VocPlugin(plugins.DatasetPlugin):
         super(VocPlugin, self).__init__()
 
     def register_parser_args(self, subparser):
-        subparser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+        subparser.add_argument('data_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+        subparser.add_argument('subset',    help='The subset to load (for example: trainval or test).')
 
-    def create_generators(self, args, transform_generator=None):
-        train_generator = PascalVocGenerator(
-            args.pascal_path,
-            'trainval',
-            transform_generator=transform_generator,
-            batch_size=args.batch_size
+    def create_generator(self, args, **kwargs):
+        return PascalVocGenerator(
+            args.path,
+            args.subset,
+            **kwargs
         )
-
-        validation_generator = PascalVocGenerator(
-            args.pascal_path,
-            'test',
-            batch_size=args.batch_size
-        )
-
-        return {
-            "train_generator": train_generator,
-            "validation_generator": validation_generator
-        }

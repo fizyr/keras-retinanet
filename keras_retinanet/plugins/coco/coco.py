@@ -26,23 +26,12 @@ class CocoPlugin(plugins.DatasetPlugin):
         super(CocoPlugin, self).__init__()
 
     def register_parser_args(self, subparser):
-        subparser.add_argument('coco_path', help='Path to dataset directory (ie. /tmp/COCO).')
+        subparser.add_argument('data_path',  help='Path to dataset directory (ie. /tmp/COCO).')
+        subparser.add_argument('subset',     help='The subset to load (for example: train2017 or val2017).')
 
-    def create_generators(self, args, transform_generator=None):
-        train_generator = CocoGenerator(
-            args.coco_path,
-            'train2017',
-            transform_generator=transform_generator,
-            batch_size=args.batch_size
+    def create_generator(self, args, **kwargs):
+        return CocoGenerator(
+            args.data_path,
+            args.subset,
+            **kwargs
         )
-
-        validation_generator = CocoGenerator(
-            args.coco_path,
-            'val2017',
-            batch_size=args.batch_size
-        )
-
-        return {
-            "train_generator": train_generator,
-            "validation_generator": validation_generator
-        }
