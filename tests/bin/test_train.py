@@ -28,8 +28,9 @@ def test_coco():
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
-        'coco',
+        '--dataset', 'coco',
         'tests/test-data/coco',
+        'train2017'
     ])
 
 
@@ -42,8 +43,9 @@ def test_pascal():
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
-        'pascal',
+        '--dataset', 'pascal',
         'tests/test-data/pascal',
+        'trainval'
     ])
 
 
@@ -56,7 +58,7 @@ def test_csv():
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
-        'csv',
+        '--dataset', 'csv',
         'tests/test-data/csv/annotations.csv',
         'tests/test-data/csv/classes.csv',
     ])

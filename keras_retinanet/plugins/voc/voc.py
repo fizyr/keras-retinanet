@@ -31,7 +31,7 @@ class VocPlugin(plugins.DatasetPlugin):
 
     def create_generator(self, args, **kwargs):
         return PascalVocGenerator(
-            args.path,
+            args.data_path,
             args.subset,
             **kwargs
         )

@@ -41,6 +41,7 @@ from ..models.resnet import resnet50_retinanet, custom_objects
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 from ..utils.plugin import load_dataset_plugins
+from ..utils.named_subparser import ArgumentParser, NamedSubparser
 
 
 def get_session():
@@ -121,14 +122,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         )
         callbacks.append(tensorboard_callback)
 
-    if args.evaluation and validation_generator:
-        if args.dataset_type == 'coco':
-            from ..callbacks.coco import CocoEval
-
-            # use prediction model for evaluation
-            evaluation = CocoEval(validation_generator)
-        else:
-            evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
+    if validation_generator:
+        evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
@@ -146,44 +141,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     return callbacks
 
 
-def create_generators(args, dataset_plugins):
-    # create random transform generator for augmenting training data
-    transform_generator = random_transform_generator(flip_x_chance=0.5)
-
-    # Try plugins
-    if args.dataset_type in dataset_plugins:
-        plugin     = dataset_plugins[args.dataset_type]
-        generators = plugin.create_generators(args, transform_generator=transform_generator)
-        return generators["train_generator"], generators["validation_generator"]
-
-    # Try built-in types (TODO: migrate to plugin)
-    if args.dataset_type == 'oid':
-        train_generator = OpenImagesGenerator(
-            args.main_dir,
-            subset='train',
-            version=args.version,
-            labels_filter=args.labels_filter,
-            annotation_cache_dir=args.annotation_cache_dir,
-            fixed_labels=args.fixed_labels,
-            transform_generator=transform_generator,
-            batch_size=args.batch_size
-        )
-
-        if not args.val_annotations:
-            return train_generator, None
-
-        validation_generator = OpenImagesGenerator(
-            args.main_dir,
-            subset='validation',
-            version=args.version,
-            labels_filter=args.labels_filter,
-            annotation_cache_dir=args.annotation_cache_dir,
-            fixed_labels=args.fixed_labels,
-            batch_size=args.batch_size
-        )
-        return train_generator, validation_generator
-
-    raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
+def create_generator(dataset, plugins, **kwargs):
+    return plugins[dataset.name].create_generator(dataset.args, **kwargs)
 
 
 def check_args(parsed_args, dataset_plugins):
@@ -215,35 +174,25 @@ def check_args(parsed_args, dataset_plugins):
     validate_backbone(parsed_args.backbone)
 
     # let the selected dataset check args too
-    if parsed_args.dataset_type in dataset_plugins:
-        dataset_plugins[parsed_args.dataset_type].check_args(parsed_args)
+    dataset_plugins[parsed_args.dataset.name].check_args(parsed_args.dataset.args)
+    if parsed_args.evaluate:
+        dataset_plugins[parsed_args.evaluate.name].check_args(parsed_args.evaluate.args)
 
     return parsed_args
 
 
 def parse_args(args, dataset_plugins):
-    parser     = argparse.ArgumentParser(description='Simple training script for training a RetinaNet network.')
-    subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
-    subparsers.required = True
+    parser = ArgumentParser(description='Simple training script for training a RetinaNet network.')
 
-    # let all plugins register their arguments.
-    for name, plugin in dataset_plugins.items():
-        plugin.register_parser_args(subparsers.add_parser(name))
+    # def csv_list(string):
+    #     return string.split(',')
 
-    def csv_list(string):
-        return string.split(',')
-
-    oid_parser = subparsers.add_parser('oid')
-    oid_parser.add_argument('main_dir', help='Path to dataset directory.')
-    oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
-    oid_parser.add_argument('--labels-filter',  help='A list of labels to filter.', type=csv_list, default=None)
-    oid_parser.add_argument('--annotation-cache-dir', help='Path to store annotation cache.', default='.')
-    oid_parser.add_argument('--fixed-labels', help='Use the exact specified labels.', default=False)
-
-    csv_parser = subparsers.add_parser('csv')
-    csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
-    csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
-    csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
+    # oid_parser = subparsers.add_parser('oid')
+    # oid_parser.add_argument('main_dir', help='Path to dataset directory.')
+    # oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
+    # oid_parser.add_argument('--labels-filter',  help='A list of labels to filter.', type=csv_list, default=None)
+    # oid_parser.add_argument('--annotation-cache-dir', help='Path to store annotation cache.', default='.')
+    # oid_parser.add_argument('--fixed-labels', help='Use the exact specified labels.', default=False)
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
@@ -260,7 +209,18 @@ def parse_args(args, dataset_plugins):
     parser.add_argument('--snapshot-path',   help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
-    parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
+
+    train_dataset      = NamedSubparser('--dataset',  required=True)
+    validation_dataset = NamedSubparser('--evaluate', required=False)
+    parser.add_named_subparser(train_dataset)
+    parser.add_named_subparser(validation_dataset)
+
+    # let all plugins register their arguments.
+    for name, plugin in dataset_plugins.items():
+        dataset_parser = argparse.ArgumentParser(name)
+        plugin.register_parser_args(dataset_parser)
+        train_dataset.add_option(name, dataset_parser)
+        validation_dataset.add_option(name, dataset_parser)
 
     return check_args(parser.parse_args(args), dataset_plugins)
 
@@ -282,8 +242,21 @@ def main(args=None):
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     keras.backend.tensorflow_backend.set_session(get_session())
 
-    # create the generators
-    train_generator, validation_generator = create_generators(args, dataset_plugins)
+    # create random transform generator for augmenting training data
+    transform_generator = random_transform_generator(flip_x_chance=0.5)
+
+    # make the training data generator
+    train_generator = create_generator(
+        args.dataset,
+        dataset_plugins,
+        transform_generator=transform_generator,
+        batch_size=args.batch_size
+    )
+
+    # make the validation data generator
+    validation_generator = None
+    if args.evaluate:
+        validation_generator = create_generator(arg.evaluate, dataset_plugins, batch_size=args.batch_size)
 
     if 'resnet' in args.backbone:
         from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
