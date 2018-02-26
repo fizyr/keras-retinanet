@@ -50,7 +50,7 @@ def parse_args(args):
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--set', help='Name of the set file to evaluate (defaults to val2017).', default='val2017')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
-    parser.add_argument('--multi_scale', help='Evaluate with multiple scales to increase accuracy.', dest='multi_scale', action='store_true')
+    parser.add_argument('--multi-scale', help='Evaluate with multiple scales to increase accuracy.', dest='multi_scale', action='store_true')
     return parser.parse_args(args)
 
 
