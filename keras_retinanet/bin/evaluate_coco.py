@@ -32,7 +32,7 @@ if __name__ == "__main__" and __package__ is None:
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from ..preprocessing.coco import CocoGenerator
-from ..utils.coco_eval import evaluate_coco
+from ..utils.coco_eval import evaluate_coco, evaluate_coco_multi_scale
 from ..models.resnet import custom_objects
 from ..utils.keras_version import check_keras_version
 
@@ -50,7 +50,7 @@ def parse_args(args):
     parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--set', help='Name of the set file to evaluate (defaults to val2017).', default='val2017')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
-
+    parser.add_argument('--multi-scale', help='Evaluate with multiple scales to increase accuracy.', dest='multi_scale', action='store_true')
     return parser.parse_args(args)
 
 
@@ -72,13 +72,28 @@ def main(args=None):
     print('Loading model, this may take a second...')
     model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
-    # create a generator for testing data
-    test_generator = CocoGenerator(
-        args.coco_path,
-        args.set,
-    )
+    if args.multi_scale:
+        scales = [(688, 1145), (800, 1333), (1200, 1600)]
+        # create generators for testing data in multi-scales
+        generators = []
+        for s in scales:
+            generator = CocoGenerator(
+                args.coco_path,
+                args.set,
+                image_min_side=s[0],
+                image_max_side=s[1]
+            )
+            generators.append(generator)
 
-    evaluate_coco(test_generator, model, args.score_threshold)
+        evaluate_coco_multi_scale(generators, model, args.score_threshold)
+    else:
+        # create a generator for testing data
+        test_generator = CocoGenerator(
+            args.coco_path,
+            args.set,
+        )
+
+        evaluate_coco(test_generator, model, args.score_threshold)
 
 if __name__ == '__main__':
     main()
