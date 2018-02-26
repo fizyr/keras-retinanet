@@ -66,7 +66,7 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, **kwarg
     densenet = DenseNet(blocks=blocks, input_tensor=inputs, include_top=False, pooling=None, weights=None)
 
     # get last conv layer from the end of each dense block
-    outputs = [densenet.get_layer(name='conv{}_block{}_2_conv'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
+    outputs = [densenet.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
 
     # create the densenet backbone
     densenet = keras.models.Model(inputs=inputs, outputs=outputs, name=densenet.name)
