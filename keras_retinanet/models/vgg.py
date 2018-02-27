@@ -20,24 +20,21 @@ import keras
 from ..models import retinanet
 
 
-custom_objects = retinanet.custom_objects.copy()
+custom_objects = retinanet.custom_objects
 
 
 def download_imagenet(backbone):
-    backbone = int(backbone.replace('vgg', ''))
-
-    if backbone == 16:
+    if backbone == 'vgg16':
         resource = keras.applications.vgg16.WEIGHTS_PATH_NO_TOP
         checksum = '6d6bbae143d832006294945121d1f1fc'
-    elif backbone == 19:
+    elif backbone == 'vgg19':
         resource = keras.applications.vgg19.WEIGHTS_PATH_NO_TOP
         checksum = '253f8cb515780f3b799900260a226db6'
     else:
-        resource = None
-        checksum = None
+        raise ValueError("Backbone '{}' not recognized.")
 
     weights_path = keras.applications.imagenet_utils.get_file(
-        'vgg{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(backbone),
+        '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(backbone),
         resource,
         cache_subdir='models',
         file_hash=checksum)

@@ -295,7 +295,7 @@ def parse_args(args):
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
-    parser.add_argument('--true-shapes',     help='Use actual model to compute shapes of layers used for FPN.', dest='true_shapes', action='store_true', default=False)
+    parser.add_argument('--true-shapes',     help='Use actual model to compute shapes of layers used for FPN.', action='store_true', default=False)
 
     return check_args(parser.parse_args(args))
 
