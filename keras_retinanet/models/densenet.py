@@ -19,9 +19,9 @@ from keras.applications.densenet import DenseNet, get_file
 
 from ..models import retinanet
 
-BASE_WEIGHT_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/'
+WEIGHT_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/densenet{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
-custom_objects = retinanet.custom_objects.copy()
+custom_objects = retinanet.custom_objects
 
 allowed_backbones = {'densenet121': [6, 12, 24, 16], 'densenet169': [6, 12, 32, 32], 'densenet201': [6, 12, 48, 32]}
 
@@ -29,7 +29,8 @@ allowed_backbones = {'densenet121': [6, 12, 24, 16], 'densenet169': [6, 12, 32, 
 def download_imagenet(backbone):
     """ Download pre-trained weights for the specified backbone name. This name is in the format
         {backbone}_weights_tf_dim_ordering_tf_kernels_notop where backbone is the densenet + number of layers (e.g. densenet121).
-        For more info check the explanation from the keras densenet script itself
+        For more info check the explanation from the keras densenet script itself:
+        https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py
     # Arguments
         backbone    : Backbone name.
     """
@@ -39,7 +40,7 @@ def download_imagenet(backbone):
         raise ValueError('Weights for "channels_first" format are not available.')
 
     model_name = '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(backbone)
-    weights_url = BASE_WEIGHT_PATH + model_name
+    weights_url = WEIGHT_PATH.format(model_name)
     weights_path = get_file(model_name, weights_url, cache_subdir='models')
 
     return weights_path
@@ -51,10 +52,8 @@ def validate_backbone(backbone):
         backbone    : Backbone name.
     """
 
-    backbone = backbone.split('_')[0]
-
     if backbone not in allowed_backbones:
-        raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
+        raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, list(allowed_backbones.keys())))
 
 
 def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, **kwargs):
