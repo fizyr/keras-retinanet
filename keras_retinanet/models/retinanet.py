@@ -208,12 +208,13 @@ def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, 
     classification = model.outputs[2]
 
     # apply predicted regression to anchors
-    boxes      = layers.RegressBoxes(name='boxes')([anchors, regression])
-    detections = keras.layers.Concatenate(axis=2)([boxes, classification] + model.outputs[3:])
+    boxes = layers.RegressBoxes(name='boxes')([anchors, regression])
 
     # additionally apply non maximum suppression
     if nms:
-        detections = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+        detections = layers.NonMaximumSuppression(name='nms')([boxes, classification] + model.outputs[3:])
+    else:
+        detections = keras.layers.Concatenate(axis=2)([boxes, classification] + model.outputs[3:])
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=model.outputs[1:] + [detections], name=name)
