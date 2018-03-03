@@ -57,7 +57,7 @@ def validate_backbone(backbone):
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
-def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, **kwargs):
+def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, **kwargs):
     validate_backbone(backbone)
 
     # choose default input
@@ -71,6 +71,10 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, **kwargs):
         resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
     elif backbone == 'resnet152':
         resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
+
+    # invoke modifier if given
+    if modifier:
+        resnet = modifier(resnet)
 
     # create the full model
     model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, **kwargs)
