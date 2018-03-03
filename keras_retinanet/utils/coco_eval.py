@@ -28,8 +28,8 @@ def evaluate_coco(generator, model, threshold=0.05):
     # start collecting results
     results = []
     image_ids = []
-    for i in range(generator.size()):
-        image = generator.load_image(i)
+    for index in range(generator.size()):
+        image = generator.load_image(index)
         image = generator.preprocess_image(image)
         image, scale = generator.resize_image(image)
 
@@ -50,26 +50,23 @@ def evaluate_coco(generator, model, threshold=0.05):
         detections[:, :, 3] -= detections[:, :, 1]
 
         # compute predicted labels and scores
-        for detection in detections[0, ...]:
-            positive_labels = np.where(detection[4:] > threshold)[0]
-
+        for i, j in np.transpose(np.where(detections[0, :, 4:] > threshold)):
             # append detections for each positively labeled class
-            for label in positive_labels:
-                image_result = {
-                    'image_id'    : generator.image_ids[i],
-                    'category_id' : generator.label_to_coco_label(label),
-                    'score'       : float(detection[4 + label]),
-                    'bbox'        : (detection[:4]).tolist(),
-                }
+            image_result = {
+                'image_id'    : generator.image_ids[index],
+                'category_id' : generator.label_to_coco_label(j),
+                'score'       : float(detections[0, i, 4 + j]),
+                'bbox'        : (detections[0, i, :4]).tolist(),
+            }
 
-                # append detection to results
-                results.append(image_result)
+            # append detection to results
+            results.append(image_result)
 
         # append image to list of processed images
-        image_ids.append(generator.image_ids[i])
+        image_ids.append(generator.image_ids[index])
 
         # print progress
-        print('{}/{}'.format(i, generator.size()), end='\r')
+        print('{}/{}'.format(index, generator.size()), end='\r')
 
     if not len(results):
         return
