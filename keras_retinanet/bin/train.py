@@ -35,6 +35,7 @@ if __name__ == "__main__" and __package__ is None:
 from .. import losses
 from .. import layers
 from ..callbacks import RedirectModel
+from ..callbacks.common import LearningRateScheduler, default_lr_scheduler
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
@@ -82,7 +83,7 @@ def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=
             'regression'    : losses.smooth_l1(),
             'classification': losses.focal()
         },
-        optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+        optimizer=keras.optimizers.SGD(lr=0.01 / 16, decay=0.0001, momentum=0.9)
     )
 
     return model, training_model, prediction_model
@@ -142,6 +143,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         cooldown = 0,
         min_lr   = 0
     ))
+
+    callbacks.append(LearningRateScheduler(default_lr_scheduler()))
 
     return callbacks
 
@@ -293,7 +296,7 @@ def parse_args(args):
     parser.add_argument('--batch-size',      help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu',             help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu',       help='Number of GPUs to use for parallel processing.', type=int, default=0)
-    parser.add_argument('--epochs',          help='Number of epochs to train.', type=int, default=50)
+    parser.add_argument('--epochs',          help='Number of epochs to train.', type=int, default=144)
     parser.add_argument('--steps',           help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--snapshot-path',   help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
