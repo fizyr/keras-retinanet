@@ -48,7 +48,7 @@ keras_retinanet/bin/train.py coco /path/to/MS/COCO
 retinanet-train coco /path/to/MS/COCO
 ```
 
-The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/keras-retinanet/releases/download/0.1/resnet50_coco_best_v2.0.1.h5). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.357).
+The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/keras-retinanet/releases/download/0.2/resnet50_coco_best_v2.0.1.h5). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.357).
 
 ```
  Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.345
