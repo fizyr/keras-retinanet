@@ -246,6 +246,9 @@ def check_args(parsed_args):
             "Multi GPU training ({}) and resuming from snapshots ({}) is not supported.".format(parsed_args.multi_gpu,
                                                                                                 parsed_args.snapshot))
 
+    if parsed_args.multi_gpu > 1 and not parsed_args.multi_gpu_force:
+        raise ValueError("Multi-GPU support is experimental, use at own risk! Run with --multi-gpu-force if you wish to continue.")
+
     if 'resnet' in parsed_args.backbone:
         from ..models.resnet import validate_backbone
     elif 'mobilenet' in parsed_args.backbone:
@@ -294,6 +297,7 @@ def parse_args(args):
     parser.add_argument('--batch-size',      help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu',             help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu',       help='Number of GPUs to use for parallel processing.', type=int, default=0)
+    parser.add_argument('--multi-gpu-force', help='Extra flag needed to enable (experimental) multi-gpu support.', action='store_true')
     parser.add_argument('--epochs',          help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',           help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--snapshot-path',   help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
