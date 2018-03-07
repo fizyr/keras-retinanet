@@ -49,7 +49,7 @@ def validate_backbone(backbone):
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
-def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, **kwargs):
+def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **kwargs):
     # choose default input
     if inputs is None:
         inputs = keras.layers.Input(shape=(None, None, 3))
@@ -65,7 +65,4 @@ def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, **kwargs):
     # create the full model
     layer_names = ["block3_pool", "block4_pool", "block5_pool"]
     layer_outputs = [vgg.get_layer(name).output for name in layer_names]
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes,
-                                     backbone_layers=layer_outputs, **kwargs)
-
-    return model
+    return retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=layer_outputs, **kwargs)

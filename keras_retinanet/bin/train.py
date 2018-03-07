@@ -41,7 +41,9 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
-from ..utils.anchors import make_shapes_callback, freeze as freeze_model
+from ..utils.anchors import make_shapes_callback
+from ..utils.model import freeze as freeze_model
+
 
 
 def get_session():
