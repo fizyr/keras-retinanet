@@ -41,6 +41,7 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
+from ..utils.anchors import make_shapes_callback
 
 
 def get_session():
@@ -295,7 +296,6 @@ def parse_args(args):
     parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output', default='./logs')
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
-    parser.add_argument('--true-shapes',     help='Use actual model to compute shapes of layers used for FPN.', action='store_true', default=False)
 
     return check_args(parser.parse_args(args))
 
@@ -345,10 +345,11 @@ def main(args=None):
     print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
-    if args.true_shapes:
-        train_generator.model = model
+    if "vgg" in args.backbone:
+        shapes_callback = make_shapes_callback(model)
+        train_generator.shapes_callback = shapes_callback
         if validation_generator is not None:
-            validation_generator.model = model
+            validation_generator.shapes_callback = shapes_callback
 
     # create the callbacks
     callbacks = create_callbacks(

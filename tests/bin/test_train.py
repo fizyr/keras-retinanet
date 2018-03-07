@@ -72,7 +72,6 @@ def test_vgg():
         '--epochs=1',
         '--steps=1',
         '--no-snapshots',
-        '--true-shapes',
         'coco',
         'tests/test-data/coco',
     ])

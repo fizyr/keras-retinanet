@@ -83,6 +83,27 @@ def layer_shapes(image_shape, model):
     return shape
 
 
+def make_shapes_callback(model):
+    def get_shapes(image_shape, pyramid_levels):
+        shape = layer_shapes(image_shape, model)
+        image_shapes = [shape["P{}".format(level)][1:3] for level in pyramid_levels]
+        return image_shapes
+
+    return get_shapes
+
+
+def guess_shapes(image_shape, pyramid_levels):
+    """Guess shapes based on pyramid levels.
+
+    :param image_shape:
+    :param pyramid_levels:
+    :return:
+    """
+    image_shape = np.array(image_shape[:2])
+    image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
+    return image_shapes
+
+
 def anchors_for_shape(
     image_shape,
     pyramid_levels=None,
@@ -90,7 +111,7 @@ def anchors_for_shape(
     scales=None,
     strides=None,
     sizes=None,
-    model=None,
+    shapes_callback=None,
 ):
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
@@ -103,12 +124,9 @@ def anchors_for_shape(
     if scales is None:
         scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
 
-    if model is None:  # guess shapes
-        image_shape = np.array(image_shape[:2])
-        image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
-    else:  # compute shapes based on the actual model
-        shape = layer_shapes(image_shape, model)
-        image_shapes = [shape[name][1:3] for name in ["P3", "P4", "P5", "P6", "P7"]]
+    if shapes_callback is None:
+        shapes_callback = guess_shapes
+    image_shapes = shapes_callback(image_shape, pyramid_levels)
 
     # compute anchors over all pyramid levels
     all_anchors = np.zeros((0, 4))

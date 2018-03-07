@@ -84,7 +84,9 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, *
     mobilenet = MobileNet(input_tensor=inputs, alpha=alpha, include_top=False, pooling=None, weights=None)
 
     # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=mobilenet,
-                                     backbone_layers=['conv_pw_5_relu', 'conv_pw_11_relu', 'conv_pw_13_relu'], **kwargs)
+    layer_names = ['conv_pw_5_relu', 'conv_pw_11_relu', 'conv_pw_13_relu']
+    layer_outputs = [mobilenet.get_layer(name).output for name in layer_names]
+    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes,
+                                     backbone_layers=layer_outputs, **kwargs)
 
     return model

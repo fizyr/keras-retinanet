@@ -63,7 +63,9 @@ def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, **kwargs):
         vgg = None
 
     # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=vgg,
-                                     backbone_layers=["block3_pool", "block4_pool", "block5_pool"], **kwargs)
+    layer_names = ["block3_pool", "block4_pool", "block5_pool"]
+    layer_outputs = [vgg.get_layer(name).output for name in layer_names]
+    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes,
+                                     backbone_layers=layer_outputs, **kwargs)
 
     return model
