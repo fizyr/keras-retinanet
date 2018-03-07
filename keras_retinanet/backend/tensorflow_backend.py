@@ -18,10 +18,6 @@ import tensorflow
 import keras
 
 
-def top_k(*args, **kwargs):
-    return tensorflow.nn.top_k(*args, **kwargs)
-
-
 def resize_images(*args, **kwargs):
     return tensorflow.image.resize_images(*args, **kwargs)
 
@@ -32,6 +28,10 @@ def non_max_suppression(*args, **kwargs):
 
 def range(*args, **kwargs):
     return tensorflow.range(*args, **kwargs)
+
+
+def scatter_nd(*args, **kwargs):
+    return tensorflow.scatter_nd(*args, **kwargs)
 
 
 def gather_nd(*args, **kwargs):

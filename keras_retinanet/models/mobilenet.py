@@ -74,7 +74,7 @@ def validate_backbone(backbone):
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
-def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, **kwargs):
+def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, modifier=None, **kwargs):
     alpha = float(backbone.split('_')[1])
 
     # choose default input
@@ -82,6 +82,10 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, *
         inputs = keras.layers.Input((None, None, 3))
 
     mobilenet = MobileNet(input_tensor=inputs, alpha=alpha, include_top=False, pooling=None, weights=None)
+
+    # invoke modifier if given
+    if modifier:
+        mobilenet = modifier(mobilenet)
 
     # create the full model
     layer_names = ['conv_pw_5_relu', 'conv_pw_11_relu', 'conv_pw_13_relu']

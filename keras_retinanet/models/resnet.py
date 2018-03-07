@@ -57,7 +57,7 @@ def validate_backbone(backbone):
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
-def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, **kwargs):
+def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, **kwargs):
     validate_backbone(backbone)
 
     # choose default input
@@ -72,6 +72,10 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, **kwargs):
     elif backbone == 'resnet152':
         resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
 
+    # invoke modifier if given
+    if modifier:
+        resnet = modifier(resnet)
+
     # create the full model
     layer_names = ["res3d_relu", "res4f_relu", "res5c_relu"]
     layer_outputs = [resnet.get_layer(name).output for name in layer_names]
@@ -81,15 +85,15 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, **kwargs):
     return model
 
 
-def resnet50_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
+def resnet50_retinanet(num_classes, inputs=None, **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone='resnet50', inputs=inputs, **kwargs)
 
 
-def resnet101_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
+def resnet101_retinanet(num_classes, inputs=None, **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone='resnet101', inputs=inputs, **kwargs)
 
 
-def resnet152_retinanet(num_classes, inputs=None, weights='imagenet', **kwargs):
+def resnet152_retinanet(num_classes, inputs=None, **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone='resnet152', inputs=inputs, **kwargs)
 
 

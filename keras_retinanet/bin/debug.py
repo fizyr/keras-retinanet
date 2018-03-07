@@ -78,6 +78,7 @@ def create_generator(args):
             subset=args.subset,
             version=args.version,
             labels_filter=args.labels_filter,
+            fixed_labels=args.fixed_labels,
             annotation_cache_dir=args.annotation_cache_dir,
             transform_generator=transform_generator
         )
@@ -107,8 +108,9 @@ def parse_args(args):
     oid_parser.add_argument('main_dir', help='Path to dataset directory.')
     oid_parser.add_argument('subset', help='Argument for loading a subset from train/validation/test.')
     oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
-    oid_parser.add_argument('--labels_filter',  help='A list of labels to filter.', type=csv_list, default=None)
-    oid_parser.add_argument('--annotation_cache_dir', help='Path to store annotation cache.', default='.')
+    oid_parser.add_argument('--labels-filter',  help='A list of labels to filter.', type=csv_list, default=None)
+    oid_parser.add_argument('--annotation-cache-dir', help='Path to store annotation cache.', default='.')
+    oid_parser.add_argument('--fixed-labels', help='Use the exact specified labels.', default=False)
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')

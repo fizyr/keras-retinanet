@@ -127,6 +127,7 @@ class OpenImagesGenerator(Generator):
     def __init__(
             self, main_dir, subset, version='2017_11',
             labels_filter=None, annotation_cache_dir='.',
+            fixed_labels=False,
             **kwargs
     ):
         self.base_dir = os.path.join(main_dir, 'images', subset)
@@ -143,7 +144,7 @@ class OpenImagesGenerator(Generator):
             json.dump(self.annotations, open(annotation_cache_json, "w"))
 
         if labels_filter is not None:
-            self.id_to_labels, self.annotations = self.__filter_data(labels_filter)
+            self.id_to_labels, self.annotations = self.__filter_data(labels_filter, fixed_labels)
 
         self.id_to_image_id = dict()
         for i, k in enumerate(self.annotations):
@@ -151,21 +152,26 @@ class OpenImagesGenerator(Generator):
 
         super(OpenImagesGenerator, self).__init__(**kwargs)
 
-    def __filter_data(self, labels_filter):
+    def __filter_data(self, labels_filter, fixed_labels):
         """
         If you want to work with a subset of the labels just set a list with trainable labels
-        :param labels_filter: Ex: labels_filter = ['Helmet', 'Hat', 'Analog television']. This will bring you the
-        'Helmet' label but also: 'bicycle helmet', 'welding helmet', 'ski helmet' etc...
+        :param labels_filter: Ex: labels_filter = ['Helmet', 'Hat', 'Analog television']
+        :param fixed_labels: If fixed_labels is true this will bring you the 'Helmet' label
+        but also: 'bicycle helmet', 'welding helmet', 'ski helmet' etc...
         :return:
         """
 
         labels_to_id = dict([(l, i) for i, l in enumerate(labels_filter)])
 
         sub_labels_to_id = {}
-        for l in labels_filter:
-            label = str.lower(l)
-            for v in [v for v in self.id_to_labels.values() if label in str.lower(v)]:
-                sub_labels_to_id[v] = labels_to_id[l]
+        if fixed_labels:
+            # there is/are no other sublabel(s) other than the labels itself
+            sub_labels_to_id = labels_to_id
+        else:
+            for l in labels_filter:
+                label = str.lower(l)
+                for v in [v for v in self.id_to_labels.values() if label in str.lower(v)]:
+                    sub_labels_to_id[v] = labels_to_id[l]
 
         filtered_annotations = {}
         for k in self.annotations:
