@@ -31,7 +31,7 @@ def download_imagenet(backbone):
         resource = keras.applications.vgg19.WEIGHTS_PATH_NO_TOP
         checksum = '253f8cb515780f3b799900260a226db6'
     else:
-        raise ValueError("Backbone '{}' not recognized.")
+        raise ValueError("Backbone '{}' not recognized.".format(backbone))
 
     weights_path = keras.applications.imagenet_utils.get_file(
         '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(backbone),
@@ -60,7 +60,10 @@ def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **k
     elif backbone == 'vgg19':
         vgg = keras.applications.VGG19(input_tensor=inputs, include_top=False)
     else:
-        vgg = None
+        raise ValueError("Backbone '{}' not recognized.".format(backbone))
+
+    if modifier:
+        vgg = modifier(vgg)
 
     # create the full model
     layer_names = ["block3_pool", "block4_pool", "block5_pool"]
