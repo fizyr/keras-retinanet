@@ -40,8 +40,8 @@ class Generator(object):
         batch_size=1,
         group_method='ratio',  # one of 'none', 'random', 'ratio'
         shuffle_groups=True,
-        image_min_side=600,
-        image_max_side=1024,
+        image_min_side=800,
+        image_max_side=1333,
         transform_parameters=None,
     ):
         self.transform_generator  = transform_generator

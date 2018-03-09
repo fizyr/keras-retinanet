@@ -103,14 +103,15 @@ def default_regression_model(num_anchors, pyramid_feature_size=256, regression_f
 
 def __create_pyramid_features(C3, C4, C5, feature_size=256):
     # upsample C5 to get P5 from the FPN paper
-    P5           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='P5')(C5)
+    P5           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C5_reduced')(C5)
     P5_upsampled = layers.UpsampleLike(name='P5_upsampled')([P5, C4])
+    P5           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P5')(P5)
 
     # add P5 elementwise to C4
     P4           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C4_reduced')(C4)
     P4           = keras.layers.Add(name='P4_merged')([P5_upsampled, P4])
-    P4           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P4')(P4)
     P4_upsampled = layers.UpsampleLike(name='P4_upsampled')([P4, C3])
+    P4           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P4')(P4)
 
     # add P4 elementwise to C3
     P3 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C3_reduced')(C3)
@@ -207,12 +208,13 @@ def retinanet_bbox(inputs, num_classes, nms=True, name='retinanet-bbox', *args, 
     classification = model.outputs[2]
 
     # apply predicted regression to anchors
-    boxes      = layers.RegressBoxes(name='boxes')([anchors, regression])
-    detections = keras.layers.Concatenate(axis=2)([boxes, classification] + model.outputs[3:])
+    boxes = layers.RegressBoxes(name='boxes')([anchors, regression])
 
     # additionally apply non maximum suppression
     if nms:
-        detections = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
+        detections = layers.NonMaximumSuppression(name='nms')([boxes, classification] + model.outputs[3:])
+    else:
+        detections = keras.layers.Concatenate(axis=2)([boxes, classification] + model.outputs[3:])
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=model.outputs[1:] + [detections], name=name)

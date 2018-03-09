@@ -74,7 +74,7 @@ def validate_backbone(backbone):
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
-def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, **kwargs):
+def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, modifier=None, **kwargs):
     alpha = float(backbone.split('_')[1])
 
     # choose default input
@@ -88,6 +88,10 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, *
 
     # create the mobilenet backbone
     mobilenet = keras.models.Model(inputs=inputs, outputs=outputs, name=mobilenet.name)
+
+    # invoke modifier if given
+    if modifier:
+        mobilenet = modifier(mobilenet)
 
     # create the full model
     model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=mobilenet, **kwargs)

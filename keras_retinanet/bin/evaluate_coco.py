@@ -75,7 +75,7 @@ def main(args=None):
     # create a generator for testing data
     test_generator = CocoGenerator(
         args.coco_path,
-        args.set,
+        args.set
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)
