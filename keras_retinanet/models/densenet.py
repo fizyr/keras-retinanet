@@ -19,7 +19,8 @@ from keras.applications.densenet import DenseNet, get_file
 
 from ..models import retinanet
 
-WEIGHT_PATH = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
+origin = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/'
+file_name = '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
 custom_objects = retinanet.custom_objects
 
@@ -39,8 +40,8 @@ def download_imagenet(backbone):
     if keras.backend.image_data_format() == 'channels_first':
         raise ValueError('Weights for "channels_first" format are not available.')
 
-    weights_url = WEIGHT_PATH.format(backbone)
-    weights_path = get_file(weights_url, weights_url, cache_subdir='models')
+    weights_url = origin + file_name.format(backbone)
+    weights_path = get_file(file_name.format(backbone), weights_url, cache_subdir='models')
 
     return weights_path
 
