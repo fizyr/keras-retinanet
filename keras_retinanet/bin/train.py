@@ -365,7 +365,7 @@ def main(args=None):
     print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
-    if "vgg" in args.backbone:
+    if 'vgg' in args.backbone:
         shapes_callback = make_shapes_callback(model)
         train_generator.shapes_callback = shapes_callback
         if validation_generator is not None:
