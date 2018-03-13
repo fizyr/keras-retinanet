@@ -86,5 +86,5 @@ def evaluate_coco(generator, model, threshold=0.05):
     coco_eval.accumulate()
     coco_eval.summarize()
     
-    mAPresult = coco_eval.stats
-    return mAPresult
+    mAP = coco_eval.stats
+    return mAP
