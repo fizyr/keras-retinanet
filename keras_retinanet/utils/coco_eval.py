@@ -69,7 +69,7 @@ def evaluate_coco(generator, model, threshold=0.05):
         print('{}/{}'.format(index, generator.size()), end='\r')
 
     if not len(results):
-        return
+        return [0]
 
     # write output
     json.dump(results, open('{}_bbox_results.json'.format(generator.set_name), 'w'), indent=4)
@@ -85,3 +85,6 @@ def evaluate_coco(generator, model, threshold=0.05):
     coco_eval.evaluate()
     coco_eval.accumulate()
     coco_eval.summarize()
+    
+    mAPresult = coco_eval.stats
+    return mAPresult
