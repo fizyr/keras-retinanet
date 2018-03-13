@@ -84,6 +84,6 @@ def evaluate_coco(generator, model, threshold=0.05):
     coco_eval.params.imgIds = image_ids
     coco_eval.evaluate()
     coco_eval.accumulate()
-    coco_eval.summarize() 
+    coco_eval.summarize()
     mAP = coco_eval.stats
     return mAP
