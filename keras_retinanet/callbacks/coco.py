@@ -19,11 +19,19 @@ from ..utils.coco_eval import evaluate_coco
 
 
 class CocoEval(keras.callbacks.Callback):
-    def __init__(self, generator, threshold=0.05):
+    def __init__(self, generator, tensorboard=None, threshold=0.05):
         self.generator = generator
         self.threshold = threshold
+        self.tensorboard = tensorboard
 
         super(CocoEval, self).__init__()
 
     def on_epoch_end(self, epoch, logs={}):
-        evaluate_coco(self.generator, self.model, self.threshold)
+        mAP = evaluate_coco(self.generator, self.model, self.threshold)
+        if self.tensorboard is not None and self.tensorboard.writer is not None:
+            import tensorflow as tf
+            summary = tf.Summary()
+            summary_value = summary.value.add()
+            summary_value.simple_value = mAP[0]
+            summary_value.tag = "COCO_mAP"
+            self.tensorboard.writer.add_summary(summary, epoch)
