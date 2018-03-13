@@ -33,5 +33,5 @@ class CocoEval(keras.callbacks.Callback):
             summary = tf.Summary()
             summary_value = summary.value.add()
             summary_value.simple_value = mAP[0]
-            summary_value.tag = "COCO_mAP"
+            summary_value.tag = "mAP"
             self.tensorboard.writer.add_summary(summary, epoch)
