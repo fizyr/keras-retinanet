@@ -289,6 +289,9 @@ def parse_args(args):
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
 
+    kitti_parser = subparsers.add_parser('kitti')
+    kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
+
     def csv_list(string):
         return string.split(',')
 
