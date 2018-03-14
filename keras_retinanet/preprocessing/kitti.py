@@ -77,13 +77,10 @@ class KittiGenerator(Generator):
 
             self.images.append(image_fp)
 
+            fieldnames = ['type', 'truncated', 'occluded', 'alpha', 'left', 'top', 'right', 'bottom', 'dh', 'dw', 'dl',
+                          'lx', 'ly', 'lz', 'ry']
             with open(label_fp, 'r') as csv_file:
-                reader = csv.DictReader(csv_file, delimiter=' ', fieldnames=[
-                                            'type', 'truncated', 'occluded', 'alpha',
-                                            'left', 'top', 'right', 'bottom',
-                                            'dh', 'dw', 'dl',
-                                            'lx', 'ly', 'lz', 'ry'
-                                        ])
+                reader = csv.DictReader(csv_file, delimiter=' ', fieldnames=fieldnames)
                 boxes = []
                 for line, row in enumerate(reader):
                     label = row['type']
