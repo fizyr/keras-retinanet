@@ -38,6 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
@@ -216,6 +217,22 @@ def create_generators(args):
                 labels_filter=args.labels_filter,
                 annotation_cache_dir=args.annotation_cache_dir,
                 fixed_labels=args.fixed_labels,
+                batch_size=args.batch_size
+            )
+        else:
+            validation_generator = None
+    elif args.dataset_type == 'kitti':
+        train_generator = KittiGenerator(
+            args.kitti_path,
+            subset='train',
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
+        )
+
+        if args.val_annotations:
+            validation_generator = KittiGenerator(
+                args.kitti_path,
+                subset='val',
                 batch_size=args.batch_size
             )
         else:
