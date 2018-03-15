@@ -5,6 +5,7 @@ import numpy as np
 
 import pytest
 
+
 def test_smooth_l1():
     regression = np.array([
         [
