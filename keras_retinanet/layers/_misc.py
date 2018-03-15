@@ -174,7 +174,10 @@ class RegressBoxes(keras.layers.Layer):
         return input_shape[0]
 
     def get_config(self):
-        return {
+        config = super(RegressBoxes, self).get_config()
+        config.update({
             'mean': self.mean.tolist(),
             'std' : self.std.tolist(),
-        }
+        })
+
+        return config
