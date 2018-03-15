@@ -31,6 +31,7 @@ if __name__ == "__main__" and __package__ is None:
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes
@@ -82,6 +83,12 @@ def create_generator(args):
             annotation_cache_dir=args.annotation_cache_dir,
             transform_generator=transform_generator
         )
+    elif args.dataset_type == 'kitti':
+        generator = KittiGenerator(
+            args.kitti_path,
+            subset=args.subset,
+            transform_generator=transform_generator
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -100,6 +107,10 @@ def parse_args(args):
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
     pascal_parser.add_argument('--pascal-set',  help='Name of the set to show (defaults to test).', default='test')
+
+    kitti_parser = subparsers.add_parser('kitti')
+    kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
+    kitti_parser.add_argument('subset', help='Argument for loading a subset from train/val.')
 
     def csv_list(string):
         return string.split(',')
