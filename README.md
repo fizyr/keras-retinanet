@@ -121,10 +121,10 @@ model.compile(
 An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet.ipynb).
 In general, output can be retrieved from the network as follows:
 ```python
-_, _, detections = model.predict_on_batch(inputs)
+_, _, boxes, classification = model.predict_on_batch(inputs)
 ```
 
-Where `detections` are the resulting detections, shaped `(None, None, 4 + num_classes)` (for `(x1, y1, x2, y2, cls1, cls2, ...)`).
+Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`) and classification is shaped `(None, None, num_classes)` (for `(cls1, cls2, ...)`).
 
 Loading models can be done in the following manner:
 ```python
@@ -208,7 +208,7 @@ Example output images using `keras-retinanet` are shown below.
 * This repository requires Keras 2.1.3.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using OpenCV 3.4.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using Python 2.7 and 3.6.
-* Warnings such as `UserWarning: Output "non_maximum_suppression_1" missing from loss dictionary.` can safely be ignored. These warnings indicate no loss is connected to these outputs, but they are intended to be outputs of the network for the user (ie. resulting network detections) and not loss outputs.
+* Warnings such as `UserWarning: Output "nms" missing from loss dictionary.` can safely be ignored. These warnings indicate no loss is connected to these outputs, but they are intended to be outputs of the network for the user (ie. resulting network detections) and not loss outputs.
 
 Contributions to this project are welcome.
 
