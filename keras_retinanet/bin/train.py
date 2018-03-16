@@ -17,6 +17,7 @@ limitations under the License.
 """
 
 import argparse
+import functools
 import os
 import sys
 
@@ -41,7 +42,7 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
-from ..utils.anchors import make_shapes_callback
+from ..utils.anchors import make_shapes_callback, anchor_targets_bbox
 from ..utils.model import freeze as freeze_model
 
 
@@ -366,10 +367,10 @@ def main(args=None):
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
     if 'vgg' in args.backbone:
-        shapes_callback = make_shapes_callback(model)
-        train_generator.shapes_callback = shapes_callback
+        compute_anchor_targets = functools.partial(anchor_targets_bbox, shapes_callback=make_shapes_callback(model))
+        train_generator.compute_anchor_targets = compute_anchor_targets
         if validation_generator is not None:
-            validation_generator.shapes_callback = shapes_callback
+            validation_generator.compute_anchor_targets = compute_anchor_targets
 
     # create the callbacks
     callbacks = create_callbacks(
