@@ -36,12 +36,6 @@ def evaluate_coco(generator, model, threshold=0.05):
         # run network
         _, _, detections = model.predict_on_batch(np.expand_dims(image, axis=0))
 
-        # clip to image shape
-        detections[:, :, 0] = np.maximum(0, detections[:, :, 0])
-        detections[:, :, 1] = np.maximum(0, detections[:, :, 1])
-        detections[:, :, 2] = np.minimum(image.shape[1], detections[:, :, 2])
-        detections[:, :, 3] = np.minimum(image.shape[0], detections[:, :, 3])
-
         # correct boxes for image scale
         detections[0, :, :4] /= scale
 
