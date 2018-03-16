@@ -1,6 +1,5 @@
-import numpy as np
-import matplotlib.colors
 import warnings
+
 
 def label_color(label):
     """ Return a color from a set of predefined colors. Contains 80 colors in total.
@@ -110,4 +109,3 @@ colors = [
     [0   , 44  , 255] ,
     [50  , 255 , 0]
 ]
-
