@@ -69,7 +69,7 @@ def evaluate_coco(generator, model, threshold=0.05):
         print('{}/{}'.format(index, generator.size()), end='\r')
 
     if not len(results):
-        return [0]
+        return
 
     # write output
     json.dump(results, open('{}_bbox_results.json'.format(generator.set_name), 'w'), indent=4)
