@@ -72,7 +72,7 @@ def draw_detections(image, detections, color=(255, 0, 0), generator=None):
     for d in detections:
         label   = np.argmax(d[4:])
         score   = d[4 + label]
-        caption = (generator.label_to_name(label) if generator else label) + ': {0:.2f}'.format(score)
+        caption = (generator.label_to_name(label) if generator else str(label)) + ': {0:.2f}'.format(score)
         draw_caption(image, d, caption)
 
 
