@@ -46,5 +46,5 @@ class CocoEval(keras.callbacks.Callback):
             for index, result in enumerate(coco_eval_stats):
                 summary_value = summary.value.add()
                 summary_value.simple_value = result
-                summary_value.tag = '{}. {}'.format(index+1,coco_tag[index])
+                summary_value.tag = '{}. {}'.format(index + 1, coco_tag[index])
                 self.tensorboard.writer.add_summary(summary, epoch)
