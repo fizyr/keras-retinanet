@@ -38,6 +38,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
@@ -220,6 +221,22 @@ def create_generators(args):
             )
         else:
             validation_generator = None
+    elif args.dataset_type == 'kitti':
+        train_generator = KittiGenerator(
+            args.kitti_path,
+            subset='train',
+            transform_generator=transform_generator,
+            batch_size=args.batch_size
+        )
+
+        if args.val_annotations:
+            validation_generator = KittiGenerator(
+                args.kitti_path,
+                subset='val',
+                batch_size=args.batch_size
+            )
+        else:
+            validation_generator = None
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -273,6 +290,9 @@ def parse_args(args):
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+
+    kitti_parser = subparsers.add_parser('kitti')
+    kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
 
     def csv_list(string):
         return string.split(',')

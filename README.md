@@ -77,7 +77,21 @@ retinanet-train oid /path/to/OID
 keras_retinanet/bin/train.py oid /path/to/OID --labels_filter=Helmet,Tree
 ```
 
-For training on a custom dataset, a CSV file can be used as a way to pass the data.
+
+For training on [KITTI](http://www.cvlibs.net/datasets/kitti/eval_object.php), run:
+```shell
+# Running directly from the repository:
+keras_retinanet/bin/train.py kitti /path/to/KITTI
+
+# Using the installed script:
+retinanet-train kitti /path/to/KITTI
+
+If you want to prepare the dataset you can use the following script:
+https://github.com/NVIDIA/DIGITS/blob/master/examples/object-detection/prepare_kitti_data.py
+```
+
+
+For training on a [custom dataset], a CSV file can be used as a way to pass the data.
 See below for more details on the format of these CSV files.
 To train using your CSV, run:
 ```shell

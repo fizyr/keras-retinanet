@@ -25,7 +25,7 @@ def focal(alpha=0.25, gamma=2.0):
 
         # compute the divisor: for each image in the batch, we want the number of positive anchors
 
-        # override the -1 labels, since we treat values -1 and 0 the same way for determining the divisor
+        # clip the labels to 0, 1 so that we ignore the "ignore" label (-1) in the divisor
         divisor = backend.where(keras.backend.less_equal(labels, 0), keras.backend.zeros_like(labels), labels)
         divisor = keras.backend.max(divisor, axis=2, keepdims=True)
         divisor = keras.backend.cast(divisor, keras.backend.floatx())
@@ -68,7 +68,7 @@ def smooth_l1(sigma=3.0):
         regression_target = y_true[:, :, :4]
         anchor_state      = y_true[:, :, 4]
 
-        # compute the divisor: for each image in the batch, we want the number of positive and negative anchors
+        # compute the divisor: for each image in the batch, we want the number of positive anchors
         divisor = backend.where(keras.backend.equal(anchor_state, 1), keras.backend.ones_like(anchor_state), keras.backend.zeros_like(anchor_state))
         divisor = keras.backend.sum(divisor, axis=1, keepdims=True)
         divisor = keras.backend.maximum(1.0, divisor)
