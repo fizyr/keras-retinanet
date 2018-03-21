@@ -27,6 +27,7 @@ def test_coco():
     keras_retinanet.bin.train.main([
         '--epochs=1',
         '--steps=1',
+        '--no-weights',
         '--no-snapshots',
         'coco',
         'tests/test-data/coco',
@@ -41,6 +42,7 @@ def test_pascal():
     keras_retinanet.bin.train.main([
         '--epochs=1',
         '--steps=1',
+        '--no-weights',
         '--no-snapshots',
         'pascal',
         'tests/test-data/pascal',
@@ -55,6 +57,7 @@ def test_csv():
     keras_retinanet.bin.train.main([
         '--epochs=1',
         '--steps=1',
+        '--no-weights',
         '--no-snapshots',
         'csv',
         'tests/test-data/csv/annotations.csv',
@@ -71,6 +74,7 @@ def test_vgg():
         '--backbone=vgg16',
         '--epochs=1',
         '--steps=1',
+        '--no-weights',
         '--no-snapshots',
         'coco',
         'tests/test-data/coco',

@@ -46,7 +46,6 @@ from ..utils.anchors import make_shapes_callback, anchor_targets_bbox
 from ..utils.model import freeze as freeze_model
 
 
-
 def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
