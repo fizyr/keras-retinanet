@@ -30,6 +30,7 @@ def test_vgg():
         '--steps=1',
         '--no-weights',
         '--no-snapshots',
+        '--freeze-backbone',
         'coco',
         'tests/test-data/coco',
     ])
