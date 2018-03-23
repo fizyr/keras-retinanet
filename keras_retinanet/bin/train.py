@@ -44,6 +44,7 @@ from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 
+
 def makedirs(path):
     # Intended behavior: try to create the directory,
     # pass if the directory exists already, fails otherwise.
