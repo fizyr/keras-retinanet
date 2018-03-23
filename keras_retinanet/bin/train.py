@@ -51,7 +51,7 @@ def makedirs(path):
     # Meant for Python 2.7/3.n compatibility.
     try:
         os.makedirs(path)
-    except OSError as err_makedirs:
+    except OSError:
         if not os.path.isdir(path):
             raise
 
