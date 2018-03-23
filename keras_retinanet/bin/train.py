@@ -44,6 +44,16 @@ from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 
+def makedirs(path):
+    # Intended behavior: try to create the directory,
+    # pass if the directory exists already, fails otherwise.
+    # Meant for Python 2.7/3.n compatibility.
+    try:
+        os.makedirs(path)
+    except OSError as err_makedirs:
+        if not os.path.isdir(path):
+            raise
+
 
 def get_session():
     config = tf.ConfigProto()
@@ -96,7 +106,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     # save the prediction model
     if args.snapshots:
         # ensure directory created first; otherwise h5py will error after epoch.
-        os.makedirs(args.snapshot_path, exist_ok=True)
+        makedirs(args.snapshot_path)
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
