@@ -154,7 +154,7 @@ def run(generator, args):
 
         # draw anchors on the image
         if args.anchors:
-            labels, _, anchors = generator.anchor_targets(image.shape, annotations, generator.num_classes())
+            labels, _, anchors = generator.compute_anchor_targets(image.shape, annotations, generator.num_classes())
             draw_boxes(image, anchors[np.max(labels, axis=1) == 1], (255, 255, 0), thickness=1)
 
         # draw annotations on the image
@@ -164,7 +164,7 @@ def run(generator, args):
 
             # draw regressed anchors in green to override most red annotations
             # result is that annotations without anchors are red, with anchors are green
-            labels, boxes, _ = generator.anchor_targets(image.shape, annotations, generator.num_classes())
+            labels, boxes, _ = generator.compute_anchor_targets(image.shape, annotations, generator.num_classes())
             draw_boxes(image, boxes[np.max(labels, axis=1) == 1], (0, 255, 0))
 
         cv2.imshow('Image', image)
