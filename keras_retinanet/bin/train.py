@@ -20,6 +20,7 @@ import argparse
 import functools
 import os
 import sys
+import warnings
 
 import keras
 import keras.preprocessing.image
@@ -278,6 +279,9 @@ def check_args(parsed_args):
 
     if parsed_args.multi_gpu > 1 and not parsed_args.multi_gpu_force:
         raise ValueError("Multi-GPU support is experimental, use at own risk! Run with --multi-gpu-force if you wish to continue.")
+
+    if 'resnet' not in parsed_args.backbone:
+        warnings.warn('Using experimental backbone {}. Only resnet50 has been properly tested.'.format(parsed_args.backbone))
 
     if 'resnet' in parsed_args.backbone:
         from ..models.resnet import validate_backbone
