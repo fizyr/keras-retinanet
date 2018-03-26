@@ -85,3 +85,4 @@ def evaluate_coco(generator, model, threshold=0.05):
     coco_eval.evaluate()
     coco_eval.accumulate()
     coco_eval.summarize()
+    return coco_eval.stats

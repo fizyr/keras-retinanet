@@ -17,6 +17,7 @@ limitations under the License.
 """
 
 import argparse
+import functools
 import os
 import sys
 
@@ -42,7 +43,19 @@ from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
+from ..utils.anchors import make_shapes_callback, anchor_targets_bbox
 from ..utils.model import freeze as freeze_model
+
+
+def makedirs(path):
+    # Intended behavior: try to create the directory,
+    # pass if the directory exists already, fails otherwise.
+    # Meant for Python 2.7/3.n compatibility.
+    try:
+        os.makedirs(path)
+    except OSError:
+        if not os.path.isdir(path):
+            raise
 
 
 def get_session():
@@ -96,7 +109,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     # save the prediction model
     if args.snapshots:
         # ensure directory created first; otherwise h5py will error after epoch.
-        os.makedirs(args.snapshot_path, exist_ok=True)
+        makedirs(args.snapshot_path)
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
@@ -128,7 +141,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             from ..callbacks.coco import CocoEval
 
             # use prediction model for evaluation
-            evaluation = CocoEval(validation_generator)
+            evaluation = CocoEval(validation_generator, tensorboard=tensorboard_callback)
         else:
             evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
         evaluation = RedirectModel(evaluation, prediction_model)
@@ -270,6 +283,8 @@ def check_args(parsed_args):
         from ..models.resnet import validate_backbone
     elif 'mobilenet' in parsed_args.backbone:
         from ..models.mobilenet import validate_backbone
+    elif 'vgg' in parsed_args.backbone:
+        from ..models.vgg import validate_backbone
     elif 'densenet' in parsed_args.backbone:
         from ..models.densenet import validate_backbone
     else:
@@ -352,6 +367,8 @@ def main(args=None):
         from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
     elif 'mobilenet' in args.backbone:
         from ..models.mobilenet import mobilenet_retinanet as retinanet, custom_objects, download_imagenet
+    elif 'vgg' in args.backbone:
+        from ..models.vgg import vgg_retinanet as retinanet, custom_objects, download_imagenet
     elif 'densenet' in args.backbone:
         from ..models.densenet import densenet_retinanet as retinanet, custom_objects, download_imagenet
     else:
@@ -381,6 +398,13 @@ def main(args=None):
 
     # print model summary
     print(model.summary())
+
+    # this lets the generator compute backbone layer shapes using the actual backbone model
+    if 'vgg' in args.backbone:
+        compute_anchor_targets = functools.partial(anchor_targets_bbox, shapes_callback=make_shapes_callback(model))
+        train_generator.compute_anchor_targets = compute_anchor_targets
+        if validation_generator is not None:
+            validation_generator.compute_anchor_targets = compute_anchor_targets
 
     # create the callbacks
     callbacks = create_callbacks(

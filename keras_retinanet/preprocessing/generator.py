@@ -43,14 +43,16 @@ class Generator(object):
         image_min_side=800,
         image_max_side=1333,
         transform_parameters=None,
+        compute_anchor_targets=anchor_targets_bbox,
     ):
-        self.transform_generator  = transform_generator
-        self.batch_size           = int(batch_size)
-        self.group_method         = group_method
-        self.shuffle_groups       = shuffle_groups
-        self.image_min_side       = image_min_side
-        self.image_max_side       = image_max_side
-        self.transform_parameters = transform_parameters or TransformParameters()
+        self.transform_generator    = transform_generator
+        self.batch_size             = int(batch_size)
+        self.group_method           = group_method
+        self.shuffle_groups         = shuffle_groups
+        self.image_min_side         = image_min_side
+        self.image_max_side         = image_max_side
+        self.transform_parameters   = transform_parameters or TransformParameters()
+        self.compute_anchor_targets = compute_anchor_targets
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -179,18 +181,6 @@ class Generator(object):
 
         return image_batch
 
-    def anchor_targets(
-        self,
-        image_shape,
-        annotations,
-        num_classes,
-        mask_shape=None,
-        negative_overlap=0.4,
-        positive_overlap=0.5,
-        **kwargs
-    ):
-        return anchor_targets_bbox(image_shape, annotations, num_classes, mask_shape, negative_overlap, positive_overlap, **kwargs)
-
     def compute_targets(self, image_group, annotations_group):
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
@@ -200,7 +190,12 @@ class Generator(object):
         regression_group = [None] * self.batch_size
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             # compute regression targets
-            labels_group[index], annotations, anchors = self.anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
+            labels_group[index], annotations, anchors = self.compute_anchor_targets(
+                max_shape,
+                annotations,
+                self.num_classes(),
+                mask_shape=image.shape,
+            )
             regression_group[index] = bbox_transform(anchors, annotations)
 
             # append anchor states to regression targets (necessary for filtering 'ignore', 'positive' and 'negative' anchors)

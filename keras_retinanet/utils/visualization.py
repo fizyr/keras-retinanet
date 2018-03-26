@@ -17,6 +17,8 @@ limitations under the License.
 import cv2
 import numpy as np
 
+from .colors import label_color
+
 
 def draw_box(image, box, color, thickness=2):
     """ Draws a box on an image with a given color.
@@ -57,23 +59,23 @@ def draw_boxes(image, boxes, color, thickness=2):
         draw_box(image, b, color, thickness=thickness)
 
 
-def draw_detections(image, detections, color=(255, 0, 0), generator=None):
+def draw_detections(image, detections, color=None, generator=None):
     """ Draws detections in an image.
 
     # Arguments
         image      : The image to draw on.
         detections : A [N, 4 + num_classes] matrix (x1, y1, x2, y2, cls_1, cls_2, ...).
-        color      : The color of the boxes.
+        color      : The color of the boxes. By default the color from keras_retinanet.utils.colors.label_color will be used.
         generator  : (optional) Generator which can map label to class name.
     """
-    draw_boxes(image, detections, color=color)
-
-    # draw labels
     for d in detections:
         label   = np.argmax(d[4:])
+        c       = color if color is not None else label_color(label)
         score   = d[4 + label]
         caption = (generator.label_to_name(label) if generator else str(label)) + ': {0:.2f}'.format(score)
         draw_caption(image, d, caption)
+
+        draw_box(image, d, color=c)
 
 
 def draw_annotations(image, annotations, color=(0, 255, 0), generator=None):
@@ -82,13 +84,13 @@ def draw_annotations(image, annotations, color=(0, 255, 0), generator=None):
     # Arguments
         image       : The image to draw on.
         annotations : A [N, 5] matrix (x1, y1, x2, y2, label).
-        color       : The color of the boxes.
+        color       : The color of the boxes. By default the color from keras_retinanet.utils.colors.label_color will be used.
         generator   : (optional) Generator which can map label to class name.
     """
-    draw_boxes(image, annotations, color)
-
-    # draw labels
-    for b in annotations:
-        label   = b[4]
+    for a in annotations:
+        label   = a[4]
+        c       = color if color is not None else label_color(label)
         caption = '{}'.format(generator.label_to_name(label) if generator else label)
-        draw_caption(image, b, caption)
+        draw_caption(image, a, caption)
+
+        draw_box(image, a, color=c)
