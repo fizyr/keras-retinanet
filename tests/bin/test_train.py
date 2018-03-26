@@ -63,3 +63,20 @@ def test_csv():
         'tests/test-data/csv/annotations.csv',
         'tests/test-data/csv/classes.csv',
     ])
+
+
+def test_vgg():
+    # ignore warnings in this test
+    warnings.simplefilter('ignore')
+
+    # run training / evaluation
+    keras_retinanet.bin.train.main([
+        '--backbone=vgg16',
+        '--epochs=1',
+        '--steps=1',
+        '--no-weights',
+        '--no-snapshots',
+        '--freeze-backbone',
+        'coco',
+        'tests/test-data/coco',
+    ])

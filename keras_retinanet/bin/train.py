@@ -20,6 +20,7 @@ import argparse
 import functools
 import os
 import sys
+import warnings
 
 import keras
 import keras.preprocessing.image
@@ -222,18 +223,15 @@ def create_generators(args):
             batch_size=args.batch_size
         )
 
-        if args.val_annotations:
-            validation_generator = OpenImagesGenerator(
-                args.main_dir,
-                subset='validation',
-                version=args.version,
-                labels_filter=args.labels_filter,
-                annotation_cache_dir=args.annotation_cache_dir,
-                fixed_labels=args.fixed_labels,
-                batch_size=args.batch_size
-            )
-        else:
-            validation_generator = None
+        validation_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='validation',
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            fixed_labels=args.fixed_labels,
+            batch_size=args.batch_size
+        )
     elif args.dataset_type == 'kitti':
         train_generator = KittiGenerator(
             args.kitti_path,
@@ -242,14 +240,11 @@ def create_generators(args):
             batch_size=args.batch_size
         )
 
-        if args.val_annotations:
-            validation_generator = KittiGenerator(
-                args.kitti_path,
-                subset='val',
-                batch_size=args.batch_size
-            )
-        else:
-            validation_generator = None
+        validation_generator = KittiGenerator(
+            args.kitti_path,
+            subset='val',
+            batch_size=args.batch_size
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -278,6 +273,9 @@ def check_args(parsed_args):
 
     if parsed_args.multi_gpu > 1 and not parsed_args.multi_gpu_force:
         raise ValueError("Multi-GPU support is experimental, use at own risk! Run with --multi-gpu-force if you wish to continue.")
+
+    if 'resnet' not in parsed_args.backbone:
+        warnings.warn('Using experimental backbone {}. Only resnet50 has been properly tested.'.format(parsed_args.backbone))
 
     if 'resnet' in parsed_args.backbone:
         from ..models.resnet import validate_backbone
