@@ -56,7 +56,7 @@ def validate_backbone(backbone):
         raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, list(allowed_backbones.keys())))
 
 
-def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, **kwargs):
+def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifier=None, **kwargs):
     # choose default input
     if inputs is None:
         inputs = keras.layers.Input((None, None, 3))
@@ -65,12 +65,16 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, **kwarg
     densenet = DenseNet(blocks=blocks, input_tensor=inputs, include_top=False, pooling=None, weights=None)
 
     # get last conv layer from the end of each dense block
-    outputs = [densenet.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
+    layer_outputs = [densenet.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
 
     # create the densenet backbone
-    densenet = keras.models.Model(inputs=inputs, outputs=outputs, name=densenet.name)
+    densenet = keras.models.Model(inputs=inputs, outputs=layer_outputs[1:], name=densenet.name)
+
+    # invoke modifier if given
+    if modifier:
+        densenet = modifier(densenet)
 
     # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=densenet, **kwargs)
+    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=densenet.outputs, **kwargs)
 
     return model
