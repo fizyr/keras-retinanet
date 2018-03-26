@@ -141,7 +141,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             from ..callbacks.coco import CocoEval
 
             # use prediction model for evaluation
-            evaluation = CocoEval(validation_generator)
+            evaluation = CocoEval(validation_generator, tensorboard=tensorboard_callback)
         else:
             evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
         evaluation = RedirectModel(evaluation, prediction_model)
