@@ -31,23 +31,20 @@ def test_backbone(backbone):
 
     num_classes = 10
 
-    # inputs = np.zeros((1, 224, 224, 3), dtype=np.float32)
-    # targets = [np.zeros((1, 9441, 5), dtype=np.float32), np.zeros((1, 9441, num_classes))]
-
     inputs = np.zeros((1, 200, 400, 3), dtype=np.float32)
-    targets = [np.zeros((1, 15318, 5), dtype=np.float32), np.zeros((1, 15318, num_classes))]
+    targets = [np.zeros((1, 14814, 5), dtype=np.float32), np.zeros((1, 14814, num_classes))]
 
     inp = keras.layers.Input(inputs[0].shape)
 
-    training_model = densenet_retinanet(num_classes=num_classes, backbone='{}'.format(backbone), inputs=inp)
-    # training_model.summary()
+    model = densenet_retinanet(num_classes=num_classes, backbone='{}'.format(backbone), inputs=inp)
+    model.summary()
 
     # compile model
-    training_model.compile(
+    model.compile(
         loss={
             'regression': losses.smooth_l1(),
             'classification': losses.focal()
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 
-    training_model.fit(inputs, targets, batch_size=1)
+    model.fit(inputs, targets, batch_size=1)

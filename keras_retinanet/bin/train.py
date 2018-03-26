@@ -398,7 +398,7 @@ def main(args=None):
     print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
-    if 'vgg' in args.backbone:
+    if 'vgg' in args.backbone or 'densenet' in args.backbone:
         compute_anchor_targets = functools.partial(anchor_targets_bbox, shapes_callback=make_shapes_callback(model))
         train_generator.compute_anchor_targets = compute_anchor_targets
         if validation_generator is not None:
