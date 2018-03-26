@@ -83,17 +83,13 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, m
 
     mobilenet = MobileNet(input_tensor=inputs, alpha=alpha, include_top=False, pooling=None, weights=None)
 
-    # get last layer from each depthwise convolution blocks 3, 5, 11 and 13
-    outputs = [mobilenet.get_layer(name='conv_pw_{}_relu'.format(i)).output for i in [3, 5, 11, 13]]
-
-    # create the mobilenet backbone
-    mobilenet = keras.models.Model(inputs=inputs, outputs=outputs, name=mobilenet.name)
+    # create the full model
+    layer_names = ['conv_pw_5_relu', 'conv_pw_11_relu', 'conv_pw_13_relu']
+    layer_outputs = [mobilenet.get_layer(name).output for name in layer_names]
+    mobilenet = keras.models.Model(inputs=inputs, outputs=layer_outputs, name=mobilenet.name)
 
     # invoke modifier if given
     if modifier:
         mobilenet = modifier(mobilenet)
 
-    # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=mobilenet, **kwargs)
-
-    return model
+    return retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=mobilenet.outputs, **kwargs)

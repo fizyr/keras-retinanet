@@ -77,9 +77,7 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
         resnet = modifier(resnet)
 
     # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone=resnet, **kwargs)
-
-    return model
+    return retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=resnet.outputs[1:], **kwargs)
 
 
 def resnet50_retinanet(num_classes, inputs=None, **kwargs):
