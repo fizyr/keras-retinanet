@@ -223,18 +223,15 @@ def create_generators(args):
             batch_size=args.batch_size
         )
 
-        if args.val_annotations:
-            validation_generator = OpenImagesGenerator(
-                args.main_dir,
-                subset='validation',
-                version=args.version,
-                labels_filter=args.labels_filter,
-                annotation_cache_dir=args.annotation_cache_dir,
-                fixed_labels=args.fixed_labels,
-                batch_size=args.batch_size
-            )
-        else:
-            validation_generator = None
+        validation_generator = OpenImagesGenerator(
+            args.main_dir,
+            subset='validation',
+            version=args.version,
+            labels_filter=args.labels_filter,
+            annotation_cache_dir=args.annotation_cache_dir,
+            fixed_labels=args.fixed_labels,
+            batch_size=args.batch_size
+        )
     elif args.dataset_type == 'kitti':
         train_generator = KittiGenerator(
             args.kitti_path,
@@ -243,14 +240,11 @@ def create_generators(args):
             batch_size=args.batch_size
         )
 
-        if args.val_annotations:
-            validation_generator = KittiGenerator(
-                args.kitti_path,
-                subset='val',
-                batch_size=args.batch_size
-            )
-        else:
-            validation_generator = None
+        validation_generator = KittiGenerator(
+            args.kitti_path,
+            subset='val',
+            batch_size=args.batch_size
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
