@@ -31,17 +31,16 @@ def test_backbone(backbone):
 
     num_classes = 10
 
-    inputs = np.zeros((1, 224, 224, 3), dtype=np.float32)
-    targets = [np.zeros((1, 9441, 5), dtype=np.float32), np.zeros((1, 9441, num_classes))]
+    # inputs = np.zeros((1, 224, 224, 3), dtype=np.float32)
+    # targets = [np.zeros((1, 9441, 5), dtype=np.float32), np.zeros((1, 9441, num_classes))]
 
-    # backbone fails for every image with height:width ratio different than h:w = 1:1
-    # inputs = np.zeros((1, 1024, 363, 3), dtype=np.float32)
-    # targets = [np.zeros((1, 70776, 5), dtype=np.float32), np.zeros((1, 70776, num_classes))]
+    inputs = np.zeros((1, 200, 400, 3), dtype=np.float32)
+    targets = [np.zeros((1, 15318, 5), dtype=np.float32), np.zeros((1, 15318, num_classes))]
 
     inp = keras.layers.Input(inputs[0].shape)
 
     training_model = densenet_retinanet(num_classes=num_classes, backbone='{}'.format(backbone), inputs=inp)
-    training_model.summary()
+    # training_model.summary()
 
     # compile model
     training_model.compile(
