@@ -75,7 +75,7 @@ def draw_detections(image, boxes, classification, color=None, generator=None, sc
 
     for i, label in np.transpose(selection):
         c = color if color is not None else label_color(label)
-        draw_box(boxes[i, :], color=c)
+        draw_box(image, boxes[i, :], color=c)
 
         # draw labels
         score   = classification[i, label]
