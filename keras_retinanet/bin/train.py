@@ -283,6 +283,8 @@ def check_args(parsed_args):
         from ..models.mobilenet import validate_backbone
     elif 'vgg' in parsed_args.backbone:
         from ..models.vgg import validate_backbone
+    elif 'densenet' in parsed_args.backbone:
+        from ..models.densenet import validate_backbone
     else:
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(parsed_args.backbone))
 
@@ -365,6 +367,8 @@ def main(args=None):
         from ..models.mobilenet import mobilenet_retinanet as retinanet, custom_objects, download_imagenet
     elif 'vgg' in args.backbone:
         from ..models.vgg import vgg_retinanet as retinanet, custom_objects, download_imagenet
+    elif 'densenet' in args.backbone:
+        from ..models.densenet import densenet_retinanet as retinanet, custom_objects, download_imagenet
     else:
         raise NotImplementedError('Backbone \'{}\' not implemented.'.format(args.backbone))
 
@@ -394,7 +398,7 @@ def main(args=None):
     print(model.summary())
 
     # this lets the generator compute backbone layer shapes using the actual backbone model
-    if 'vgg' in args.backbone:
+    if 'vgg' in args.backbone or 'densenet' in args.backbone:
         compute_anchor_targets = functools.partial(anchor_targets_bbox, shapes_callback=make_shapes_callback(model))
         train_generator.compute_anchor_targets = compute_anchor_targets
         if validation_generator is not None:
