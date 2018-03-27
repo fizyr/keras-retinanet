@@ -121,10 +121,10 @@ model.compile(
 An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet.ipynb).
 In general, output can be retrieved from the network as follows:
 ```python
-_, _, boxes, classification = model.predict_on_batch(inputs)
+_, _, boxes, nms_classification = model.predict_on_batch(inputs)
 ```
 
-Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`) and classification is shaped `(None, None, num_classes)` (for `(cls1, cls2, ...)`).
+Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`) and nms_classification is shaped `(None, None, num_classes)` (for `(cls1, cls2, ...)`).
 
 Loading models can be done in the following manner:
 ```python

@@ -78,29 +78,29 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image, scale = generator.resize_image(image)
 
         # run network
-        _, _, boxes, classification = model.predict_on_batch(np.expand_dims(image, axis=0))
+        _, _, boxes, nms_classification = model.predict_on_batch(np.expand_dims(image, axis=0))
 
         # correct boxes for image scale
         boxes /= scale
 
         # select indices which have a score above the threshold
-        indices = np.where(classification[0, :, :] > score_threshold)
+        indices = np.where(nms_classification[0, :, :] > score_threshold)
 
         # select those scores
-        scores = classification[0][indices]
+        scores = nms_classification[0][indices]
 
         # find the order with which to sort the scores
         scores_sort = np.argsort(-scores)[:max_detections]
 
         # select detections
         image_boxes      = boxes[0, indices[0][scores_sort], :]
-        image_scores     = np.expand_dims(classification[0, indices[0][scores_sort], indices[1][scores_sort]], axis=1)
+        image_scores     = np.expand_dims(nms_classification[0, indices[0][scores_sort], indices[1][scores_sort]], axis=1)
         image_detections = np.append(image_boxes, image_scores, axis=1)
         image_predicted_labels = indices[1][scores_sort]
 
         if save_path is not None:
             draw_annotations(raw_image, generator.load_annotations(i), generator=generator)
-            draw_detections(raw_image, boxes[0, indices[0][scores_sort], :], classification[0, indices[0][scores_sort], :], generator=generator)
+            draw_detections(raw_image, boxes[0, indices[0][scores_sort], :], nms_classification[0, indices[0][scores_sort], :], generator=generator)
 
             cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), raw_image)
 
