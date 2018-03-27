@@ -1,1 +1,1 @@
-from ._misc import NonMaximumSuppression, RegressBoxes, UpsampleLike, Anchors
+from ._misc import NonMaximumSuppression, RegressBoxes, UpsampleLike, Anchors, ClipBoxes

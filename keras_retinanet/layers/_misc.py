@@ -86,7 +86,6 @@ class NonMaximumSuppression(keras.layers.Layer):
         # TODO: support batch size > 1.
         boxes           = inputs[0][0]
         classification  = inputs[1][0]
-        other           = [i[0] for i in inputs[2:]]  # can be any user-specified additional data
         indices         = backend.range(keras.backend.shape(classification)[0])
         selected_scores = []
 
@@ -116,13 +115,10 @@ class NonMaximumSuppression(keras.layers.Layer):
         # reconstruct the (suppressed) classification scores
         classification = keras.backend.concatenate(selected_scores, axis=1)
 
-        # reconstruct into the expected output
-        detections = keras.backend.concatenate([boxes, classification] + other, axis=1)
-
-        return keras.backend.expand_dims(detections, axis=0)
+        return keras.backend.expand_dims(classification, axis=0)
 
     def compute_output_shape(self, input_shape):
-        return (input_shape[0][0], input_shape[0][1], sum([i[2] for i in input_shape]))
+        return input_shape[1]
 
     def get_config(self):
         config = super(NonMaximumSuppression, self).get_config()
@@ -181,3 +177,19 @@ class RegressBoxes(keras.layers.Layer):
         })
 
         return config
+
+
+class ClipBoxes(keras.layers.Layer):
+    def call(self, inputs, **kwargs):
+        image, boxes = inputs
+        shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())
+
+        x1 = backend.clip_by_value(boxes[:, :, 0], 0, shape[2])
+        y1 = backend.clip_by_value(boxes[:, :, 1], 0, shape[1])
+        x2 = backend.clip_by_value(boxes[:, :, 2], 0, shape[2])
+        y2 = backend.clip_by_value(boxes[:, :, 3], 0, shape[1])
+
+        return keras.backend.stack([x1, y1, x2, y2], axis=2)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[1]

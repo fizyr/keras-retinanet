@@ -30,6 +30,7 @@ custom_objects = {
     'RegressBoxes'          : layers.RegressBoxes,
     'NonMaximumSuppression' : layers.NonMaximumSuppression,
     'Anchors'               : layers.Anchors,
+    'ClipBoxes'             : layers.ClipBoxes,
     '_smooth_l1'            : losses.smooth_l1(),
     '_focal'                : losses.focal(),
 }
@@ -323,9 +324,9 @@ def retinanet_bbox(
     name       = 'retinanet-bbox',
     **kwargs
 ):
-    """ Construct a RetinaNet model on top of a backbone and adds convenience functions to output detections directly.
+    """ Construct a RetinaNet model on top of a backbone and adds convenience functions to output boxes directly.
 
-    This model uses the minimum retinanet model and appends a few layers to compute detections within the graph.
+    This model uses the minimum retinanet model and appends a few layers to compute boxes within the graph.
     These layers include applying the regression values to the anchors and performing NMS.
 
     Args
@@ -335,12 +336,12 @@ def retinanet_bbox(
         *kwargs     : Additional kwargs to pass to the minimal retinanet model.
 
     Returns
-        A keras.models.Model which takes an image as input and outputs the result from each submodel on every pyramid level and a list of detections.
+        A keras.models.Model which takes an image as input and outputs the result from each submodel on every pyramid level and a list of boxes.
 
         The order is as defined in submodels. Using default values the output is:
         ```
         [
-            regression, classification, detections
+            regression, classification, boxes
         ]
         ```
     """
@@ -356,15 +357,15 @@ def retinanet_bbox(
 
     # apply predicted regression to anchors
     boxes = layers.RegressBoxes(name='boxes')([anchors, regression])
-
-    # additionally apply non maximum suppression
-    if nms:
-        detections = layers.NonMaximumSuppression(name='nms')([boxes, classification] + other)
-    else:
-        detections = keras.layers.Concatenate(axis=2, name='detections')([boxes, classification] + other)
+    boxes = layers.ClipBoxes(name='clipped_boxes')([inputs, boxes])
 
     # construct list of outputs
-    outputs = [regression, classification] + other + [detections]
+    outputs = [regression, classification] + other + [boxes]
+
+    # optionally apply non maximum suppression
+    if nms:
+        nms      = layers.NonMaximumSuppression(name='nms')([boxes, classification])
+        outputs += [nms]
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)

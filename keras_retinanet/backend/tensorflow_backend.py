@@ -18,6 +18,10 @@ import tensorflow
 import keras
 
 
+def clip_by_value(*args, **kwargs):
+    return tensorflow.clip_by_value(*args, **kwargs)
+
+
 def resize_images(*args, **kwargs):
     return tensorflow.image.resize_images(*args, **kwargs)
 

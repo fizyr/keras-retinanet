@@ -59,21 +59,28 @@ def draw_boxes(image, boxes, color, thickness=2):
         draw_box(image, b, color, thickness=thickness)
 
 
-def draw_detections(image, detections, color=None, generator=None):
+def draw_detections(image, boxes, classification, color=None, generator=None, score_threshold=0.5):
     """ Draws detections in an image.
 
     # Arguments
-        image      : The image to draw on.
-        detections : A [N, 4 + num_classes] matrix (x1, y1, x2, y2, cls_1, cls_2, ...).
-        color      : The color of the boxes. By default the color from keras_retinanet.utils.colors.label_color will be used.
-        generator  : (optional) Generator which can map label to class name.
+        image          : The image to draw on.
+        boxes          : A [N, 4] matrix (x1, y1, x2, y2).
+        classification : A [N, num_classes] matrix (cls_1, cls_2, ...).
+        color          : The color of the boxes. By default the color from keras_retinanet.utils.colors.label_color will be used.
+        generator      : (optional) Generator which can map label to class name.
     """
-    for d in detections:
-        label   = np.argmax(d[4:])
-        c       = color if color is not None else label_color(label)
-        score   = d[4 + label]
-        caption = (generator.label_to_name(label) if generator else str(label)) + ': {0:.2f}'.format(score)
-        draw_caption(image, d, caption)
+    selection = np.where(classification > score_threshold)
+
+    draw_boxes(image, boxes[np.unique(selection[0]), :], color=color)
+
+    for i, label in np.transpose(selection):
+        c = color if color is not None else label_color(label)
+        draw_box(boxes[i, :], color=c)
+
+        # draw labels
+        score   = classification[i, label]
+        caption = (generator.label_to_name(label) if generator else label) + ': {0:.2f}'.format(score)
+        draw_caption(image, boxes[i, :], caption)
 
         draw_box(image, d, color=c)
 
