@@ -205,7 +205,7 @@ Example output images using `keras-retinanet` are shown below.
 </p>
 
 ### Notes
-* This repository requires Keras 2.1.3.
+* This repository requires Keras 2.1.3 or higher.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using OpenCV 3.4.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using Python 2.7 and 3.6.
 * Warnings such as `UserWarning: Output "nms" missing from loss dictionary.` can safely be ignored. These warnings indicate no loss is connected to these outputs, but they are intended to be outputs of the network for the user (ie. resulting network detections) and not loss outputs.
