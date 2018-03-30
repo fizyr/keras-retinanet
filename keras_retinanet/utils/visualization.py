@@ -71,18 +71,14 @@ def draw_detections(image, boxes, classification, color=None, generator=None, sc
     """
     selection = np.where(classification > score_threshold)
 
-    draw_boxes(image, boxes[np.unique(selection[0]), :], color=color)
-
     for i, label in np.transpose(selection):
         c = color if color is not None else label_color(label)
-        draw_box(boxes[i, :], color=c)
+        draw_box(image, boxes[i, :], color=c)
 
         # draw labels
         score   = classification[i, label]
         caption = (generator.label_to_name(label) if generator else label) + ': {0:.2f}'.format(score)
         draw_caption(image, boxes[i, :], caption)
-
-        draw_box(image, d, color=c)
 
 
 def draw_annotations(image, annotations, color=(0, 255, 0), generator=None):
