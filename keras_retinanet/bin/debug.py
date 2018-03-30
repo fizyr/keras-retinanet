@@ -32,6 +32,7 @@ if __name__ == "__main__" and __package__ is None:
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
+from ..preprocessing.trassir_generator import TrassirGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes
@@ -89,6 +90,12 @@ def create_generator(args):
             subset=args.subset,
             transform_generator=transform_generator
         )
+    elif args.dataset_type == 'trassir':
+        generator = TrassirGenerator(
+            args.trassir_path,
+            subset='train',
+            transform_generator=transform_generator
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -111,6 +118,9 @@ def parse_args(args):
     kitti_parser = subparsers.add_parser('kitti')
     kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
     kitti_parser.add_argument('subset', help='Argument for loading a subset from train/val.')
+
+    trassir_parser = subparsers.add_parser('trassir')
+    trassir_parser.add_argument('trassir_path', help='Path to annotations directory (ie. ./trassir_annotations.json).')
 
     def csv_list(string):
         return string.split(',')

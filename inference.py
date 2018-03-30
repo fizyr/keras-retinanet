@@ -52,7 +52,7 @@ def draw_boxes(image, boxes):
 
 
 # use this environment flag to change which GPU to use
-# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 keras.backend.tensorflow_backend.set_session(get_session())
 
@@ -79,13 +79,14 @@ labels_to_names = {0: 'person', 1: 'bicycle', 2: 'car', 3: 'motorcycle', 4: 'air
                    70: 'toaster', 71: 'sink', 72: 'refrigerator', 73: 'book', 74: 'clock', 75: 'vase', 76: 'scissors',
                    77: 'teddy bear', 78: 'hair drier', 79: 'toothbrush'}
 
+# video_reader = cv2.VideoCapture(
+#     '/media/oem/022cfb2b-3c52-4dfe-a5fb-c5fe826db5e3/samples/abandonment/rzd2/nothing/3.avi')
 video_reader = cv2.VideoCapture(
-    '/media/oem/022cfb2b-3c52-4dfe-a5fb-c5fe826db5e3/samples/abandonment/rzd2/nothing/3.avi')
-
+    '/media/oem/022cfb2b-3c52-4dfe-a5fb-c5fe826db5e3/samples/очереди/кассы 8-9_20171110-192101--20171110-192601.avi')
 
 nb_frames = int(video_reader.get(cv2.CAP_PROP_FRAME_COUNT))
 
-every_nth = 10
+every_nth = 1
 count = 0
 
 pbar = tqdm(total=nb_frames)
@@ -103,7 +104,7 @@ while video_reader.isOpened():
     draw = image.copy()
 
     image = preprocess_image(image)
-    image, scale = resize_image(image)
+    image, scale = resize_image(image, image.shape[0], image.shape[1])
 
     _, _, detections = model.predict_on_batch(np.expand_dims(image, axis=0))
     predicted_labels = np.argmax(detections[0, :, 4:], axis=1)
@@ -115,12 +116,12 @@ while video_reader.isOpened():
         if score < 0.3 or label != 0:
             continue
 
-        boxes.append(BoundBox(*detections[0, idx, :4].astype(int), label='person', score=score))
+        boxes.append(BoundBox(*detections[0, idx, :4].astype(int), label=labels_to_names[label], score=score))
 
         draw = draw_boxes(draw, boxes)
 
     cv2.imshow('Predicted', cv2.resize(draw, (1280, 720)))
-    cv2.waitKey(0)
+    cv2.waitKey(1)
 
 
 video_reader.release()

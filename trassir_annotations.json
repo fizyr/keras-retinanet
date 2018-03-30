@@ -1,0 +1,270 @@
+{
+    "train": {
+        "images_dir":           "/media/oem/022cfb2b-3c52-4dfe-a5fb-c5fe826db5e3/samples/peoples/",
+        "datasets_to_train":
+        [
+          {
+            "path": "queue_dataset",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "negatives",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "coco/2017/train2017",
+            "count_to_process": "2000",
+            "only_verified": false,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "corridor_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "corridor_2",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "corridor_3",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "entrance",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "hr",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "kitchen",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "contract_back_0",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "contract_back_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "contract_back_2",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "contract_back_3",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "contract_back_4",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "maidan",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_0",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "kitchen",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_2",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_3",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_4",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_5",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_0",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_2",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_3",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_4",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_5",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "top_queue_6",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "weed",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          }
+        ],
+        "datasets_to_validate":
+        [
+          {
+            "path": "coco/2017/val2017",
+            "count_to_process": "100",
+            "only_verified": false,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "weed",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "rzd_0",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "rzd_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "rzd_5",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "rzd_many_peoples_0",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "rzd_many_peoples_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          }
+        ]
+    }
+}

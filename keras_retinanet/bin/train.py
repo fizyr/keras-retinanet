@@ -39,6 +39,7 @@ from ..callbacks.eval import Evaluate
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
+from ..preprocessing.trassir_generator import TrassirGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.keras_version import check_keras_version
@@ -237,6 +238,20 @@ def create_generators(args):
             )
         else:
             validation_generator = None
+    elif args.dataset_type == 'trassir':
+        train_generator = TrassirGenerator(
+            args.trassir_path,
+            subset='train',
+            labels=['person'],
+            batch_size=args.batch_size
+        )
+
+        validation_generator = TrassirGenerator(
+            args.trassir_path,
+            subset='val',
+            labels=['person'],
+            batch_size=args.batch_size
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -291,6 +306,9 @@ def parse_args(args):
 
     kitti_parser = subparsers.add_parser('kitti')
     kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
+
+    trassir_parser = subparsers.add_parser('trassir')
+    trassir_parser.add_argument('trassir_path', help='Path to annotations directory (ie. ./trassir_annotations.json).')
 
     def csv_list(string):
         return string.split(',')
