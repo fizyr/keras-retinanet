@@ -139,7 +139,7 @@ def apply_transform(matrix, image, params):
     Mathematically speaking, that means that the matrix is a transformation from the transformed image space to the original image space.
 
     Parameters:
-      matrix: A homogenous 3 by 3 matrix holding representing the transformation to apply.
+      matrix: A homogeneous 3 by 3 matrix holding representing the transformation to apply.
       image:  The image to transform.
       params: The transform parameters (see TransformParameters)
     """
@@ -168,7 +168,7 @@ def resize_image(img, min_side=800, max_side=1333):
     # rescale the image so the smallest side is min_side
     scale = min_side / smallest_side
 
-    # check if the largest side is now greater than max_side, wich can happen
+    # check if the largest side is now greater than max_side, which can happen
     # when images have a large aspect ratio
     largest_side = max(rows, cols)
     if largest_side * scale > max_side:
