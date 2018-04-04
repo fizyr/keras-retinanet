@@ -15,7 +15,7 @@ def transform_aabb(transform, aabb):
     The new AABB contains all corner points of the original AABB after applying the given transformation.
 
     # Arguments
-        transform: The transormation to apply.
+        transform: The transformation to apply.
         x1:        The minimum X value of the AABB.
         y1:        The minimum y value of the AABB.
         x2:        The maximum X value of the AABB.
@@ -68,7 +68,7 @@ def rotation(angle):
 def random_rotation(min, max, prng=DEFAULT_PRNG):
     """ Construct a random rotation between -max and max.
     # Arguments
-        min:  a scalar for the minumum absolute angle in radians
+        min:  a scalar for the minimum absolute angle in radians
         max:  a scalar for the maximum absolute angle in radians
         prng: the pseudo-random number generator to use.
     # Returns
@@ -94,7 +94,7 @@ def translation(translation):
 def random_translation(min, max, prng=DEFAULT_PRNG):
     """ Construct a random 2D translation between min and max.
     # Arguments
-        min:  a 2D vector with the minumum translation for each dimension
+        min:  a 2D vector with the minimum translation for each dimension
         max:  a 2D vector with the maximum translation for each dimension
         prng: the pseudo-random number generator to use.
     # Returns
@@ -120,7 +120,7 @@ def shear(angle):
 def random_shear(min, max, prng=DEFAULT_PRNG):
     """ Construct a random 2D shear matrix with shear angle between -max and max.
     # Arguments
-        min:  the minumum shear angle in radians.
+        min:  the minimum shear angle in radians.
         max:  the maximum shear angle in radians.
         prng: the pseudo-random number generator to use.
     # Returns
