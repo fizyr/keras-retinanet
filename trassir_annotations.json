@@ -11,6 +11,27 @@
             "min_bbox_area": 0.0005
           },
           {
+            "path": "prw",
+            "count_to_process": "200",
+            "only_verified": false,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_scene_0",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "shop_scene_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
             "path": "negatives",
             "count_to_process": "all",
             "only_verified": true,
@@ -19,7 +40,7 @@
           },
           {
             "path": "coco/2017/train2017",
-            "count_to_process": "2000",
+            "count_to_process": "100",
             "only_verified": false,
             "max_bbox_area": 1.0,
             "min_bbox_area": 0.0005
@@ -109,13 +130,6 @@
             "min_bbox_area": 0.0005
           },
           {
-            "path": "shop_0",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
             "path": "kitchen",
             "count_to_process": "all",
             "only_verified": true,
@@ -123,42 +137,7 @@
             "min_bbox_area": 0.0005
           },
           {
-            "path": "shop_1",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
-            "path": "shop_2",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
-            "path": "shop_3",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
-            "path": "shop_4",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
             "path": "shop_5",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
-            "path": "top_queue_0",
             "count_to_process": "all",
             "only_verified": true,
             "max_bbox_area": 1.0,
@@ -193,21 +172,91 @@
             "min_bbox_area": 0.0005
           },
           {
-            "path": "top_queue_5",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
-            "path": "top_queue_6",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
             "path": "weed",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Качалка",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор 1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор 2",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор 3",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор 4",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор вход",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Коридор переговорки",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Кухня (5 этаж)",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Кухня (6 этаж)",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Логистика",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "Отдел кадров",
             "count_to_process": "all",
             "only_verified": true,
             "max_bbox_area": 1.0,
@@ -216,20 +265,6 @@
         ],
         "datasets_to_validate":
         [
-          {
-            "path": "coco/2017/val2017",
-            "count_to_process": "100",
-            "only_verified": false,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
-          {
-            "path": "weed",
-            "count_to_process": "all",
-            "only_verified": true,
-            "max_bbox_area": 1.0,
-            "min_bbox_area": 0.0005
-          },
           {
             "path": "rzd_0",
             "count_to_process": "all",
@@ -260,6 +295,20 @@
           },
           {
             "path": "rzd_many_peoples_1",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "validation_big",
+            "count_to_process": "all",
+            "only_verified": true,
+            "max_bbox_area": 1.0,
+            "min_bbox_area": 0.0005
+          },
+          {
+            "path": "validation_different",
             "count_to_process": "all",
             "only_verified": true,
             "max_bbox_area": 1.0,

@@ -73,6 +73,7 @@ def _load_one_path(images_dir, path, count_to_process, only_verified, min_bbox_a
         if area_ratio < min_bbox_area or area_ratio > max_bbox_area:
             continue
 
+        annotation['category_id'] += 1  # Background category = 0
         images_with_annotations[annotation['image_id']].append(annotation)
 
     for image_id, anns in images_with_annotations.items():
@@ -109,7 +110,7 @@ def _load_images(path, subset='train'):
         data_annotations['categories'].extend(data['categories'])
 
     return {i: image_ann for i, image_ann in enumerate(data_annotations['images_with_annotations'])}, \
-           {category['id']: category['name'] for category in data_annotations['categories']}
+           {category['id'] + 1: category['name'] for category in data_annotations['categories']}
 
 
 class TrassirGenerator(Generator):
@@ -121,6 +122,7 @@ class TrassirGenerator(Generator):
         **kwargs
     ):
         self.images, self.categories = _load_images(annotations_path, subset)
+        self.categories[0] = 'background'
 
         # Filtering categories and images annotations
         self.images = {
@@ -129,6 +131,7 @@ class TrassirGenerator(Generator):
             for i, image_annotations in self.images.items()
         }
 
+        labels.append('background')
         self.categories = {i: cat for i, cat in self.categories.items() if cat in labels}
         self.category_name_to_id = dict(zip(self.categories.values(), self.categories.keys()))
         
@@ -138,15 +141,15 @@ class TrassirGenerator(Generator):
         return len(self.images)
 
     def num_classes(self):
-        return len(self.categories) + 1
+        return len(self.categories)
 
     def name_to_label(self, name):
         return self.category_name_to_id[name]
 
     def label_to_name(self, label):
-        if label == 0:
-            return 'BG'
-        return self.categories[label - 1]
+        # if label == 0:
+        #     return 'BG'
+        return self.categories[label]
 
     def image_aspect_ratio(self, image_index):
         image, _ = self.images[image_index]

@@ -193,14 +193,22 @@ class Generator(object):
 
     def compute_targets(self, image_group, annotations_group):
         # get the max image shape
+        max_box_count = 0
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
 
         # compute labels and regression targets
         labels_group     = [None] * self.batch_size
         regression_group = [None] * self.batch_size
+        box_group        = [None] * self.batch_size
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             # compute regression targets
-            labels_group[index], annotations, anchors = self.anchor_targets(max_shape, annotations, self.num_classes(), mask_shape=image.shape)
+            max_box_count = max_box_count + 1 if len(annotations) < max_box_count else len(annotations) + 1
+            box_group[index] = np.concatenate([np.array([[image.shape[1], image.shape[0], len(annotations), 0]],
+                                                        dtype=np.float),
+                                               annotations[:, :4]], axis=0)
+
+            labels_group[index], annotations, anchors = self.anchor_targets(max_shape, annotations, self.num_classes(),
+                                                                            mask_shape=image.shape)
             regression_group[index] = bbox_transform(anchors, annotations)
 
             # append anchor states to regression targets (necessary for filtering 'ignore', 'positive' and 'negative' anchors)
@@ -209,13 +217,15 @@ class Generator(object):
 
         labels_batch     = np.zeros((self.batch_size,) + labels_group[0].shape, dtype=keras.backend.floatx())
         regression_batch = np.zeros((self.batch_size,) + regression_group[0].shape, dtype=keras.backend.floatx())
+        box_batch        = np.zeros((self.batch_size,) + (max_box_count, box_group[0].shape[1]), dtype=keras.backend.floatx())
 
         # copy all labels and regression values to the batch blob
-        for index, (labels, regression) in enumerate(zip(labels_group, regression_group)):
+        for index, (labels, regression, boxes) in enumerate(zip(labels_group, regression_group, box_group)):
             labels_batch[index, ...]     = labels
             regression_batch[index, ...] = regression
+            box_batch[index, 0:len(boxes), ...]        = boxes
 
-        return [regression_batch, labels_batch]
+        return [regression_batch, labels_batch, box_batch]
 
     def compute_input_output(self, group):
         # load images and annotations

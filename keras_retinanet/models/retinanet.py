@@ -32,6 +32,7 @@ custom_objects = {
     'Anchors'               : layers.Anchors,
     '_smooth_l1'            : losses.smooth_l1(),
     '_focal'                : losses.focal(),
+    'repulsion_loss'       : losses.repulsion_loss,
 }
 
 
