@@ -204,6 +204,13 @@ Example output images using `keras-retinanet` are shown below.
   <img src="https://github.com/delftrobotics/keras-retinanet/blob/master/images/coco3.png" alt="Example result of RetinaNet on MS COCO"/>
 </p>
 
+### Projects using keras-retinanet
+
+* [4k video example](https://www.youtube.com/watch?v=KYueHEMGRos). This demo shows the use of keras-retinanet on a 4k input video.
+* [boring-detector](https://github.com/lexfridman/boring-detector). I suppose not all projects need to solve life's biggest questions. This project detects the "The Boring Company" hats in videos.
+
+If you have a project based on `keras-retinanet` and would like to have it published here, shoot me a message on Slack.
+
 ### Notes
 * This repository requires Keras 2.1.3 or higher.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using OpenCV 3.4.
