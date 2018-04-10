@@ -164,7 +164,21 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
 def create_generators(args):
     # create random transform generator for augmenting training data
-    transform_generator = random_transform_generator(flip_x_chance=0.5)
+    if args.random_transform:
+        transform_generator = random_transform_generator(
+            min_rotation=-0.1,
+            max_rotation=0.1,
+            min_translation=(-0.1, -0.1),
+            max_translation=(0.1, 0.1),
+            min_shear=-0.1,
+            max_shear=0.1,
+            min_scaling=(0.9, 0.9),
+            max_scaling=(1.1, 1.1),
+            flip_x_chance=0.5,
+            flip_y_chance=0.5,
+        )
+    else:
+        transform_generator = random_transform_generator(flip_x_chance=0.5)
 
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
@@ -340,6 +354,7 @@ def parse_args(args):
     parser.add_argument('--no-snapshots',    help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
     parser.add_argument('--freeze-backbone', help='Freeze training of backbone layers.', action='store_true')
+    parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
 
     return check_args(parser.parse_args(args))
 
