@@ -111,7 +111,7 @@ model.compile(
         'regression'    : keras_retinanet.losses.smooth_l1(),
         'classification': keras_retinanet.losses.focal()
     },
-    optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+    optimizer=keras.optimizers.adam(lr=1e-5)
 )
 ```
 2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.PascalVocGenerator`](https://github.com/fizyr/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)).
