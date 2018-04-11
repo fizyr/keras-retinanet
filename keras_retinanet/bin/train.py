@@ -188,40 +188,52 @@ def create_generators(args):
             args.coco_path,
             'train2017',
             transform_generator=transform_generator,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
 
         validation_generator = CocoGenerator(
             args.coco_path,
             'val2017',
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'pascal':
         train_generator = PascalVocGenerator(
             args.pascal_path,
             'trainval',
             transform_generator=transform_generator,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
 
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
             transform_generator=transform_generator,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
 
         if args.val_annotations:
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
-                batch_size=args.batch_size
+                batch_size=args.batch_size,
+                image_min_side=args.image_min_side,
+                image_max_side=args.image_max_side
             )
         else:
             validation_generator = None
@@ -234,7 +246,9 @@ def create_generators(args):
             annotation_cache_dir=args.annotation_cache_dir,
             fixed_labels=args.fixed_labels,
             transform_generator=transform_generator,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
 
         validation_generator = OpenImagesGenerator(
@@ -244,20 +258,26 @@ def create_generators(args):
             labels_filter=args.labels_filter,
             annotation_cache_dir=args.annotation_cache_dir,
             fixed_labels=args.fixed_labels,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'kitti':
         train_generator = KittiGenerator(
             args.kitti_path,
             subset='train',
             transform_generator=transform_generator,
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
 
         validation_generator = KittiGenerator(
             args.kitti_path,
             subset='val',
-            batch_size=args.batch_size
+            batch_size=args.batch_size,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
@@ -355,6 +375,8 @@ def parse_args(args):
     parser.add_argument('--no-evaluation',   help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
     parser.add_argument('--freeze-backbone', help='Freeze training of backbone layers.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
+    parser.add_argument('--image-min-side', help='Freeze training of backbone layers.', type=int, default=800)
+    parser.add_argument('--image-max-side', help='Freeze training of backbone layers.', type=int, default=1333)
 
     return check_args(parser.parse_args(args))
 
