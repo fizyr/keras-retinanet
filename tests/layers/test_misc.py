@@ -19,7 +19,6 @@ import keras_retinanet.layers
 
 import math
 import numpy as np
-import pytest
 
 
 class TestAnchors(object):
@@ -80,84 +79,6 @@ class TestAnchors(object):
 
         # test anchor values
         np.testing.assert_array_equal(anchors, expected)
-
-
-class TestNonMaximumSuppression(object):
-    def test_simple(self):
-        # create simple NonMaximumSuppression layer
-        non_maximum_suppression_layer = keras_retinanet.layers.NonMaximumSuppression()
-
-        # create simple input
-        boxes = np.array([[
-            [0, 0, 10, 10],
-            [0, 0, 10, 10],
-        ]], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
-
-        classification = np.array([[
-            [0, 0.9],
-            [0, 1],
-        ]], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
-
-        # compute output
-        actual = non_maximum_suppression_layer.call([boxes, classification])
-        actual = keras.backend.eval(actual)
-
-        expected = np.array([[
-            [0, 0],  # now suppressed
-            [0, 1],
-        ]], dtype=keras.backend.floatx())
-
-        np.testing.assert_array_equal(actual, expected)
-
-    # mark test to fail
-    @pytest.mark.xfail
-    def test_mini_batch(self):
-        # create simple NonMaximumSuppression layer
-        non_maximum_suppression_layer = keras_retinanet.layers.NonMaximumSuppression()
-
-        # create simple input
-        boxes = np.array([
-            [
-                [0, 0, 10, 10],
-                [0, 0, 10, 10],
-            ],
-            [
-                [100, 100, 150, 150],
-                [100, 100, 150, 150],
-            ],
-        ], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
-
-        classification = np.array([
-            [
-                [0, 0.9],
-                [0, 1],
-            ],
-            [
-                [0, 1],
-                [0, 0.9],
-            ],
-        ], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
-
-        # compute output
-        actual = non_maximum_suppression_layer.call([boxes, classification])
-        actual = keras.backend.eval(actual)
-
-        expected = np.array([
-            [
-                [0, 0],  # now suppressed
-                [0, 1],
-            ],
-            [
-                [0, 1],
-                [0, 0],  # now suppressed
-            ],
-        ], dtype=keras.backend.floatx())
-
-        np.testing.assert_array_equal(actual, expected)
 
 
 class TestUpsampleLike(object):
