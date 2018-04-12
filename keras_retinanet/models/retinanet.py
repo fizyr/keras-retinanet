@@ -360,12 +360,14 @@ def retinanet_bbox(
     boxes = layers.ClipBoxes(name='clipped_boxes')([inputs, boxes])
 
     # construct list of outputs
-    outputs = [regression, classification] + other + [boxes]
+    outputs = [regression, classification] + other
 
     # optionally apply non maximum suppression
     if nms:
-        nms_classification  = layers.NonMaximumSuppression(name='nms')([boxes, classification])
-        outputs            += [nms_classification]
+        nms_outputs = layers.NonMaximumSuppression(name='nms')([boxes, classification] + other)
+        outputs    += nms_outputs
+    else:
+        outputs.append(boxes)
 
     # construct the model
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
