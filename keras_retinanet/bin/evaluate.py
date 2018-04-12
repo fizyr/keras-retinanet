@@ -34,7 +34,6 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..utils.keras_version import check_keras_version
 from ..utils.eval import evaluate
-from ..models.resnet import custom_objects
 
 
 def get_session():
@@ -116,6 +115,16 @@ def main(args=None):
 
     # load the model
     print('Loading model, this may take a second...')
+
+    if 'mobilenet' in os.path.basename(args.model):
+        from keras_retinanet.models.mobilenet import custom_objects
+    elif 'resnet' in os.path.basename(args.model):
+        from keras_retinanet.models.resnet import custom_objects
+    elif 'densenet' in os.path.basename(args.model):
+        from keras_retinanet.models.densenet import custom_objects
+    elif 'vgg' in os.path.basename(args.model):
+        from keras_retinanet.models.vgg import custom_objects
+
     model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
     # print model summary
