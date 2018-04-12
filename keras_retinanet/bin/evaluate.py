@@ -35,6 +35,7 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..utils.keras_version import check_keras_version
 from ..utils.eval import evaluate
 
+
 def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -127,7 +128,6 @@ def main(args=None):
 
     # load the model
     print('Loading model, this may take a second...')
-
     model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
     # print model summary
