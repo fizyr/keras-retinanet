@@ -34,8 +34,6 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..utils.keras_version import check_keras_version
 from ..utils.eval import evaluate
-from ..models.resnet import custom_objects
-
 
 def get_session():
     config = tf.ConfigProto()
@@ -115,7 +113,21 @@ def main(args=None):
     generator = create_generator(args)
 
     # load the model
+
+    if 'mobilenet' in os.path.basename(args.model):
+        from keras_retinanet.models.mobilenet import custom_objects
+    elif 'resnet' in os.path.basename(args.model):
+        from keras_retinanet.models.resnet import custom_objects
+    elif 'densenet' in os.path.basename(args.model):
+        from keras_retinanet.models.densenet import custom_objects
+    elif 'vgg' in os.path.basename(args.model):
+        from keras_retinanet.models.vgg import custom_objects
+    else:
+        raise NotImplementedError('Un-identified backbone. Not implemented.')
+
+    # load the model
     print('Loading model, this may take a second...')
+
     model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
     # print model summary
