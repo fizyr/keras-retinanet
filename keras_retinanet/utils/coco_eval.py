@@ -34,23 +34,27 @@ def evaluate_coco(generator, model, threshold=0.05):
         image, scale = generator.resize_image(image)
 
         # run network
-        _, _, boxes, nms_classification = model.predict_on_batch(np.expand_dims(image, axis=0))
+        _, _, nms_boxes, nms_scores, nms_labels = model.predict_on_batch(np.expand_dims(image, axis=0))
 
         # correct boxes for image scale
-        boxes /= scale
+        nms_boxes /= scale
 
         # change to (x, y, w, h) (MS COCO standard)
-        boxes[:, :, 2] -= boxes[:, :, 0]
-        boxes[:, :, 3] -= boxes[:, :, 1]
+        nms_boxes[:, :, 2] -= nms_boxes[:, :, 0]
+        nms_boxes[:, :, 3] -= nms_boxes[:, :, 1]
 
         # compute predicted labels and scores
-        for i, j in np.transpose(np.where(nms_classification[0] > threshold)):
+        for box, score, label in zip(nms_boxes[0], nms_scores[0], nms_labels[0]):
+            # scores are sorted, so we can break
+            if score < threshold:
+                break
+
             # append detection for each positively labeled class
             image_result = {
                 'image_id'    : generator.image_ids[index],
-                'category_id' : generator.label_to_coco_label(j),
-                'score'       : float(nms_classification[0, i, j]),
-                'bbox'        : (boxes[0, i, :]).tolist(),
+                'category_id' : generator.label_to_coco_label(label),
+                'score'       : float(score),
+                'bbox'        : box.tolist(),
             }
 
             # append detection to results

@@ -86,7 +86,7 @@ def nms(boxes, classification, other=[], score_threshold=0.05, max_detections=30
     scores   = backend.pad(scores, [[0, pad_size]], constant_values=-1)
     labels   = backend.pad(labels, [[0, pad_size]], constant_values=-1)
     labels   = keras.backend.cast(labels, 'int32')
-    other    = [backend.pad(o, [[0, pad_size]] + [[0,0] for _ in range(1, len(o.shape))], constant_values=-1) for o in other]
+    other    = [backend.pad(o, [[0, pad_size]] + [[0, 0] for _ in range(1, len(o.shape))], constant_values=-1) for o in other]
 
     return [boxes, scores, labels] + other
 
