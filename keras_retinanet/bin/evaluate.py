@@ -115,7 +115,6 @@ def main(args=None):
 
     # load the model
     print('Loading model, this may take a second...')
-    # from keras_retinanet.models.mobilenet import custom_objects
 
     if 'mobilenet' in os.path.basename(args.model):
         from keras_retinanet.models.mobilenet import custom_objects
@@ -125,7 +124,6 @@ def main(args=None):
         from keras_retinanet.models.densenet import custom_objects
     elif 'vgg' in os.path.basename(args.model):
         from keras_retinanet.models.vgg import custom_objects
-
 
     model = keras.models.load_model(args.model, custom_objects=custom_objects)
 
