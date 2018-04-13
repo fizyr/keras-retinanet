@@ -291,18 +291,7 @@ def check_args(parsed_args):
     if 'resnet' not in parsed_args.backbone:
         warnings.warn('Using experimental backbone {}. Only resnet50 has been properly tested.'.format(parsed_args.backbone))
 
-    if 'resnet' in parsed_args.backbone:
-        from ..models.resnet import validate_backbone
-    elif 'mobilenet' in parsed_args.backbone:
-        from ..models.mobilenet import validate_backbone
-    elif 'vgg' in parsed_args.backbone:
-        from ..models.vgg import validate_backbone
-    elif 'densenet' in parsed_args.backbone:
-        from ..models.densenet import validate_backbone
-    else:
-        raise NotImplementedError('Backbone \'{}\' not implemented.'.format(parsed_args.backbone))
-
-    validate_backbone(parsed_args.backbone)
+    models.validate_backbone(parsed_args.backbone)
 
     return parsed_args
 
@@ -376,32 +365,21 @@ def main(args=None):
     # create the generators
     train_generator, validation_generator = create_generators(args)
 
-    if 'resnet' in args.backbone:
-        from ..models.resnet import resnet_retinanet as retinanet, custom_objects, download_imagenet
-    elif 'mobilenet' in args.backbone:
-        from ..models.mobilenet import mobilenet_retinanet as retinanet, custom_objects, download_imagenet
-    elif 'vgg' in args.backbone:
-        from ..models.vgg import vgg_retinanet as retinanet, custom_objects, download_imagenet
-    elif 'densenet' in args.backbone:
-        from ..models.densenet import densenet_retinanet as retinanet, custom_objects, download_imagenet
-    else:
-        raise NotImplementedError('Backbone \'{}\' not implemented.'.format(args.backbone))
-
     # create the model
     if args.snapshot is not None:
         print('Loading model, this may take a second...')
-        model            = keras.models.load_model(args.snapshot, custom_objects=custom_objects)
+        model            = keras.models.load_model(args.snapshot, custom_objects=models.custom_objects(args.backbone))
         training_model   = model
         prediction_model = model
     else:
         weights = args.weights
         # default to imagenet if nothing else is specified
         if weights is None and args.imagenet_weights:
-            weights = download_imagenet(args.backbone)
+            weights = models.download_imagenet(args.backbone)
 
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
-            backbone_retinanet=retinanet,
+            backbone_retinanet=models.retinanet_backbone(args.backbone),
             backbone=args.backbone,
             num_classes=train_generator.num_classes(),
             weights=weights,
