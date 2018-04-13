@@ -27,7 +27,7 @@ def filter_detections(boxes, classification, other=[], nms=True, score_threshold
         other           : List of tensors of shape (num_boxes, ...) to filter along with the boxes and classification scores.
         nms             : Flag to enable/disable non maximum suppression.
         score_threshold : Threshold used to prefilter the boxes with.
-        max_detections  : Maximum number of detections to filter.
+        max_detections  : Maximum number of detections to keep.
         nms_threshold   : Threshold for the IoU value to determine when a box should be suppressed.
 
     Returns

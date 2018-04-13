@@ -195,21 +195,21 @@ AnchorParameters.default = AnchorParameters(
 )
 
 
-def default_submodels(num_classes, anchor_parameters):
+def default_submodels(num_classes, num_anchors):
     """ Create a list of default submodels used for object detection.
 
     The default submodels contains a regression submodel and a classification submodel.
 
     Args
-        num_classes       : Number of classes to use.
-        anchor_parameters : Struct that defines how the anchors should be made.
+        num_classes : Number of classes to use.
+        num_anchors : Number of base anchors.
 
     Returns
         A list of tuple, where the first element is the name of the submodel and the second element is the submodel itself.
     """
     return [
-        ('regression', default_regression_model(anchor_parameters.num_anchors())),
-        ('classification', default_classification_model(num_classes, anchor_parameters.num_anchors()))
+        ('regression', default_regression_model(num_anchors)),
+        ('classification', default_classification_model(num_classes, num_anchors))
     ]
 
 
@@ -272,7 +272,7 @@ def retinanet(
     inputs,
     backbone_layers,
     num_classes,
-    anchor_parameters       = AnchorParameters.default,
+    num_anchors             = 9,
     create_pyramid_features = __create_pyramid_features,
     submodels               = None,
     name                    = 'retinanet'
@@ -284,7 +284,7 @@ def retinanet(
     Args
         inputs                  : keras.layers.Input (or list of) for the input to the model.
         num_classes             : Number of classes to classify.
-        anchor_parameters       : Struct containing configuration for anchor generation (sizes, strides, ratios, scales).
+        num_anchors             : Number of base anchors.
         create_pyramid_features : Functor for creating pyramid features given the features C3, C4, C5 from the backbone.
         submodels               : Submodels to run on each feature map (default is regression and classification submodels).
         name                    : Name of the model.
@@ -300,7 +300,7 @@ def retinanet(
         ```
     """
     if submodels is None:
-        submodels = default_submodels(num_classes, anchor_parameters)
+        submodels = default_submodels(num_classes, num_anchors)
 
     C3, C4, C5 = backbone_layers
 
@@ -342,7 +342,7 @@ def retinanet_bbox(
         ```
     """
     if model is None:
-        model = retinanet(anchor_parameters=anchor_parameters, **kwargs)
+        model = retinanet(num_anchors=anchor_parameters.num_anchors(), **kwargs)
 
     # compute the anchors
     features = [model.get_layer(name).output for name in ['P3', 'P4', 'P5', 'P6', 'P7']]
