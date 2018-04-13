@@ -17,7 +17,7 @@ limitations under the License.
 import keras
 from keras.applications.mobilenet import MobileNet, BASE_WEIGHT_PATH, get_file, relu6, DepthwiseConv2D
 
-from ..models import retinanet
+from . import retinanet
 
 mobile_net_custom_objects = {
     'relu6': relu6,
@@ -92,4 +92,4 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, m
     if modifier:
         mobilenet = modifier(mobilenet)
 
-    return retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=mobilenet.outputs, **kwargs)
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=mobilenet.outputs, **kwargs)

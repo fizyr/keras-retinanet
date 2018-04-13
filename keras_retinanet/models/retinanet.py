@@ -25,14 +25,14 @@ import numpy as np
 A dictionary mapping custom layer names to the correct classes.
 """
 custom_objects = {
-    'UpsampleLike'          : layers.UpsampleLike,
-    'PriorProbability'      : initializers.PriorProbability,
-    'RegressBoxes'          : layers.RegressBoxes,
-    'NonMaximumSuppression' : layers.NonMaximumSuppression,
-    'Anchors'               : layers.Anchors,
-    'ClipBoxes'             : layers.ClipBoxes,
-    '_smooth_l1'            : losses.smooth_l1(),
-    '_focal'                : losses.focal(),
+    'UpsampleLike'     : layers.UpsampleLike,
+    'PriorProbability' : initializers.PriorProbability,
+    'RegressBoxes'     : layers.RegressBoxes,
+    'FilterDetections' : layers.FilterDetections,
+    'Anchors'          : layers.Anchors,
+    'ClipBoxes'        : layers.ClipBoxes,
+    '_smooth_l1'       : losses.smooth_l1(),
+    '_focal'           : losses.focal(),
 }
 
 
@@ -195,21 +195,21 @@ AnchorParameters.default = AnchorParameters(
 )
 
 
-def default_submodels(num_classes, anchor_parameters):
+def default_submodels(num_classes, num_anchors):
     """ Create a list of default submodels used for object detection.
 
     The default submodels contains a regression submodel and a classification submodel.
 
     Args
-        num_classes       : Number of classes to use.
-        anchor_parameters : Struct that defines how the anchors should be made.
+        num_classes : Number of classes to use.
+        num_anchors : Number of base anchors.
 
     Returns
         A list of tuple, where the first element is the name of the submodel and the second element is the submodel itself.
     """
     return [
-        ('regression', default_regression_model(anchor_parameters.num_anchors())),
-        ('classification', default_classification_model(num_classes, anchor_parameters.num_anchors()))
+        ('regression', default_regression_model(num_anchors)),
+        ('classification', default_classification_model(num_classes, num_anchors))
     ]
 
 
@@ -272,7 +272,7 @@ def retinanet(
     inputs,
     backbone_layers,
     num_classes,
-    anchor_parameters       = AnchorParameters.default,
+    num_anchors             = 9,
     create_pyramid_features = __create_pyramid_features,
     submodels               = None,
     name                    = 'retinanet'
@@ -284,7 +284,7 @@ def retinanet(
     Args
         inputs                  : keras.layers.Input (or list of) for the input to the model.
         num_classes             : Number of classes to classify.
-        anchor_parameters       : Struct containing configuration for anchor generation (sizes, strides, ratios, scales).
+        num_anchors             : Number of base anchors.
         create_pyramid_features : Functor for creating pyramid features given the features C3, C4, C5 from the backbone.
         submodels               : Submodels to run on each feature map (default is regression and classification submodels).
         name                    : Name of the model.
@@ -292,15 +292,15 @@ def retinanet(
     Returns
         A keras.models.Model which takes an image as input and outputs generated anchors and the result from each submodel on every pyramid level.
 
-        The order of the outputs is as defined in submodels. Using default values the output is:
+        The order of the outputs is as defined in submodels:
         ```
         [
-            anchors, regression, classification
+            regression, classification, other[0], other[1], ...
         ]
         ```
     """
     if submodels is None:
-        submodels = default_submodels(num_classes, anchor_parameters)
+        submodels = default_submodels(num_classes, num_anchors)
 
     C3, C4, C5 = backbone_layers
 
@@ -309,19 +309,15 @@ def retinanet(
 
     # for all pyramid levels, run available submodels
     pyramids = __build_pyramid(submodels, features)
-    anchors  = __build_anchors(anchor_parameters, features)
 
-    # concatenate outputs to one list
-    outputs = [anchors] + pyramids
-
-    return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
+    return keras.models.Model(inputs=inputs, outputs=pyramids, name=name)
 
 
 def retinanet_bbox(
-    inputs,
-    num_classes,
-    nms        = True,
-    name       = 'retinanet-bbox',
+    model             = None,
+    anchor_parameters = AnchorParameters.default,
+    nms               = True,
+    name              = 'retinanet-bbox',
     **kwargs
 ):
     """ Construct a RetinaNet model on top of a backbone and adds convenience functions to output boxes directly.
@@ -330,42 +326,43 @@ def retinanet_bbox(
     These layers include applying the regression values to the anchors and performing NMS.
 
     Args
-        inputs      : keras.layers.Input (or list of) for the input to the model.
-        num_classes : Number of classes to classify.
-        name        : Name of the model.
-        *kwargs     : Additional kwargs to pass to the minimal retinanet model.
+        model             : RetinaNet model to append bbox layers to. If None, it will create a RetinaNet model using **kwargs.
+        anchor_parameters : Struct containing configuration for anchor generation (sizes, strides, ratios, scales).
+        name              : Name of the model.
+        *kwargs           : Additional kwargs to pass to the minimal retinanet model.
 
     Returns
-        A keras.models.Model which takes an image as input and outputs the result from each submodel on every pyramid level and a list of boxes.
+        A keras.models.Model which takes an image as input and outputs the detections on the image.
 
-        The order is as defined in submodels. Using default values the output is:
+        The order is defined as follows:
         ```
         [
-            regression, classification, boxes
+            boxes, scores, labels, other[0], other[1], ...
         ]
         ```
     """
-    model = retinanet(inputs=inputs, num_classes=num_classes, **kwargs)
+    if model is None:
+        model = retinanet(num_anchors=anchor_parameters.num_anchors(), **kwargs)
+
+    # compute the anchors
+    features = [model.get_layer(name).output for name in ['P3', 'P4', 'P5', 'P6', 'P7']]
+    anchors  = __build_anchors(anchor_parameters, features)
 
     # we expect the anchors, regression and classification values as first output
-    anchors        = model.outputs[0]
-    regression     = model.outputs[1]
-    classification = model.outputs[2]
+    regression     = model.outputs[0]
+    classification = model.outputs[1]
 
     # "other" can be any additional output from custom submodels, by default this will be []
-    other = model.outputs[3:]
+    other = model.outputs[2:]
 
     # apply predicted regression to anchors
     boxes = layers.RegressBoxes(name='boxes')([anchors, regression])
-    boxes = layers.ClipBoxes(name='clipped_boxes')([inputs, boxes])
+    boxes = layers.ClipBoxes(name='clipped_boxes')([model.inputs[0], boxes])
 
-    # construct list of outputs
-    outputs = [regression, classification] + other + [boxes]
+    # filter detections (apply NMS / score threshold / select top-k)
+    detections = layers.FilterDetections(nms=nms, name='filtered_detections')([boxes, classification] + other)
 
-    # optionally apply non maximum suppression
-    if nms:
-        nms_classification  = layers.NonMaximumSuppression(name='nms')([boxes, classification])
-        outputs            += [nms_classification]
+    outputs = detections
 
     # construct the model
-    return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
+    return keras.models.Model(inputs=model.inputs, outputs=outputs, name=name)

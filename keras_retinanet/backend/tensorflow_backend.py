@@ -18,6 +18,18 @@ import tensorflow
 import keras
 
 
+def map_fn(*args, **kwargs):
+    return tensorflow.map_fn(*args, **kwargs)
+
+
+def pad(*args, **kwargs):
+    return tensorflow.pad(*args, **kwargs)
+
+
+def top_k(*args, **kwargs):
+    return tensorflow.nn.top_k(*args, **kwargs)
+
+
 def clip_by_value(*args, **kwargs):
     return tensorflow.clip_by_value(*args, **kwargs)
 
