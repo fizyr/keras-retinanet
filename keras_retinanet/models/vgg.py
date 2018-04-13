@@ -17,7 +17,7 @@ limitations under the License.
 
 import keras
 
-from ..models import retinanet
+from . import retinanet
 
 
 custom_objects = retinanet.custom_objects
@@ -68,4 +68,4 @@ def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **k
     # create the full model
     layer_names = ["block3_pool", "block4_pool", "block5_pool"]
     layer_outputs = [vgg.get_layer(name).output for name in layer_names]
-    return retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=layer_outputs, **kwargs)
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=layer_outputs, **kwargs)

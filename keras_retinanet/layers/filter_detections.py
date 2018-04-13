@@ -18,20 +18,21 @@ import keras
 from .. import backend
 
 
-def nms(boxes, classification, other=[], score_threshold=0.05, max_detections=300, nms_threshold=0.5):
-    """ Run non maximum suppression using the boxes and classification values.
+def filter_detections(boxes, classification, other=[], nms=True, score_threshold=0.05, max_detections=300, nms_threshold=0.5):
+    """ Filter detections using the boxes and classification values.
 
     Args
         boxes           : Tensor of shape (num_boxes, 4) containing the boxes in (x1, y1, x2, y2) format.
         classification  : Tensor of shape (num_boxes, num_classes) containing the classification scores.
         other           : List of tensors of shape (num_boxes, ...) to filter along with the boxes and classification scores.
+        nms             : Flag to enable/disable non maximum suppression.
         score_threshold : Threshold used to prefilter the boxes with.
         max_detections  : Maximum number of detections to filter.
         nms_threshold   : Threshold for the IoU value to determine when a box should be suppressed.
 
     Returns
         A list of [boxes, scores, labels, other[0], other[1], ...].
-        boxes is shaped (max_detections, 4) and contains the (x1, y1, x2, y2) boxes of the non-suppressed boxes.
+        boxes is shaped (max_detections, 4) and contains the (x1, y1, x2, y2) of the non-suppressed boxes.
         scores is shaped (max_detections,) and contains the scores of the predicted class.
         labels is shaped (max_detections,) and contains the predicted label.
         other[i] is shaped (max_detections, ...) and contains the filtered other[i] data.
@@ -42,31 +43,34 @@ def nms(boxes, classification, other=[], score_threshold=0.05, max_detections=30
     all_labels = []
     all_other  = []
 
-    # perform per class NMS
+    # perform per class filtering
     for c in range(int(classification.shape[1])):
-        nms_scores = classification[:, c]
+        scores = classification[:, c]
 
         # threshold based on score
-        score_indices = backend.where(keras.backend.greater(nms_scores, score_threshold))
-        score_indices = keras.backend.cast(score_indices, 'int32')
-        nms_boxes     = backend.gather_nd(boxes, score_indices)
-        nms_scores    = keras.backend.gather(nms_scores, score_indices)[:, 0]
-        nms_other     = [backend.gather_nd(o, score_indices) for o in other]
+        score_indices   = backend.where(keras.backend.greater(scores, score_threshold))
+        score_indices   = keras.backend.cast(score_indices, 'int32')
+        filtered_boxes  = backend.gather_nd(boxes, score_indices)
+        filtered_scores = keras.backend.gather(scores, score_indices)[:, 0]
+        filtered_other  = [backend.gather_nd(o, score_indices) for o in other]
 
-        # perform NMS
-        nms_indices = backend.non_max_suppression(nms_boxes, nms_scores, max_output_size=max_detections, iou_threshold=nms_threshold)
+        if nms:
+            # perform NMS
+            nms_indices = backend.non_max_suppression(filtered_boxes, filtered_scores, max_output_size=max_detections, iou_threshold=nms_threshold)
 
-        # filter NMS detections
-        nms_boxes  = keras.backend.gather(nms_boxes, nms_indices)
-        nms_scores = keras.backend.gather(nms_scores, nms_indices)
-        nms_labels = c * keras.backend.ones((keras.backend.shape(nms_indices)[0],), dtype='int32')
-        nms_other  = [keras.backend.gather(o, nms_indices) for o in nms_other]
+            # filter NMS detections
+            filtered_boxes  = keras.backend.gather(filtered_boxes, nms_indices)
+            filtered_scores = keras.backend.gather(filtered_scores, nms_indices)
+            filtered_other  = [keras.backend.gather(o, nms_indices) for o in filtered_other]
+
+        # labels is a vector of the current class label
+        filtered_labels = c * keras.backend.ones((keras.backend.shape(filtered_scores)[0],), dtype='int32')
 
         # append to lists
-        all_boxes.append(nms_boxes)
-        all_scores.append(nms_scores)
-        all_labels.append(nms_labels)
-        all_other.append(nms_other)
+        all_boxes.append(filtered_boxes)
+        all_scores.append(filtered_scores)
+        all_labels.append(filtered_labels)
+        all_other.append(filtered_other)
 
     # concatenate outputs to single tensors
     boxes  = keras.backend.concatenate(all_boxes, axis=0)
@@ -91,28 +95,31 @@ def nms(boxes, classification, other=[], score_threshold=0.05, max_detections=30
     return [boxes, scores, labels] + other
 
 
-class NonMaximumSuppression(keras.layers.Layer):
+class FilterDetections(keras.layers.Layer):
     def __init__(
         self,
+        nms                 = True,
         nms_threshold       = 0.5,
         score_threshold     = 0.05,
         max_detections      = 300,
         parallel_iterations = 32,
         **kwargs
     ):
-        """ Non maximum suppression layer.
+        """ Filters detections using score threshold, NMS and selecting the top-k detections.
 
         Args
+            nms                 : Flag to enable/disable NMS.
             nms_threshold       : Threshold for the IoU value to determine when a box should be suppressed.
             score_threshold     : Threshold used to prefilter the boxes with.
-            max_detections      : Maximum number of detections to filter.
+            max_detections      : Maximum number of detections to keep.
             parallel_iterations : Number of batch items to process in parallel.
         """
+        self.nms                 = nms
         self.nms_threshold       = nms_threshold
         self.score_threshold     = score_threshold
         self.max_detections      = max_detections
         self.parallel_iterations = parallel_iterations
-        super(NonMaximumSuppression, self).__init__(**kwargs)
+        super(FilterDetections, self).__init__(**kwargs)
 
     def call(self, inputs, **kwargs):
         """ Constructs the NMS graph.
@@ -125,29 +132,30 @@ class NonMaximumSuppression(keras.layers.Layer):
         other          = inputs[2:]
 
         # wrap nms with our parameters
-        def _nms(args):
+        def _filter_detections(args):
             boxes          = args[0]
             classification = args[1]
             other          = args[2]
 
-            return nms(
+            return filter_detections(
                 boxes,
                 classification,
                 other,
+                nms=self.nms,
                 score_threshold=self.score_threshold,
                 max_detections=self.max_detections,
                 nms_threshold=self.nms_threshold,
             )
 
-        # call nms on each batch
-        nms_outputs = backend.map_fn(
-            _nms,
+        # call filter_detections on each batch
+        outputs = backend.map_fn(
+            _filter_detections,
             elems=[boxes, classification, other],
             dtype=[keras.backend.floatx(), keras.backend.floatx(), 'int32'] + [o.dtype for o in other],
             parallel_iterations=self.parallel_iterations
         )
 
-        return nms_outputs
+        return outputs
 
     def compute_output_shape(self, input_shape):
         """ Computes the output shapes given the input shapes.
@@ -157,7 +165,7 @@ class NonMaximumSuppression(keras.layers.Layer):
 
         Returns
             List of tuples representing the output shapes:
-            [nms_boxes.shape, nms_scores.shape, nms_labels.shape, nms_other[0].shape, nms_other[1].shape, ...]
+            [filtered_boxes.shape, filtered_scores.shape, filtered_labels.shape, filtered_other[0].shape, filtered_other[1].shape, ...]
         """
         return [
             (input_shape[0][0], self.max_detections, 4),
@@ -178,8 +186,9 @@ class NonMaximumSuppression(keras.layers.Layer):
         Returns
             Dictionary containing the parameters of this layer.
         """
-        config = super(NonMaximumSuppression, self).get_config()
+        config = super(FilterDetections, self).get_config()
         config.update({
+            'nms'                 : self.nms,
             'nms_threshold'       : self.nms_threshold,
             'score_threshold'     : self.score_threshold,
             'max_detections'      : self.max_detections,

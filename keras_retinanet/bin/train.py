@@ -34,18 +34,20 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
-from .. import losses
 from .. import layers
+from .. import losses
+from .. import models
 from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
-from ..preprocessing.pascal_voc import PascalVocGenerator
+from ..models.retinanet import retinanet_bbox
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
-from ..utils.transform import random_transform_generator
-from ..utils.keras_version import check_keras_version
+from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback, anchor_targets_bbox
+from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
+from ..utils.transform import random_transform_generator
 
 
 def makedirs(path):
@@ -78,19 +80,14 @@ def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, nms=False, modifier=modifier), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
-
-        # append NMS for prediction only
-        classification   = model.outputs[1]
-        detections       = model.outputs[2]
-        boxes            = keras.layers.Lambda(lambda x: x[:, :, :4])(detections)
-        detections       = layers.NonMaximumSuppression(name='nms')([boxes, classification, detections])
-        prediction_model = keras.models.Model(inputs=model.inputs, outputs=model.outputs[:2] + [detections])
     else:
-        model            = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, nms=True, modifier=modifier), weights=weights, skip_mismatch=True)
-        training_model   = model
-        prediction_model = model
+        model          = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, modifier=modifier), weights=weights, skip_mismatch=True)
+        training_model = model
+
+    # make prediction model
+    prediction_model = retinanet_bbox(model=model)
 
     # compile model
     training_model.compile(
@@ -107,7 +104,7 @@ def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=
 def create_callbacks(model, training_model, prediction_model, validation_generator, args):
     callbacks = []
 
-    # save the prediction model
+    # save the model
     if args.snapshots:
         # ensure directory created first; otherwise h5py will error after epoch.
         makedirs(args.snapshot_path)
@@ -118,7 +115,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             ),
             verbose=1
         )
-        checkpoint = RedirectModel(checkpoint, prediction_model)
+        checkpoint = RedirectModel(checkpoint, model)
         callbacks.append(checkpoint)
 
     tensorboard_callback = None

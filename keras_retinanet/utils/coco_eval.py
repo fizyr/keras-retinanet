@@ -34,17 +34,17 @@ def evaluate_coco(generator, model, threshold=0.05):
         image, scale = generator.resize_image(image)
 
         # run network
-        _, _, nms_boxes, nms_scores, nms_labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+        boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
 
         # correct boxes for image scale
-        nms_boxes /= scale
+        boxes /= scale
 
         # change to (x, y, w, h) (MS COCO standard)
-        nms_boxes[:, :, 2] -= nms_boxes[:, :, 0]
-        nms_boxes[:, :, 3] -= nms_boxes[:, :, 1]
+        boxes[:, :, 2] -= boxes[:, :, 0]
+        boxes[:, :, 3] -= boxes[:, :, 1]
 
         # compute predicted labels and scores
-        for box, score, label in zip(nms_boxes[0], nms_scores[0], nms_labels[0]):
+        for box, score, label in zip(boxes[0], scores[0], labels[0]):
             # scores are sorted, so we can break
             if score < threshold:
                 break

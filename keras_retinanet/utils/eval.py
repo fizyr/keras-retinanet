@@ -78,24 +78,24 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image, scale = generator.resize_image(image)
 
         # run network
-        _, _, nms_boxes, nms_scores, nms_labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+        boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
 
         # correct boxes for image scale
-        nms_boxes /= scale
+        boxes /= scale
 
         # select indices which have a score above the threshold
-        indices = np.where(nms_scores[0, :] > score_threshold)[0]
+        indices = np.where(scores[0, :] > score_threshold)[0]
 
         # select those scores
-        scores = nms_scores[0][indices]
+        scores = scores[0][indices]
 
         # find the order with which to sort the scores
         scores_sort = np.argsort(-scores)[:max_detections]
 
         # select detections
-        image_boxes      = nms_boxes[0, indices[scores_sort], :]
-        image_scores     = np.expand_dims(nms_scores[0, indices[scores_sort]], axis=1)
-        image_labels     = np.expand_dims(nms_labels[0, indices[scores_sort]], axis=1)
+        image_boxes      = boxes[0, indices[scores_sort], :]
+        image_scores     = np.expand_dims(scores[scores_sort], axis=1)
+        image_labels     = np.expand_dims(labels[0, indices[scores_sort]], axis=1)
         image_detections = np.concatenate([image_boxes, image_scores, image_labels], axis=1)
 
         if save_path is not None:
