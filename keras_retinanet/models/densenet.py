@@ -17,7 +17,7 @@ limitations under the License.
 import keras
 from keras.applications.densenet import DenseNet, get_file
 
-from ..models import retinanet
+from . import retinanet
 
 origin = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/'
 file_name = '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
@@ -75,6 +75,6 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
         densenet = modifier(densenet)
 
     # create the full model
-    model = retinanet.retinanet_bbox(inputs=inputs, num_classes=num_classes, backbone_layers=densenet.outputs, **kwargs)
+    model = retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=densenet.outputs, **kwargs)
 
     return model

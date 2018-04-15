@@ -78,35 +78,35 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image, scale = generator.resize_image(image)
 
         # run network
-        _, _, boxes, nms_classification = model.predict_on_batch(np.expand_dims(image, axis=0))
+        boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
 
         # correct boxes for image scale
         boxes /= scale
 
         # select indices which have a score above the threshold
-        indices = np.where(nms_classification[0, :, :] > score_threshold)
+        indices = np.where(scores[0, :] > score_threshold)[0]
 
         # select those scores
-        scores = nms_classification[0][indices]
+        scores = scores[0][indices]
 
         # find the order with which to sort the scores
         scores_sort = np.argsort(-scores)[:max_detections]
 
         # select detections
-        image_boxes      = boxes[0, indices[0][scores_sort], :]
-        image_scores     = np.expand_dims(nms_classification[0, indices[0][scores_sort], indices[1][scores_sort]], axis=1)
-        image_detections = np.append(image_boxes, image_scores, axis=1)
-        image_predicted_labels = indices[1][scores_sort]
+        image_boxes      = boxes[0, indices[scores_sort], :]
+        image_scores     = np.expand_dims(scores[scores_sort], axis=1)
+        image_labels     = np.expand_dims(labels[0, indices[scores_sort]], axis=1)
+        image_detections = np.concatenate([image_boxes, image_scores, image_labels], axis=1)
 
         if save_path is not None:
-            draw_annotations(raw_image, generator.load_annotations(i), generator=generator)
-            draw_detections(raw_image, boxes[0, indices[0][scores_sort], :], nms_classification[0, indices[0][scores_sort], :], generator=generator)
+            draw_annotations(raw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
+            draw_detections(raw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name)
 
             cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), raw_image)
 
         # copy detections to all_detections
         for label in range(generator.num_classes()):
-            all_detections[i][label] = image_detections[image_predicted_labels == label, :]
+            all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
 
         print('{}/{}'.format(i, generator.size()), end='\r')
 
