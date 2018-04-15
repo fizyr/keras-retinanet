@@ -36,6 +36,7 @@ from ..utils.keras_version import check_keras_version
 from ..utils.eval import evaluate
 from ..models import custom_objects as custom_objects_importer
 
+
 def get_session():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
