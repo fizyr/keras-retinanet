@@ -34,7 +34,7 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..utils.keras_version import check_keras_version
 from ..utils.eval import evaluate
-
+from ..models import custom_objects as custom_objects_importer
 
 def get_session():
     config = tf.ConfigProto()
@@ -113,18 +113,7 @@ def main(args=None):
 
     # create the generator
     generator = create_generator(args)
-
-    # load the model
-    if 'mobilenet' in args.backbone:
-        from ..models.mobilenet import custom_objects
-    elif 'resnet' in args.backbone:
-        from ..models.resnet import custom_objects
-    elif 'densenet' in args.backbone:
-        from ..models.densenet import custom_objects
-    elif 'vgg' in args.backbone:
-        from ..models.vgg import custom_objects
-    else:
-        raise NotImplementedError('Un-identified backbone. Not implemented.')
+    custom_objects = custom_objects_importer(args.backbone)
 
     # load the model
     print('Loading model, this may take a second...')
