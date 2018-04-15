@@ -34,7 +34,7 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..utils.keras_version import check_keras_version
 from ..utils.eval import evaluate
-from ..models import custom_objects as custom_objects_importer
+from ..models import custom_objects
 
 
 def get_session():
@@ -114,11 +114,10 @@ def main(args=None):
 
     # create the generator
     generator = create_generator(args)
-    custom_objects = custom_objects_importer(args.backbone)
 
     # load the model
     print('Loading model, this may take a second...')
-    model = keras.models.load_model(args.model, custom_objects=custom_objects)
+    model = keras.models.load_model(args.model, custom_objects=custom_objects(args.backbone))
 
     # print model summary
     print(model.summary())
