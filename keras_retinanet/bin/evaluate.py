@@ -88,6 +88,7 @@ def parse_args(args):
     parser.add_argument('--iou-threshold',   help='IoU Threshold to count for a positive detection (defaults to 0.5).', default=0.5, type=float)
     parser.add_argument('--max-detections',  help='Max Detections per image (defaults to 100).', default=100, type=int)
     parser.add_argument('--save-path',       help='Path for saving images with detections.')
+    parser.add_argument('--backbone', help='Backbone model used by retinanet.', default='resnet50', type=str)
 
     return parser.parse_args(args)
 
@@ -114,15 +115,14 @@ def main(args=None):
     generator = create_generator(args)
 
     # load the model
-
-    if 'mobilenet' in os.path.basename(args.model):
-        from keras_retinanet.models.mobilenet import custom_objects
-    elif 'resnet' in os.path.basename(args.model):
-        from keras_retinanet.models.resnet import custom_objects
-    elif 'densenet' in os.path.basename(args.model):
-        from keras_retinanet.models.densenet import custom_objects
-    elif 'vgg' in os.path.basename(args.model):
-        from keras_retinanet.models.vgg import custom_objects
+    if 'mobilenet' in args.backbone:
+        from ..models.mobilenet import custom_objects
+    elif 'resnet' in args.backbone:
+        from ..models.resnet import custom_objects
+    elif 'densenet' in args.backbone:
+        from ..models.densenet import custom_objects
+    elif 'vgg' in args.backbone:
+        from ..models.vgg import custom_objects
     else:
         raise NotImplementedError('Un-identified backbone. Not implemented.')
 
