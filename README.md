@@ -24,8 +24,8 @@ Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`), scores is s
 
 Loading models can be done in the following manner:
 ```python
-from keras_retinanet.models import custom_objects
-model = keras.models.load_model('/path/to/model.h5', custom_objects=custom_objects('resnet50'))
+from keras_retinanet.models import load_model
+model = load_model('/path/to/model.h5', backbone='resnet50')
 ```
 
 Execution time on NVIDIA Pascal Titan X is roughly 75msec for an image of shape `1000x800x3`.
@@ -40,6 +40,8 @@ keras_retinanet/bin/convert_model.py /path/to/training/model.h5 /path/to/save/in
 # Using the installed script:
 retinanet-convert-model /path/to/training/model.h5 /path/to/save/inference/model.h5
 ```
+
+Most scripts (like `retinanet-evaluate` and `retinanet-evaluate-coco`) also support converting on the fly, using the `--convert-model` argument.
 
 
 ## Training
