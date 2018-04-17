@@ -76,13 +76,13 @@ def filter_detections(boxes, classification, other=[], nms=True, score_threshold
     boxes  = keras.backend.concatenate(all_boxes, axis=0)
     scores = keras.backend.concatenate(all_scores, axis=0)
     labels = keras.backend.concatenate(all_labels, axis=0)
-    other  = [keras.backend.concatenate([o[i] for o in all_other], axis=0) for i in range(len(other))]
+    other_ = [keras.backend.concatenate([o[i] for o in all_other], axis=0) for i in range(len(other))]
 
     # select top k
     scores, top_indices = backend.top_k(scores, k=keras.backend.minimum(max_detections, keras.backend.shape(scores)[0]))
     boxes               = keras.backend.gather(boxes, top_indices)
     labels              = keras.backend.gather(labels, top_indices)
-    other               = [keras.backend.gather(o, top_indices) for o in other]
+    other_              = [keras.backend.gather(o, top_indices) for o in other_]
 
     # zero pad the outputs
     pad_size = keras.backend.maximum(0, max_detections - keras.backend.shape(scores)[0])
@@ -90,9 +90,16 @@ def filter_detections(boxes, classification, other=[], nms=True, score_threshold
     scores   = backend.pad(scores, [[0, pad_size]], constant_values=-1)
     labels   = backend.pad(labels, [[0, pad_size]], constant_values=-1)
     labels   = keras.backend.cast(labels, 'int32')
-    other    = [backend.pad(o, [[0, pad_size]] + [[0, 0] for _ in range(1, len(o.shape))], constant_values=-1) for o in other]
+    other_   = [backend.pad(o, [[0, pad_size]] + [[0, 0] for _ in range(1, len(o.shape))], constant_values=-1) for o in other_]
 
-    return [boxes, scores, labels] + other
+    # set shapes, since we know what they are
+    boxes.set_shape([max_detections, 4])
+    scores.set_shape([max_detections])
+    labels.set_shape([max_detections])
+    for o, s in zip(other_, [list(keras.backend.int_shape(o)) for o in other]):
+        o.set_shape([max_detections] + s[1:])
+
+    return [boxes, scores, labels] + other_
 
 
 class FilterDetections(keras.layers.Layer):
