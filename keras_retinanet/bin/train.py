@@ -387,7 +387,7 @@ def main(args=None):
     # create the model
     if args.snapshot is not None:
         print('Loading model, this may take a second...')
-        model            = keras.models.load_model(args.snapshot, custom_objects=models.custom_objects(args.backbone))
+        model            = models.load_model(args.snapshot, backbone=args.backbone)
         training_model   = model
         prediction_model = model
     else:
