@@ -1,3 +1,33 @@
+import keras.models
+from .retinanet import retinanet_bbox
+
+
+def load_model(filepath, backbone='resnet50', convert=False, nms=True):
+    """ Loads a retinanet model using the correct custom objects.
+
+    # Arguments
+        filepath: one of the following:
+            - string, path to the saved model, or
+            - h5py.File object from which to load the model
+        backbone: Backbone with which the model was trained.
+        convert: Boolean, whether to convert the model to an inference model.
+        nms: Boolean, whether to add NMS filtering to the converted model. Only valid if convert=True.
+
+    # Returns
+        A keras.models.Model object.
+
+    # Raises
+        ImportError: if h5py is not available.
+        ValueError: In case of an invalid savefile.
+    """
+
+    model = keras.models.load_model(filepath, custom_objects=custom_objects(backbone))
+    if convert:
+        model = retinanet_bbox(model=model, nms=nms)
+
+    return model
+
+
 def custom_objects(backbone):
     if 'resnet' in backbone:
         from .resnet import custom_objects as co

@@ -19,7 +19,6 @@ limitations under the License.
 import argparse
 import os
 import sys
-import keras.models
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -48,12 +47,11 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # load existing (training) model
-    model = keras.models.load_model(args.model_in, custom_objects=models.custom_objects(args.backbone))
+    # load and convert model
+    model = models.load_model(args.model_in, convert=True, backbone=args.bacbone, nms=args.nms)
 
-    # wrap it with bbox layers
-    inference_model = models.retinanet.retinanet_bbox(model=model, nms=args.nms)
-    inference_model.save(args.model_out)
+    # save model
+    model.save(args.model_out)
 
 
 if __name__ == '__main__':
