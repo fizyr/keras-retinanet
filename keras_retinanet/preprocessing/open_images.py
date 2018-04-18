@@ -146,9 +146,7 @@ class OpenImagesGenerator(Generator):
         if labels_filter is not None:
             self.id_to_labels, self.annotations = self.__filter_data(labels_filter, fixed_labels)
 
-        self.id_to_image_id = dict()
-        for i, k in enumerate(self.annotations):
-            self.id_to_image_id[i] = k
+        self.id_to_image_id = dict([(i, k) for i, k in enumerate(self.annotations)])
 
         super(OpenImagesGenerator, self).__init__(**kwargs)
 
