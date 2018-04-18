@@ -38,51 +38,43 @@ def filter_detections(boxes, classification, other=[], nms=True, score_threshold
         other[i] is shaped (max_detections, ...) and contains the filtered other[i] data.
         In case there are less than max_detections detections, the tensors are padded with -1's.
     """
-    all_boxes  = []
-    all_scores = []
-    all_labels = []
-    all_other  = []
+    all_indices = []
 
     # perform per class filtering
     for c in range(int(classification.shape[1])):
         scores = classification[:, c]
 
         # threshold based on score
-        score_indices   = backend.where(keras.backend.greater(scores, score_threshold))
-        score_indices   = keras.backend.cast(score_indices, 'int32')
-        filtered_boxes  = backend.gather_nd(boxes, score_indices)
-        filtered_scores = keras.backend.gather(scores, score_indices)[:, 0]
-        filtered_other  = [backend.gather_nd(o, score_indices) for o in other]
+        indices = backend.where(keras.backend.greater(scores, score_threshold))
 
         if nms:
+            filtered_boxes  = backend.gather_nd(boxes, indices)
+            filtered_scores = keras.backend.gather(scores, indices)[:, 0]
+
             # perform NMS
             nms_indices = backend.non_max_suppression(filtered_boxes, filtered_scores, max_output_size=max_detections, iou_threshold=nms_threshold)
 
-            # filter NMS detections
-            filtered_boxes  = keras.backend.gather(filtered_boxes, nms_indices)
-            filtered_scores = keras.backend.gather(filtered_scores, nms_indices)
-            filtered_other  = [keras.backend.gather(o, nms_indices) for o in filtered_other]
+            # filter indices based on NMS
+            indices = keras.backend.gather(indices, nms_indices)
 
-        # labels is a vector of the current class label
-        filtered_labels = c * keras.backend.ones((keras.backend.shape(filtered_scores)[0],), dtype='int32')
+        # add indices to list of all indices
+        labels  = c * keras.backend.ones((keras.backend.shape(indices)[0],), dtype='int64')
+        indices = keras.backend.stack([indices[:, 0], labels], axis=1)
+        all_indices.append(indices)
 
-        # append to lists
-        all_boxes.append(filtered_boxes)
-        all_scores.append(filtered_scores)
-        all_labels.append(filtered_labels)
-        all_other.append(filtered_other)
-
-    # concatenate outputs to single tensors
-    boxes  = keras.backend.concatenate(all_boxes, axis=0)
-    scores = keras.backend.concatenate(all_scores, axis=0)
-    labels = keras.backend.concatenate(all_labels, axis=0)
-    other_ = [keras.backend.concatenate([o[i] for o in all_other], axis=0) for i in range(len(other))]
+    # concatenate indices to single tensor
+    indices = keras.backend.concatenate(all_indices, axis=0)
 
     # select top k
+    scores              = backend.gather_nd(classification, indices)
+    labels              = indices[:, 1]
     scores, top_indices = backend.top_k(scores, k=keras.backend.minimum(max_detections, keras.backend.shape(scores)[0]))
-    boxes               = keras.backend.gather(boxes, top_indices)
+
+    # filter input using the final set of indices
+    indices             = keras.backend.gather(indices[:, 0], top_indices)
+    boxes               = keras.backend.gather(boxes, indices)
     labels              = keras.backend.gather(labels, top_indices)
-    other_              = [keras.backend.gather(o, top_indices) for o in other_]
+    other_              = [keras.backend.gather(o, indices) for o in other]
 
     # zero pad the outputs
     pad_size = keras.backend.maximum(0, max_detections - keras.backend.shape(scores)[0])
