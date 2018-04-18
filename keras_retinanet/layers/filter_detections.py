@@ -179,7 +179,7 @@ class FilterDetections(keras.layers.Layer):
             (input_shape[1][0], self.max_detections),
             (input_shape[1][0], self.max_detections),
         ] + [
-            tuple([input_shape[i][0], self.max_detections] + input_shape[i][2:]) for i in range(2, len(input_shape))
+            tuple([input_shape[i][0], self.max_detections] + list(input_shape[i][2:])) for i in range(2, len(input_shape))
         ]
 
     def compute_mask(self, inputs, mask=None):
