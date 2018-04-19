@@ -201,7 +201,7 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     if mean is None:
         mean = np.array([0, 0, 0, 0])
     if std is None:
-        std = np.array([0.1, 0.1, 0.2, 0.2])
+        std = np.array([0.2, 0.2, 0.2, 0.2])
 
     if isinstance(mean, (list, tuple)):
         mean = np.array(mean)
@@ -215,24 +215,13 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
 
     anchor_widths  = anchors[:, 2] - anchors[:, 0]
     anchor_heights = anchors[:, 3] - anchors[:, 1]
-    anchor_ctr_x   = anchors[:, 0] + 0.5 * anchor_widths
-    anchor_ctr_y   = anchors[:, 1] + 0.5 * anchor_heights
 
-    gt_widths  = gt_boxes[:, 2] - gt_boxes[:, 0]
-    gt_heights = gt_boxes[:, 3] - gt_boxes[:, 1]
-    gt_ctr_x   = gt_boxes[:, 0] + 0.5 * gt_widths
-    gt_ctr_y   = gt_boxes[:, 1] + 0.5 * gt_heights
+    targets_dx1 = (gt_boxes[:, 0] - anchors[:, 0]) / anchor_widths
+    targets_dy1 = (gt_boxes[:, 1] - anchors[:, 1]) / anchor_heights
+    targets_dx2 = (gt_boxes[:, 2] - anchors[:, 2]) / anchor_widths
+    targets_dy2 = (gt_boxes[:, 3] - anchors[:, 3]) / anchor_heights
 
-    # clip widths to 1
-    gt_widths  = np.maximum(gt_widths, 1)
-    gt_heights = np.maximum(gt_heights, 1)
-
-    targets_dx = (gt_ctr_x - anchor_ctr_x) / anchor_widths
-    targets_dy = (gt_ctr_y - anchor_ctr_y) / anchor_heights
-    targets_dw = np.log(gt_widths / anchor_widths)
-    targets_dh = np.log(gt_heights / anchor_heights)
-
-    targets = np.stack((targets_dx, targets_dy, targets_dw, targets_dh))
+    targets = np.stack((targets_dx1, targets_dy1, targets_dx2, targets_dy2))
     targets = targets.T
 
     targets = (targets - mean) / std

@@ -90,7 +90,7 @@ class RegressBoxes(keras.layers.Layer):
         if mean is None:
             mean = np.array([0, 0, 0, 0])
         if std is None:
-            std = np.array([0.1, 0.1, 0.2, 0.2])
+            std = np.array([0.2, 0.2, 0.2, 0.2])
 
         if isinstance(mean, (list, tuple)):
             mean = np.array(mean)
