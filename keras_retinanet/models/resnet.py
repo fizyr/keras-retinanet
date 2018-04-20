@@ -20,46 +20,53 @@ import keras
 import keras_resnet
 import keras_resnet.models
 from . import retinanet
-
-resnet_filename = 'ResNet-{}-model.keras.h5'
-resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
-
-custom_objects = retinanet.custom_objects.copy()
-custom_objects.update(keras_resnet.custom_objects)
-
-allowed_backbones = ['resnet50', 'resnet101', 'resnet152']
+from . import Backbone
 
 
-def download_imagenet(backbone):
-    validate_backbone(backbone)
+class ResNetBackbone(Backbone):
+    def __init__(self, backbone):
+        super(ResNetBackbone, self).__init__(backbone)
+        self.custom_objects.update(keras_resnet.custom_objects)
 
-    backbone = int(backbone.replace('resnet', ''))
+    def retinanet(self, *args, **kwargs):
+        """ Returns a retinanet model using the correct backbone.
+        """
+        return resnet_retinanet(*args, backbone=self.backbone, **kwargs)
 
-    filename = resnet_filename.format(backbone)
-    resource = resnet_resource.format(backbone)
-    if backbone == 50:
-        checksum = '3e9f4e4f77bbe2c9bec13b53ee1c2319'
-    elif backbone == 101:
-        checksum = '05dc86924389e5b401a9ea0348a3213c'
-    elif backbone == 152:
-        checksum = '6ee11ef2b135592f8031058820bb9e71'
+    def download_imagenet(self):
+        """ Downloads ImageNet weights and returns path to weights file.
+        """
+        resnet_filename = 'ResNet-{}-model.keras.h5'
+        resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
+        depth = int(backbone.replace('resnet', ''))
 
-    return keras.applications.imagenet_utils.get_file(
-        filename,
-        resource,
-        cache_subdir='models',
-        md5_hash=checksum
-    )
+        filename = resnet_filename.format(depth)
+        resource = resnet_resource.format(depth)
+        if depth == 50:
+            checksum = '3e9f4e4f77bbe2c9bec13b53ee1c2319'
+        elif depth == 101:
+            checksum = '05dc86924389e5b401a9ea0348a3213c'
+        elif depth == 152:
+            checksum = '6ee11ef2b135592f8031058820bb9e71'
 
+        return keras.applications.imagenet_utils.get_file(
+            filename,
+            resource,
+            cache_subdir='models',
+            md5_hash=checksum
+        )
 
-def validate_backbone(backbone):
-    if backbone not in allowed_backbones:
-        raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
+    def validate(self):
+        """ Checks whether the backbone string is correct.
+        """
+        allowed_backbones = ['resnet50', 'resnet101', 'resnet152']
+        backbone = self.backbone.split('_')[0]
+
+        if backbone not in allowed_backbones:
+            raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
 def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, **kwargs):
-    validate_backbone(backbone)
-
     # choose default input
     if inputs is None:
         inputs = keras.layers.Input(shape=(None, None, 3))
@@ -71,6 +78,8 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
         resnet = keras_resnet.models.ResNet101(inputs, include_top=False, freeze_bn=True)
     elif backbone == 'resnet152':
         resnet = keras_resnet.models.ResNet152(inputs, include_top=False, freeze_bn=True)
+    else:
+        raise ValueError('Backbone (\'{}\') is invalid.'.format(backbone))
 
     # invoke modifier if given
     if modifier:
@@ -90,18 +99,3 @@ def resnet101_retinanet(num_classes, inputs=None, **kwargs):
 
 def resnet152_retinanet(num_classes, inputs=None, **kwargs):
     return resnet_retinanet(num_classes=num_classes, backbone='resnet152', inputs=inputs, **kwargs)
-
-
-def ResNet50RetinaNet(inputs, num_classes, **kwargs):
-    warnings.warn("ResNet50RetinaNet is replaced by resnet50_retinanet and will be removed in a future release.")
-    return resnet50_retinanet(num_classes, inputs, *args, **kwargs)
-
-
-def ResNet101RetinaNet(inputs, num_classes, **kwargs):
-    warnings.warn("ResNet101RetinaNet is replaced by resnet101_retinanet and will be removed in a future release.")
-    return resnet101_retinanet(num_classes, inputs, *args, **kwargs)
-
-
-def ResNet152RetinaNet(inputs, num_classes, **kwargs):
-    warnings.warn("ResNet152RetinaNet is replaced by resnet152_retinanet and will be removed in a future release.")
-    return resnet152_retinanet(num_classes, inputs, *args, **kwargs)

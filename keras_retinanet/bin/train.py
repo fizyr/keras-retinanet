@@ -80,10 +80,10 @@ def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, modifier=modifier), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
-        model          = model_with_weights(backbone_retinanet(num_classes, backbone=backbone, modifier=modifier), weights=weights, skip_mismatch=True)
+        model          = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = model
 
     # make prediction model
@@ -308,8 +308,6 @@ def check_args(parsed_args):
     if 'resnet' not in parsed_args.backbone:
         warnings.warn('Using experimental backbone {}. Only resnet50 has been properly tested.'.format(parsed_args.backbone))
 
-    models.validate_backbone(parsed_args.backbone)
-
     return parsed_args
 
 
@@ -373,6 +371,9 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
+    # create object that stores meta information on the backbone
+    backbone_meta = models.backbone_meta(args.backbone)
+
     # make sure keras is the minimum required version
     check_keras_version()
 
@@ -394,11 +395,11 @@ def main(args=None):
         weights = args.weights
         # default to imagenet if nothing else is specified
         if weights is None and args.imagenet_weights:
-            weights = models.download_imagenet(args.backbone)
+            weights = backbone_meta.download_imagenet(args.backbone)
 
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
-            backbone_retinanet=models.retinanet_backbone(args.backbone),
+            backbone_retinanet=backbone_meta.retinanet,
             backbone=args.backbone,
             num_classes=train_generator.num_classes(),
             weights=weights,

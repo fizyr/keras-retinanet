@@ -18,42 +18,41 @@ import keras
 from keras.applications.densenet import DenseNet, get_file
 
 from . import retinanet
-
-origin = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/'
-file_name = '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
-
-custom_objects = retinanet.custom_objects
+from . import Backbone
 
 allowed_backbones = {'densenet121': [6, 12, 24, 16], 'densenet169': [6, 12, 32, 32], 'densenet201': [6, 12, 48, 32]}
 
 
-def download_imagenet(backbone):
-    """ Download pre-trained weights for the specified backbone name. This name is in the format
-        {backbone}_weights_tf_dim_ordering_tf_kernels_notop where backbone is the densenet + number of layers (e.g. densenet121).
+class DenseNetBackbone(Backbone):
+    def retinanet(self, *args, **kwargs):
+        """ Returns a retinanet model using the correct backbone.
+        """
+        return densenet_retinanet(*args, backbone=self.backbone, **kwargs)
+
+    def download_imagenet(self):
+        """ Download pre-trained weights for the specified backbone name.
+        This name is in the format {backbone}_weights_tf_dim_ordering_tf_kernels_notop
+        where backbone is the densenet + number of layers (e.g. densenet121).
         For more info check the explanation from the keras densenet script itself:
-        https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py
-    # Arguments
-        backbone    : Backbone name.
-    """
+            https://github.com/keras-team/keras/blob/master/keras/applications/densenet.py
+        """
+        origin    = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.8/'
+        file_name = '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
-    # load weights
-    if keras.backend.image_data_format() == 'channels_first':
-        raise ValueError('Weights for "channels_first" format are not available.')
+        # load weights
+        if keras.backend.image_data_format() == 'channels_first':
+            raise ValueError('Weights for "channels_first" format are not available.')
 
-    weights_url = origin + file_name.format(backbone)
-    weights_path = get_file(file_name.format(backbone), weights_url, cache_subdir='models')
+        weights_url = origin + file_name.format(self.backbone)
+        return get_file(file_name.format(self.backbone), weights_url, cache_subdir='models')
 
-    return weights_path
+    def validate(self):
+        """ Checks whether the backbone string is correct.
+        """
+        backbone = self.backbone.split('_')[0]
 
-
-def validate_backbone(backbone):
-    """ Validate the backbone choice.
-    # Arguments
-        backbone    : Backbone name.
-    """
-
-    if backbone not in allowed_backbones:
-        raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, list(allowed_backbones.keys())))
+        if backbone not in allowed_backbones:
+            raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones.keys()))
 
 
 def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifier=None, **kwargs):
