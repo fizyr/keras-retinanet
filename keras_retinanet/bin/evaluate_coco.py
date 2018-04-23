@@ -44,7 +44,7 @@ def get_session():
 
 
 def parse_args(args):
-    parser = argparse.ArgumentParser(description='Simple training script for COCO object detection.')
+    parser = argparse.ArgumentParser(description='Simple evaluation script for COCO object detection.')
     parser.add_argument('model',             help='Path to RetinaNet model.')
     parser.add_argument('coco_path',         help='Path to COCO directory (ie. /tmp/COCO).')
     parser.add_argument('--convert-model',   help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
