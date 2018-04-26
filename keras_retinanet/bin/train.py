@@ -371,8 +371,8 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # create object that stores meta information on the backbone
-    backbone_meta = models.backbone_meta(args.backbone)
+    # create object that stores backbone information
+    backbone = models.backbone(args.backbone)
 
     # make sure keras is the minimum required version
     check_keras_version()
@@ -395,11 +395,11 @@ def main(args=None):
         weights = args.weights
         # default to imagenet if nothing else is specified
         if weights is None and args.imagenet_weights:
-            weights = backbone_meta.download_imagenet(args.backbone)
+            weights = backbone.download_imagenet(args.backbone)
 
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
-            backbone_retinanet=backbone_meta.retinanet,
+            backbone_retinanet=backbone.retinanet,
             backbone=args.backbone,
             num_classes=train_generator.num_classes(),
             weights=weights,

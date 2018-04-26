@@ -1,5 +1,5 @@
 class Backbone(object):
-    """ This class stores meta data on backbones.
+    """ This class stores additional information on backbones.
     """
     def __init__(self, backbone):
         # a dictionary mapping custom layer names to the correct classes
@@ -36,8 +36,8 @@ class Backbone(object):
         raise NotImplementedError('validate method not implemented.')
 
 
-def backbone_meta(backbone):
-    """ Returns a backbone meta object for the given backbone.
+def backbone(backbone):
+    """ Returns a backbone object for the given backbone.
     """
     if 'resnet' in backbone:
         from .resnet import ResNetBackbone as b
@@ -48,7 +48,7 @@ def backbone_meta(backbone):
     elif 'densenet' in backbone:
         from .densenet import DenseNetBackbone as b
     else:
-        raise NotImplementedError('Backbone meta class fo  \'{}\' not implemented.'.format(backbone))
+        raise NotImplementedError('Backbone class for  \'{}\' not implemented.'.format(backbone))
 
     return b(backbone)
 
@@ -73,7 +73,7 @@ def load_model(filepath, backbone='resnet50', convert=False, nms=True):
     """
     import keras.models
 
-    model = keras.models.load_model(filepath, custom_objects=backbone_meta(backbone).custom_objects)
+    model = keras.models.load_model(filepath, custom_objects=backbone(backbone).custom_objects)
     if convert:
         from .retinanet import retinanet_bbox
         model = retinanet_bbox(model=model, nms=nms)
