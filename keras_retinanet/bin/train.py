@@ -73,7 +73,7 @@ def model_with_weights(model, weights, skip_mismatch):
     return model
 
 
-def create_models(backbone_retinanet, backbone, num_classes, weights, multi_gpu=0, freeze_backbone=False):
+def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False):
     modifier = freeze_model if freeze_backbone else None
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
@@ -400,7 +400,6 @@ def main(args=None):
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
             backbone_retinanet=backbone.retinanet,
-            backbone=args.backbone,
             num_classes=train_generator.num_classes(),
             weights=weights,
             multi_gpu=args.multi_gpu,
