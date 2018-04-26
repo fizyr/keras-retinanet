@@ -395,7 +395,7 @@ def main(args=None):
         weights = args.weights
         # default to imagenet if nothing else is specified
         if weights is None and args.imagenet_weights:
-            weights = backbone.download_imagenet(args.backbone)
+            weights = backbone.download_imagenet()
 
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
