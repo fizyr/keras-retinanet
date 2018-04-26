@@ -18,35 +18,42 @@ limitations under the License.
 import keras
 
 from . import retinanet
+from . import Backbone
 
 
-custom_objects = retinanet.custom_objects
+class VGGBackbone(Backbone):
+    def retinanet(self, *args, **kwargs):
+        """ Returns a retinanet model using the correct backbone.
+        """
+        return vgg_retinanet(*args, backbone=self.backbone, **kwargs)
 
+    def download_imagenet(self):
+        """ Downloads ImageNet weights and returns path to weights file.
+        Weights can be downloaded at https://github.com/fizyr/keras-models/releases .
+        """
+        if self.backbone == 'vgg16':
+            resource = keras.applications.vgg16.WEIGHTS_PATH_NO_TOP
+            checksum = '6d6bbae143d832006294945121d1f1fc'
+        elif self.backbone == 'vgg19':
+            resource = keras.applications.vgg19.WEIGHTS_PATH_NO_TOP
+            checksum = '253f8cb515780f3b799900260a226db6'
+        else:
+            raise ValueError("Backbone '{}' not recognized.".format(self.backbone))
 
-def download_imagenet(backbone):
-    if backbone == 'vgg16':
-        resource = keras.applications.vgg16.WEIGHTS_PATH_NO_TOP
-        checksum = '6d6bbae143d832006294945121d1f1fc'
-    elif backbone == 'vgg19':
-        resource = keras.applications.vgg19.WEIGHTS_PATH_NO_TOP
-        checksum = '253f8cb515780f3b799900260a226db6'
-    else:
-        raise ValueError("Backbone '{}' not recognized.".format(backbone))
+        return keras.applications.imagenet_utils.get_file(
+            '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(self.backbone),
+            resource,
+            cache_subdir='models',
+            file_hash=checksum
+        )
 
-    weights_path = keras.applications.imagenet_utils.get_file(
-        '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(backbone),
-        resource,
-        cache_subdir='models',
-        file_hash=checksum)
+    def validate(self):
+        """ Checks whether the backbone string is correct.
+        """
+        allowed_backbones = ['vgg16', 'vgg19']
 
-    return weights_path
-
-
-def validate_backbone(backbone):
-    allowed_backbones = ['vgg16', 'vgg19']
-
-    if backbone not in allowed_backbones:
-        raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
+        if self.backbone not in allowed_backbones:
+            raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
 def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **kwargs):

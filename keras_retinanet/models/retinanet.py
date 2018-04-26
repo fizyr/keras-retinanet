@@ -17,23 +17,8 @@ limitations under the License.
 import keras
 from .. import initializers
 from .. import layers
-from .. import losses
 
 import numpy as np
-
-"""
-A dictionary mapping custom layer names to the correct classes.
-"""
-custom_objects = {
-    'UpsampleLike'     : layers.UpsampleLike,
-    'PriorProbability' : initializers.PriorProbability,
-    'RegressBoxes'     : layers.RegressBoxes,
-    'FilterDetections' : layers.FilterDetections,
-    'Anchors'          : layers.Anchors,
-    'ClipBoxes'        : layers.ClipBoxes,
-    '_smooth_l1'       : losses.smooth_l1(),
-    '_focal'           : losses.focal(),
-}
 
 
 def default_classification_model(
