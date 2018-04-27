@@ -82,7 +82,6 @@ def main(args=None):
         args.set,
         image_min_side=args.image_min_side,
         image_max_side=args.image_max_side
-        
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)
