@@ -72,7 +72,7 @@ def main(args=None):
 
     # create the model
     print('Loading model, this may take a second...')
-    model = models.load_model(args.model, backbone=args.backbone, convert=args.convert_model)
+    model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model)
 
     # create a generator for testing data
     test_generator = CocoGenerator(
