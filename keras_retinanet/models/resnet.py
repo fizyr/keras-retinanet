@@ -38,7 +38,7 @@ class ResNetBackbone(Backbone):
         """
         resnet_filename = 'ResNet-{}-model.keras.h5'
         resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
-        depth = int(backbone.replace('resnet', ''))
+        depth = int(self.backbone.replace('resnet', ''))
 
         filename = resnet_filename.format(depth)
         resource = resnet_resource.format(depth)
