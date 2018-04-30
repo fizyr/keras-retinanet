@@ -52,6 +52,8 @@ def parse_args(args):
     parser.add_argument('--gpu',             help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--set',             help='Name of the set file to evaluate (defaults to val2017).', default='val2017')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
+    parser.add_argument('--image-min-side',  help='Rescale the image so the smallest side is min_side.', type=int, default=800)
+    parser.add_argument('--image-max-side',  help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
 
     return parser.parse_args(args)
 
@@ -77,7 +79,9 @@ def main(args=None):
     # create a generator for testing data
     test_generator = CocoGenerator(
         args.coco_path,
-        args.set
+        args.set,
+        image_min_side=args.image_min_side,
+        image_max_side=args.image_max_side
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)
