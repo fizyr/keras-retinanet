@@ -34,14 +34,8 @@ def clip_by_value(*args, **kwargs):
     return tensorflow.clip_by_value(*args, **kwargs)
 
 
-def resize_images(*args, method='bilinear', **kwargs):
-    methods = {
-        'bilinear': tensorflow.image.ResizeMethod.BILINEAR,
-        'nearest' : tensorflow.image.ResizeMethod.NEAREST_NEIGHBOR,
-        'bicubic' : tensorflow.image.ResizeMethod.BICUBIC,
-        'area'    : tensorflow.image.ResizeMethod.AREA,
-    }
-    return tensorflow.image.resize_images(*args, method=methods[method], **kwargs)
+def resize_images(*args, **kwargs):
+    return tensorflow.image.resize_images(*args, **kwargs)
 
 
 def non_max_suppression(*args, **kwargs):
