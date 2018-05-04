@@ -25,7 +25,7 @@ Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`), scores is s
 Loading models can be done in the following manner:
 ```python
 from keras_retinanet.models import load_model
-model = load_model('/path/to/model.h5', backbone='resnet50')
+model = load_model('/path/to/model.h5', backbone_name='resnet50')
 ```
 
 Execution time on NVIDIA Pascal Titan X is roughly 75msec for an image of shape `1000x800x3`.
