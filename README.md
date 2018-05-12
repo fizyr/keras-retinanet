@@ -20,7 +20,7 @@ In general, inference of the network works as follows:
 boxes, scores, labels = model.predict_on_batch(inputs)
 ```
 
-Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`), scores is shaped `(None, None)` (classification score) and labels is shaped `(None, None)` (label corresponding to the score).
+Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`), scores is shaped `(None, None)` (classification score) and labels is shaped `(None, None)` (label corresponding to the score). In all three outputs, the first dimension represents the shape and the second dimension indexes the list of detections.
 
 Loading models can be done in the following manner:
 ```python
@@ -31,7 +31,7 @@ model = load_model('/path/to/model.h5', backbone_name='resnet50')
 Execution time on NVIDIA Pascal Titan X is roughly 75msec for an image of shape `1000x800x3`.
 
 ### Converting a training model to inference model
-The training procedure of `keras-retinanet` works with training models. These are stripped down versions compared to the inference model and only contains the layers necessary for training (regression and classification values). If you wish to do inference on a model (perform object detection on an image), you need to convert the trained model to an inference model. This is done as follows:
+The training procedure of `keras-retinanet` works with *training models*. These are stripped down versions compared to the *inference model* and only contains the layers necessary for training (regression and classification values). If you wish to do inference on a model (perform object detection on an image), you need to convert the trained model to an inference model. This is done as follows:
 
 ```shell
 # Running directly from the repository:
@@ -54,8 +54,8 @@ If you installed `keras-retinanet` correctly, the train script will be installed
 However, if you make local modifications to the `keras-retinanet` repository, you should run the script directly from the repository.
 That will ensure that your local changes will be used by the train script.
 
-The default backbone is 'resnet50'. You can change this using the '--backbone=xxx' argument in the running script.
-xxx can be one of the backbones in resnet models (resnet50, resnet101, resnet152), mobilenet models (mobilenet128_1.0, mobilenet128_0.75, mobilenet160_1.0, etc), densenet models or vgg models. The different options are defined by each model in their corresponding python scripts (resnet.py, mobilenet.py, etc).
+The default backbone is `resnet50`. You can change this using the `--backbone=xxx` argument in the running script.
+`xxx` can be one of the backbones in resnet models (`resnet50`, `resnet101`, `resnet152`), mobilenet models (`mobilenet128_1.0`, `mobilenet128_0.75`, `mobilenet160_1.0`, etc), densenet models or vgg models. The different options are defined by each model in their corresponding python scripts (`resnet.py`, `mobilenet.py`, etc).
 
 Trained models can't be used directly for inference. To convert a trained model to an inference model, check [here](https://github.com/fizyr/keras-retinanet#converting-a-training-model-to-inference-model).
 
@@ -78,21 +78,21 @@ keras_retinanet/bin/train.py coco /path/to/MS/COCO
 retinanet-train coco /path/to/MS/COCO
 ```
 
-The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/keras-retinanet/releases/download/0.2/resnet50_coco_best_v2.0.3.h5). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.357).
+The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/keras-retinanet/releases/download/0.2/resnet50_coco_best_v2.1.0.h5). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.357).
 
 ```
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.345
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.533
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.368
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.189
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.380
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.465
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.301
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.482
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.529
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.364
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.565
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.666
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.350                                                               
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.536                                                               
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.373                                                               
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.188                                                               
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.384                                                               
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.470                                                               
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.307                                                               
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.491                                                               
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.533                                                               
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.343                                                               
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.577                                                               
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.678
 ```
 
 For training on [OID](https://github.com/openimages/dataset), run:
