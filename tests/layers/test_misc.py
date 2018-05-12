@@ -121,7 +121,7 @@ class TestUpsampleLike(object):
 class TestRegressBoxes(object):
     def test_simple(self):
         mean = [0, 0, 0, 0]
-        std  = [0.1, 0.1, 0.2, 0.2]
+        std  = [0.2, 0.2, 0.2, 0.2]
 
         # create simple RegressBoxes layer
         regress_boxes_layer = keras_retinanet.layers.RegressBoxes(mean=mean, std=std)
@@ -147,9 +147,9 @@ class TestRegressBoxes(object):
 
         # compute expected output
         expected = np.array([[
-            [0 , 0 , 10 , 10 ],
-            [50 + (0.1 * std[0] + mean[0]) * 50, 50 + (0.1 * std[1] + mean[1]) * 50, 100 + (0.1 * std[0] + mean[0]) * 50, 100 + (0.1 * std[1] + mean[1]) * 50],
-            [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],
+            [0 , 0 , 10  , 10  ],
+            [51, 51, 100 , 100 ],
+            [20, 20, 40.4, 40.4],
         ]], dtype=keras.backend.floatx())
 
         np.testing.assert_array_almost_equal(actual, expected, decimal=2)
@@ -157,7 +157,7 @@ class TestRegressBoxes(object):
     # mark test to fail
     def test_mini_batch(self):
         mean = [0, 0, 0, 0]
-        std  = [0.1, 0.1, 0.2, 0.2]
+        std  = [0.2, 0.2, 0.2, 0.2]
 
         # create simple RegressBoxes layer
         regress_boxes_layer = keras_retinanet.layers.RegressBoxes(mean=mean, std=std)
@@ -198,14 +198,14 @@ class TestRegressBoxes(object):
         # compute expected output
         expected = np.array([
             [
-                [0 , 0 , 10 , 10 ],  # 1
-                [50.5, 50.5, 100.5, 100.5],  # 2
-                [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],  # 3
+                [0 , 0 , 10  , 10  ],  # 1
+                [51, 51, 100 , 100 ],  # 2
+                [20, 20, 40.4, 40.4],  # 3
             ],
             [
-                [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],  # 3
-                [0 , 0 , 10 , 10 ],  # 1
-                [50.5, 50.5, 100.5, 100.5],  # 2
+                [20, 20, 40.4, 40.4],  # 3
+                [0 , 0 , 10  , 10  ],  # 1
+                [51, 51, 100 , 100 ],  # 2
             ],
         ], dtype=keras.backend.floatx())
 
