@@ -26,28 +26,49 @@ from .generator import Generator
 from ..utils.image import read_image_bgr
 
 
-def get_labels(metadata_dir):
-    trainable_classes_path = os.path.join(metadata_dir, 'classes-bbox-trainable.txt')
-    description_path = os.path.join(metadata_dir, 'class-descriptions.csv')
+def get_labels(metadata_dir, version='2018_04'):
+    if version == '2018_04':
+        boxable_classes_descriptions = os.path.join(metadata_dir, 'class-descriptions-boxable.csv')
+        id_to_labels = {}
+        cls_index    = {}
 
-    description_table = {}
-    with open(description_path) as f:
-        for row in csv.reader(f):
-            # make sure the csv row is not empty (usually the last one)
-            if len(row):
-                description_table[row[0]] = row[1].replace("\"", "").replace("'", "").replace('`', '')
+        i = 0
+        with open(boxable_classes_descriptions) as f:
+            for row in csv.reader(f):
+                # make sure the csv row is not empty (usually the last one)
+                if len(row):
+                    label       = row[0]
+                    description = row[1].replace("\"", "").replace("'", "").replace('`', '')
 
-    with open(trainable_classes_path, 'rb') as f:
-        trainable_classes = f.read().split('\n')
+                    id_to_labels[i]  = description
+                    cls_index[label] = i
 
-    id_to_labels = dict([(i, description_table[c]) for i, c in enumerate(trainable_classes)])
-    cls_index = dict([(c, i) for i, c in enumerate(trainable_classes)])
+                    i += 1
+    else:
+        trainable_classes_path = os.path.join(metadata_dir, 'classes-bbox-trainable.txt')
+        description_path = os.path.join(metadata_dir, 'class-descriptions.csv')
+
+        description_table = {}
+        with open(description_path) as f:
+            for row in csv.reader(f):
+                # make sure the csv row is not empty (usually the last one)
+                if len(row):
+                    description_table[row[0]] = row[1].replace("\"", "").replace("'", "").replace('`', '')
+
+        with open(trainable_classes_path, 'rb') as f:
+            trainable_classes = f.read().split('\n')
+
+        id_to_labels = dict([(i, description_table[c]) for i, c in enumerate(trainable_classes)])
+        cls_index = dict([(c, i) for i, c in enumerate(trainable_classes)])
 
     return id_to_labels, cls_index
 
 
-def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index):
-    annotations_path = os.path.join(metadata_dir, subset, 'annotations-human-bbox.csv')
+def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, version='2018_04'):
+    if version == '2018_04':
+        annotations_path = os.path.join(metadata_dir, subset, '{}-annotations-bbox.csv'.format(subset))
+    else:
+        annotations_path = os.path.join(metadata_dir, subset, 'annotations-human-bbox.csv')
 
     cnt = 0
     with open(annotations_path, 'r') as csv_file:
@@ -125,22 +146,22 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index):
 
 class OpenImagesGenerator(Generator):
     def __init__(
-            self, main_dir, subset, version='2017_11',
+            self, main_dir, subset, version='2018_04',
             labels_filter=None, annotation_cache_dir='.',
             fixed_labels=False,
             **kwargs
     ):
-        self.base_dir = os.path.join(main_dir, 'images', subset)
-        metadata_dir = os.path.join(main_dir, version)
+        self.base_dir         = os.path.join(main_dir, 'images', subset)
+        metadata_dir          = os.path.join(main_dir, version)
         annotation_cache_json = os.path.join(annotation_cache_dir, subset + '.json')
 
-        self.id_to_labels, cls_index = get_labels(metadata_dir)
+        self.id_to_labels, cls_index = get_labels(metadata_dir, version=version)
 
         if os.path.exists(annotation_cache_json):
             with open(annotation_cache_json, 'r') as f:
                 self.annotations = json.loads(f.read())
         else:
-            self.annotations = generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index)
+            self.annotations = generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, version=version)
             json.dump(self.annotations, open(annotation_cache_json, "w"))
 
         if labels_filter is not None:

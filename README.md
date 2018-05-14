@@ -95,7 +95,8 @@ The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/k
  Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.681
 ```
 
-For training on [OID](https://github.com/openimages/dataset), run:
+For training on Open Images Dataset [OID](https://storage.googleapis.com/openimages/web/index.html)
+or taking place taking place to the [OID challenges](https://storage.googleapis.com/openimages/web/challenge.html), run:
 ```shell
 # Running directly from the repository:
 keras_retinanet/bin/train.py oid /path/to/OID
