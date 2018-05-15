@@ -26,8 +26,8 @@ from .generator import Generator
 from ..utils.image import read_image_bgr
 
 
-def get_labels(metadata_dir, version='2018_04'):
-    if version == '2018_04':
+def get_labels(metadata_dir, version='v4'):
+    if version == 'v4':
         boxable_classes_descriptions = os.path.join(metadata_dir, 'class-descriptions-boxable.csv')
         id_to_labels = {}
         cls_index    = {}
@@ -64,8 +64,8 @@ def get_labels(metadata_dir, version='2018_04'):
     return id_to_labels, cls_index
 
 
-def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, version='2018_04'):
-    if version == '2018_04':
+def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, version='v4'):
+    if version == 'v4':
         annotations_path = os.path.join(metadata_dir, subset, '{}-annotations-bbox.csv'.format(subset))
     else:
         annotations_path = os.path.join(metadata_dir, subset, 'annotations-human-bbox.csv')
@@ -146,13 +146,20 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, 
 
 class OpenImagesGenerator(Generator):
     def __init__(
-            self, main_dir, subset, version='2018_04',
+            self, main_dir, subset, version='v4',
             labels_filter=None, annotation_cache_dir='.',
             fixed_labels=False,
             **kwargs
     ):
+        if version == 'v4':
+            metadata = '2018_04'
+        elif version == 'v3':
+            metadata = '2017_11'
+        else:
+            raise NotImplementedError('There is currently no implementation for versions older than v3')
+
         self.base_dir         = os.path.join(main_dir, 'images', subset)
-        metadata_dir          = os.path.join(main_dir, version)
+        metadata_dir          = os.path.join(main_dir, metadata)
         annotation_cache_json = os.path.join(annotation_cache_dir, subset + '.json')
 
         self.id_to_labels, cls_index = get_labels(metadata_dir, version=version)
