@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name='keras-retinanet',
-    version='0.0.1',
+    version='0.3',
     url='https://github.com/fizyr/keras-retinanet',
     author='Hans Gaiser',
     author_email='h.gaiser@fizyr.com',
