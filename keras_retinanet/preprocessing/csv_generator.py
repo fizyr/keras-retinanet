@@ -44,6 +44,8 @@ def _parse(value, function, fmt):
 def _read_classes(csv_reader):
     result = {}
     for line, row in enumerate(csv_reader):
+        line += 1
+
         try:
             class_name, class_id = row
         except ValueError:
@@ -59,6 +61,8 @@ def _read_classes(csv_reader):
 def _read_annotations(csv_reader, classes):
     result = {}
     for line, row in enumerate(csv_reader):
+        line += 1
+
         try:
             img_file, x1, y1, x2, y2, class_name = row
         except ValueError:
