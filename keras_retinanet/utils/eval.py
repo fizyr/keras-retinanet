@@ -108,7 +108,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         for label in range(generator.num_classes()):
             all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
 
-        print('{}/{}'.format(i, generator.size()), end='\r')
+        print('{}/{}'.format(i + 1, generator.size()), end='\r')
 
     return all_detections
 
@@ -134,7 +134,7 @@ def _get_annotations(generator):
         for label in range(generator.num_classes()):
             all_annotations[i][label] = annotations[annotations[:, 4] == label, :4].copy()
 
-        print('{}/{}'.format(i, generator.size()), end='\r')
+        print('{}/{}'.format(i + 1, generator.size()), end='\r')
 
     return all_annotations
 

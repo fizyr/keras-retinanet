@@ -64,7 +64,7 @@ def evaluate_coco(generator, model, threshold=0.05):
         image_ids.append(generator.image_ids[index])
 
         # print progress
-        print('{}/{}'.format(index, generator.size()), end='\r')
+        print('{}/{}'.format(index + 1, generator.size()), end='\r')
 
     if not len(results):
         return
