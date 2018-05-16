@@ -24,11 +24,24 @@ from .transform import change_transform_origin
 
 
 def read_image_bgr(path):
+    """ Read an image in BGR format.
+
+    Args
+        path: Path to the image.
+    """
     image = np.asarray(Image.open(path).convert('RGB'))
     return image[:, :, ::-1].copy()
 
 
 def preprocess_image(x):
+    """ Preprocess an image by subtracting the ImageNet mean.
+
+    Args
+        x: np.array of shape (None, None, 3) or (3, None, None).
+
+    Returns
+        The input with the ImageNet mean subtracted.
+    """
     # mostly identical to "https://github.com/fchollet/keras/blob/master/keras/applications/imagenet_utils.py"
     # except for converting RGB -> BGR since we assume BGR already
     x = x.astype(keras.backend.floatx())
@@ -72,7 +85,7 @@ def adjust_transform_for_image(transform, image, relative_translation):
 class TransformParameters:
     """ Struct holding parameters determining how to apply a transformation to an image.
 
-    # Arguments
+    Args
         fill_mode:             One of: 'constant', 'nearest', 'reflect', 'wrap'
         interpolation:         One of: 'nearest', 'linear', 'cubic', 'area', 'lanczos4'
         cval:                  Fill value to use with fill_mode='constant'
@@ -136,7 +149,7 @@ def apply_transform(matrix, image, params):
     The matrix is interpreted such that a point (x, y) on the original image is moved to transform * (x, y) in the generated image.
     Mathematically speaking, that means that the matrix is a transformation from the transformed image space to the original image space.
 
-    Parameters:
+    Args
       matrix: A homogeneous 3 by 3 matrix holding representing the transformation to apply.
       image:  The image to transform.
       params: The transform parameters (see TransformParameters)
@@ -159,6 +172,15 @@ def apply_transform(matrix, image, params):
 
 
 def resize_image(img, min_side=800, max_side=1333):
+    """ Resize an image such that the size is constrained to min_side and max_side.
+
+    Args
+        min_side: The image's min side will be equal to min_side after resizing.
+        max_side: If after resizing the image's max side is above max_side, resize until the max side is equal to max_side.
+
+    Returns
+        A resized image.
+    """
     (rows, cols, _) = img.shape
 
     smallest_side = min(rows, cols)

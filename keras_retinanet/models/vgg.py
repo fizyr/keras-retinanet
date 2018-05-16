@@ -22,6 +22,9 @@ from . import Backbone
 
 
 class VGGBackbone(Backbone):
+    """ Describes backbone information and provides utility functions.
+    """
+
     def retinanet(self, *args, **kwargs):
         """ Returns a retinanet model using the correct backbone.
         """
@@ -57,6 +60,17 @@ class VGGBackbone(Backbone):
 
 
 def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **kwargs):
+    """ Constructs a retinanet model using a vgg backbone.
+
+    Args
+        num_classes: Number of classes to predict.
+        backbone: Which backbone to use (one of ('vgg16', 'vgg19')).
+        inputs: The inputs to the network (defaults to a Tensor of shape (None, None, 3)).
+        modifier: A function handler which can modify the backbone before using it in retinanet (this can be used to freeze backbone layers for example).
+
+    Returns
+        RetinaNet model with a VGG backbone.
+    """
     # choose default input
     if inputs is None:
         inputs = keras.layers.Input(shape=(None, None, 3))

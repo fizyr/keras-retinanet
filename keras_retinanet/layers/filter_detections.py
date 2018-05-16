@@ -95,6 +95,9 @@ def filter_detections(boxes, classification, other=[], nms=True, score_threshold
 
 
 class FilterDetections(keras.layers.Layer):
+    """ Keras layer for filtering detections using score threshold and NMS.
+    """
+
     def __init__(
         self,
         nms                 = True,

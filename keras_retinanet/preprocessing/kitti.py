@@ -37,12 +37,23 @@ kitti_classes = {
 
 
 class KittiGenerator(Generator):
+    """ Generate data for a KITTI dataset.
+
+    See http://www.cvlibs.net/datasets/kitti/ for more information.
+    """
+
     def __init__(
         self,
         base_dir,
         subset='train',
         **kwargs
     ):
+        """ Initialize a KITTI data generator.
+
+        Args
+            base_dir: Directory w.r.t. where the files are to be searched (defaults to the directory containing the csv_data_file).
+            subset: The subset to generate data for (defaults to 'train').
+        """
         self.base_dir = base_dir
 
         label_dir = os.path.join(self.base_dir, subset, 'labels')
@@ -94,26 +105,40 @@ class KittiGenerator(Generator):
         super(KittiGenerator, self).__init__(**kwargs)
 
     def size(self):
+        """ Size of the dataset.
+        """
         return len(self.images)
 
     def num_classes(self):
+        """ Number of classes in the dataset.
+        """
         return max(kitti_classes.values()) + 1
 
     def name_to_label(self, name):
+        """ Map name to label.
+        """
         raise NotImplementedError()
 
     def label_to_name(self, label):
+        """ Map label to name.
+        """
         return self.id_to_labels[label]
 
     def image_aspect_ratio(self, image_index):
+        """ Compute the aspect ratio for an image with image_index.
+        """
         # PIL is fast for metadata
         image = Image.open(self.images[image_index])
         return float(image.width) / float(image.height)
 
     def load_image(self, image_index):
+        """ Load an image at the image_index.
+        """
         return read_image_bgr(self.images[image_index])
 
     def load_annotations(self, image_index):
+        """ Load annotations for an image_index.
+        """
         annotations = self.image_data[image_index]
 
         boxes = np.zeros((len(annotations), 5))

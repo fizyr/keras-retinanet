@@ -23,6 +23,13 @@ import json
 
 
 def evaluate_coco(generator, model, threshold=0.05):
+    """ Use the pycocotools to evaluate a COCO model on a dataset.
+
+    Args
+        generator : The generator for generating the evaluation data.
+        model     : The model to evaluate.
+        threshold : The score threshold to use.
+    """
     # start collecting results
     results = []
     image_ids = []

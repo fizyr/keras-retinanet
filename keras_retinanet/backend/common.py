@@ -19,6 +19,21 @@ from .dynamic import meshgrid
 
 
 def bbox_transform_inv(boxes, deltas, mean=None, std=None):
+    """ Applies deltas (usually regression results) to boxes (usually anchors).
+
+    Before applying the deltas to the boxes, the normalization that was previously applied (in the generator) has to be removed.
+    The mean and std are the mean and std as applied in the generator. They are unnormalized in this function and then applied to the boxes.
+
+    Args
+        boxes : np.array of shape (B, N, 4), where B is the batch size, N the number of boxes and 4 values for (x1, y1, x2, y2).
+        deltas: np.array of same shape as boxes. These deltas (d_x1, d_y1, d_x2, d_y2) are a factor of the width/height.
+        mean  : The mean value used when computing deltas (defaults to [0, 0, 0, 0]).
+        std   : The standard deviation used when computing deltas (defaults to [0.2, 0.2, 0.2, 0.2]).
+
+    Returns
+        A np.array of the same shape as boxes, but with deltas applied to each box.
+        The mean and std are used during training to normalize the regression values (networks love normalization).
+    """
     if mean is None:
         mean = [0, 0, 0, 0]
     if std is None:
@@ -38,8 +53,12 @@ def bbox_transform_inv(boxes, deltas, mean=None, std=None):
 
 
 def shift(shape, stride, anchors):
-    """
-    Produce shifted anchors based on shape of the map and stride size
+    """ Produce shifted anchors based on shape of the map and stride size.
+
+    Args
+        shape  : Shape to shift the anchors over.
+        stride : Stride to shift the anchors with over the shape.
+        anchors: The anchors to apply at each location.
     """
     shift_x = (keras.backend.arange(0, shape[1], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
     shift_y = (keras.backend.arange(0, shape[0], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
