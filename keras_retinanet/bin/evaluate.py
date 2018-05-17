@@ -129,7 +129,7 @@ def main(args=None):
     model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model)
 
     # print model summary
-    print(model.summary())
+    # print(model.summary())
 
     # start evaluation
     average_precisions = evaluate(
