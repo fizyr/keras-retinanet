@@ -26,7 +26,9 @@ class CocoEval(keras.callbacks.Callback):
 
         super(CocoEval, self).__init__()
 
-    def on_epoch_end(self, epoch, logs={}):
+    def on_epoch_end(self, epoch, logs=None):
+        logs = logs or {}
+
         coco_tag = ['AP @[ IoU=0.50:0.95 | area=   all | maxDets=100 ]',
                     'AP @[ IoU=0.50      | area=   all | maxDets=100 ]',
                     'AP @[ IoU=0.75      | area=   all | maxDets=100 ]',
@@ -48,3 +50,4 @@ class CocoEval(keras.callbacks.Callback):
                 summary_value.simple_value = result
                 summary_value.tag = '{}. {}'.format(index + 1, coco_tag[index])
                 self.tensorboard.writer.add_summary(summary, epoch)
+                logs[coco_tag[index]] = result

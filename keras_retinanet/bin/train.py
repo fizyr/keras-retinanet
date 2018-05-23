@@ -104,20 +104,6 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
 def create_callbacks(model, training_model, prediction_model, validation_generator, args):
     callbacks = []
 
-    # save the model
-    if args.snapshots:
-        # ensure directory created first; otherwise h5py will error after epoch.
-        makedirs(args.snapshot_path)
-        checkpoint = keras.callbacks.ModelCheckpoint(
-            os.path.join(
-                args.snapshot_path,
-                '{backbone}_{dataset_type}_{{epoch:02d}}.h5'.format(backbone=args.backbone, dataset_type=args.dataset_type)
-            ),
-            verbose=1
-        )
-        checkpoint = RedirectModel(checkpoint, model)
-        callbacks.append(checkpoint)
-
     tensorboard_callback = None
 
     if args.tensorboard_dir:
@@ -144,6 +130,23 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
+
+    # save the model
+    if args.snapshots:
+        # ensure directory created first; otherwise h5py will error after epoch.
+        makedirs(args.snapshot_path)
+        checkpoint = keras.callbacks.ModelCheckpoint(
+            os.path.join(
+                args.snapshot_path,
+                '{backbone}_{dataset_type}_{{epoch:02d}}.h5'.format(backbone=args.backbone, dataset_type=args.dataset_type)
+            ),
+            verbose=1,
+            # save_best_only=True,
+            # monitor="mAP",
+            # mode='max'
+        )
+        checkpoint = RedirectModel(checkpoint, model)
+        callbacks.append(checkpoint)
 
     callbacks.append(keras.callbacks.ReduceLROnPlateau(
         monitor  = 'loss',
