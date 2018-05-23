@@ -33,7 +33,7 @@ def anchor_targets_bbox(
 
     if annotations.shape[0]:
         # obtain indices of gt annotations with the greatest overlap
-        overlaps             = compute_overlap(anchors, annotations[:, :4])
+        overlaps             = compute_overlap(anchors, annotations)
         argmax_overlaps_inds = np.argmax(overlaps, axis=1)
         max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
@@ -50,7 +50,7 @@ def anchor_targets_bbox(
     else:
         # no annotations? then everything is background
         labels[:] = 0
-        annotations = np.zeros_like(anchors)
+        annotations = np.zeros((anchors.shape[0], annotations.shape[1]))
 
     # ignore annotations outside of image
     mask_shape         = image_shape if mask_shape is None else mask_shape
