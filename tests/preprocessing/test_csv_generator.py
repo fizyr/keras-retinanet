@@ -116,14 +116,14 @@ def test_read_annotations_wrong_format():
     classes = {'a': 1, 'b': 2, 'c': 4, 'd': 10}
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,1,2,3,a'), classes)
+            csv_generator._read_annotations(csv_str('a.png,1,2,3,a'), classes)
         except ValueError as e:
             assert str(e).startswith("line 1: format should be")
             raise
 
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str(
+            csv_generator._read_annotations(csv_str(
                 'a.png,0,1,2,3,a' '\n'
                 'a.png,1,2,3,a'   '\n'
             ), classes)
@@ -135,7 +135,7 @@ def test_read_annotations_wrong_format():
 def test_read_annotations_wrong_x1():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,a,0,1,2,a'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,a,0,1,2,a'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: malformed x1:")
             raise
@@ -144,7 +144,7 @@ def test_read_annotations_wrong_x1():
 def test_read_annotations_wrong_y1():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,0,a,1,2,a'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,0,a,1,2,a'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: malformed y1:")
             raise
@@ -153,7 +153,7 @@ def test_read_annotations_wrong_y1():
 def test_read_annotations_wrong_x2():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,0,1,a,2,a'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,0,1,a,2,a'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: malformed x2:")
             raise
@@ -162,7 +162,7 @@ def test_read_annotations_wrong_x2():
 def test_read_annotations_wrong_y2():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,0,1,2,a,a'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,0,1,2,a,a'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: malformed y2:")
             raise
@@ -171,7 +171,7 @@ def test_read_annotations_wrong_y2():
 def test_read_annotations_wrong_class():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,0,1,2,3,g'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,0,1,2,3,g'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: unknown class name:")
             raise
@@ -180,13 +180,13 @@ def test_read_annotations_wrong_class():
 def test_read_annotations_invalid_bb_x():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,1,2,1,3,g'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,1,2,1,3,g'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: x2 (1) must be higher than x1 (1)")
             raise
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,9,2,5,3,g'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,9,2,5,3,g'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: x2 (5) must be higher than x1 (9)")
             raise
@@ -195,13 +195,13 @@ def test_read_annotations_invalid_bb_x():
 def test_read_annotations_invalid_bb_y():
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,1,2,3,2,a'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,1,2,3,2,a'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: y2 (2) must be higher than y1 (2)")
             raise
     with pytest.raises(ValueError):
         try:
-            annotations = csv_generator._read_annotations(csv_str('a.png,1,8,3,5,a'), {'a': 1})
+            csv_generator._read_annotations(csv_str('a.png,1,8,3,5,a'), {'a': 1})
         except ValueError as e:
             assert str(e).startswith("line 1: y2 (5) must be higher than y1 (8)")
             raise

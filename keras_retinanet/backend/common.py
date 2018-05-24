@@ -17,8 +17,6 @@ limitations under the License.
 import keras.backend
 from .dynamic import meshgrid
 
-import numpy as np
-
 
 def bbox_transform_inv(boxes, deltas, mean=None, std=None):
     if mean is None:

@@ -27,7 +27,7 @@ import tensorflow as tf
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-    import keras_retinanet.bin
+    import keras_retinanet.bin  # noqa: F401
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
@@ -85,6 +85,7 @@ def main(args=None):
     )
 
     evaluate_coco(test_generator, model, args.score_threshold)
+
 
 if __name__ == '__main__':
     main()

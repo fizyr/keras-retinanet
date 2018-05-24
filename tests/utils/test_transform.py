@@ -145,7 +145,6 @@ def test_transform_aabb():
 
 
 def test_change_transform_origin():
-    prng = np.random.RandomState(0)
     assert np.array_equal(change_transform_origin(translation([3, 4]), [1, 2]), translation([3, 4]))
     assert_almost_equal(colvec(1, 2, 1), change_transform_origin(rotation(pi), [1, 2]).dot(colvec(1, 2, 1)))
     assert_almost_equal(colvec(0, 0, 1), change_transform_origin(rotation(pi), [1, 2]).dot(colvec(2, 4, 1)))

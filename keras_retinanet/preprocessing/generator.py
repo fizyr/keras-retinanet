@@ -17,7 +17,6 @@ limitations under the License.
 import numpy as np
 import random
 import threading
-import time
 import warnings
 
 import keras
