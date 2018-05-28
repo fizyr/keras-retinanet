@@ -76,7 +76,7 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, 
                                 fieldnames=['ImageID', 'Source', 'LabelName',
                                             'Confidence', 'XMin', 'XMax', 'YMin',
                                             'YMax'])
-        reader.next()
+        next(reader)
         for _ in reader:
             cnt += 1
 
@@ -86,7 +86,7 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, 
                                 fieldnames=['ImageID', 'Source', 'LabelName',
                                             'Confidence', 'XMin', 'XMax', 'YMin',
                                             'YMax'])
-        reader.next()
+        next(reader)
 
         images_sizes = {}
         for line, row in enumerate(reader):
