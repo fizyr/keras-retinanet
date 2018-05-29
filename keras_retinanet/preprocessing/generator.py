@@ -244,3 +244,25 @@ class Generator(object):
             self.group_index = (self.group_index + 1) % len(self.groups)
 
         return self.compute_input_output(group)
+
+    # When left unspecified, steps_per_epoch takes on the value of len(generator)
+    # https://keras.io/models/sequential/#fit_generator
+    # This allows the keras_retinanet.preprocessing.generator.Generator object to be callable by len
+    def __len__(self):
+        return self.size()
+
+    def __next__(self):
+        return self.next()
+
+    # DON'T IMPLEMENT __iter__
+    # Now we don't go all the way and turn this into an iterator and use this like
+    #
+    # for img, ann in <Generator object>:
+    #     ...
+    #     ...
+    #
+    # A generator is supposed to be callable by next infinitely while an iterator is not
+    # this function should return a copy of this object with an iterator of a fixed length
+    # to avoid complicated situations where fit_generator is unable to call next on this object
+    # def __iter__(self):
+    #     return self
