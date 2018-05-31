@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 import tensorflow
-import keras
 
 
 def map_fn(*args, **kwargs):

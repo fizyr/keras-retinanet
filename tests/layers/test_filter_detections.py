@@ -17,7 +17,6 @@ limitations under the License.
 import keras
 import keras_retinanet.layers
 
-import math
 import numpy as np
 
 

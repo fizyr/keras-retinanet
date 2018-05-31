@@ -16,13 +16,11 @@ limitations under the License.
 
 from __future__ import division
 import keras
-import time
 import numpy as np
-import scipy.ndimage as ndi
 import cv2
 from PIL import Image
 
-from .transform import change_transform_origin, transform_aabb
+from .transform import change_transform_origin
 
 
 def read_image_bgr(path):

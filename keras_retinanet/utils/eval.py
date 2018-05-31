@@ -23,7 +23,6 @@ import numpy as np
 import os
 
 import cv2
-import pickle
 
 
 def _compute_ap(recall, precision):

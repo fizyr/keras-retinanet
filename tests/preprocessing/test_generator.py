@@ -171,12 +171,6 @@ class TestFilterAnnotations(object):
 
         input_image = np.zeros((500, 500, 3), dtype=np.uint8)
 
-        expected_annotations_group = [
-            np.array([
-                [0, 0, 10, 10],
-            ]),
-        ]
-
         simple_generator = SimpleGenerator(input_annotations_group, image=input_image, num_classes=2)
         # expect a UserWarning
         with pytest.warns(UserWarning):

@@ -132,10 +132,6 @@ class PascalVocGenerator(Generator):
         return truncated, difficult, box
 
     def __parse_annotations(self, xml_root):
-        size_node = _findNode(xml_root, 'size')
-        width     = _findNode(size_node, 'width',  'size.width',  parse=float)
-        height    = _findNode(size_node, 'height', 'size.height', parse=float)
-
         boxes = np.zeros((0, 5))
         for i, element in enumerate(xml_root.iter('object')):
             try:

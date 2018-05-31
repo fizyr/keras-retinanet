@@ -169,6 +169,7 @@ class AnchorParameters:
     def num_anchors(self):
         return len(self.ratios) * len(self.scales)
 
+
 """
 The default anchor parameters.
 """
@@ -330,7 +331,7 @@ def retinanet_bbox(
         model = retinanet(num_anchors=anchor_parameters.num_anchors(), **kwargs)
 
     # compute the anchors
-    features = [model.get_layer(name).output for name in ['P3', 'P4', 'P5', 'P6', 'P7']]
+    features = [model.get_layer(p_name).output for p_name in ['P3', 'P4', 'P5', 'P6', 'P7']]
     anchors  = __build_anchors(anchor_parameters, features)
 
     # we expect the anchors, regression and classification values as first output
