@@ -203,7 +203,7 @@ def evaluate(
 
         # no annotations -> AP for this class is 0 (is this correct?)
         if num_annotations == 0:
-            average_precisions[label] = 0
+            average_precisions[label] = 0, 0
             continue
 
         # sort by score
@@ -221,6 +221,6 @@ def evaluate(
 
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
-        average_precisions[label] = average_precision
+        average_precisions[label] = average_precision, num_annotations
 
     return average_precisions
