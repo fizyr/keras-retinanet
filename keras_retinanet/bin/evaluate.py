@@ -134,7 +134,7 @@ def main(args=None):
     # start evaluation
     if args.dataset_type == 'coco':
         from ..utils.coco_eval import evaluate_coco
-        evaluate_coco(test_generator, model, args.score_threshold)
+        evaluate_coco(generator, model, args.score_threshold)
     else:
         average_precisions = evaluate(
             generator,
