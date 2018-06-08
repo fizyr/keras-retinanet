@@ -41,7 +41,7 @@ keras_retinanet/bin/convert_model.py /path/to/training/model.h5 /path/to/save/in
 retinanet-convert-model /path/to/training/model.h5 /path/to/save/inference/model.h5
 ```
 
-Most scripts (like `retinanet-evaluate` and `retinanet-evaluate-coco`) also support converting on the fly, using the `--convert-model` argument.
+Most scripts (like `retinanet-evaluate`) also support converting on the fly, using the `--convert-model` argument.
 
 
 ## Training
