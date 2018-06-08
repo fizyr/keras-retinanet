@@ -2,13 +2,10 @@
 
 """
 Copyright 2017-2018 Fizyr (https://fizyr.com)
-
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -96,7 +93,7 @@ def parse_args(args):
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
     parser.add_argument('--iou-threshold',   help='IoU Threshold to count for a positive detection (defaults to 0.5).', default=0.5, type=float)
     parser.add_argument('--max-detections',  help='Max Detections per image (defaults to 100).', default=100, type=int)
-    parser.add_argument('--save-path',       help='Path for saving images with detections.')
+    parser.add_argument('--save-path',       help='Path for saving images with detections (doesn\'t work for COCO).')
     parser.add_argument('--image-min-side',  help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side',  help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
 
@@ -147,9 +144,9 @@ def main(args=None):
     for label, (average_precision, num_annoations) in average_precisions.items():
         print('{:.0f} instances of class'.format(num_annotations),
               generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
-		if(average_precision[1] > 0):
-			present_classes += 1
-			precision       += average_precision
+        if(average_precision[1] > 0):
+            present_classes += 1
+            precision       += average_precision
     print('mAP: {:.4f}'.format(precision / present_classes))
 
 
