@@ -2,6 +2,7 @@
 
 """
 Copyright 2017-2018 Fizyr (https://fizyr.com)
+
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -129,25 +130,29 @@ def main(args=None):
     # print(model.summary())
 
     # start evaluation
-    average_precisions = evaluate(
-        generator,
-        model,
-        iou_threshold=args.iou_threshold,
-        score_threshold=args.score_threshold,
-        max_detections=args.max_detections,
-        save_path=args.save_path
-    )
+    if args.dataset_type == 'coco':
+        from ..utils.coco_eval import evaluate_coco
+        evaluate_coco(generator, model, args.score_threshold)
+    else:
+        average_precisions = evaluate(
+            generator,
+            model,
+            iou_threshold=args.iou_threshold,
+            score_threshold=args.score_threshold,
+            max_detections=args.max_detections,
+            save_path=args.save_path
+        )
 
-    # print evaluation
-    present_classes = 0
-    precision = 0
-    for label, (average_precision, num_annoations) in average_precisions.items():
-        print('{:.0f} instances of class'.format(num_annotations),
-              generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
-        if(average_precision[1] > 0):
-            present_classes += 1
-            precision       += average_precision
-    print('mAP: {:.4f}'.format(precision / present_classes))
+        # print evaluation
+        present_classes = 0
+        precision = 0
+        for label, (average_precision, num_annoations) in average_precisions.items():
+            print('{:.0f} instances of class'.format(num_annotations),
+                  generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
+            if(average_precision[1] > 0):
+                present_classes += 1
+                precision       += average_precision
+        print('mAP: {:.4f}'.format(precision / present_classes))
 
 
 if __name__ == '__main__':
