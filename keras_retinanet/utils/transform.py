@@ -16,9 +16,9 @@ def transform_aabb(transform, aabb):
 
     Args
         transform: The transformation to apply.
-        x1:        The minimum X value of the AABB.
+        x1:        The minimum x value of the AABB.
         y1:        The minimum y value of the AABB.
-        x2:        The maximum X value of the AABB.
+        x2:        The maximum x value of the AABB.
         y2:        The maximum y value of the AABB.
     Returns
         The new AABB as tuple (x1, y1, x2, y2)

@@ -75,7 +75,7 @@ def model_with_weights(model, weights, skip_mismatch):
     Args
         model         : The model to load weights for.
         weights       : The weights to load.
-        skip_mismatch : If True, skips layers whose shape of weights don't match with the model.
+        skip_mismatch : If True, skips layers whose shape of weights doesn't match with the model.
     """
     if weights is not None:
         model.load_weights(weights, by_name=True, skip_mismatch=skip_mismatch)
