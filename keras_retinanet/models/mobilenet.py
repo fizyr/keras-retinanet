@@ -22,6 +22,9 @@ from . import Backbone
 
 
 class MobileNetBackbone(Backbone):
+    """ Describes backbone information and provides utility functions.
+    """
+
     allowed_backbones = ['mobilenet128', 'mobilenet160', 'mobilenet192', 'mobilenet224']
 
     def __init__(self, backbone):
@@ -76,6 +79,17 @@ class MobileNetBackbone(Backbone):
 
 
 def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, modifier=None, **kwargs):
+    """ Constructs a retinanet model using a mobilenet backbone.
+
+    Args
+        num_classes: Number of classes to predict.
+        backbone: Which backbone to use (one of ('mobilenet128', 'mobilenet160', 'mobilenet192', 'mobilenet224')).
+        inputs: The inputs to the network (defaults to a Tensor of shape (None, None, 3)).
+        modifier: A function handler which can modify the backbone before using it in retinanet (this can be used to freeze backbone layers for example).
+
+    Returns
+        RetinaNet model with a MobileNet backbone.
+    """
     alpha = float(backbone.split('_')[1])
 
     # choose default input

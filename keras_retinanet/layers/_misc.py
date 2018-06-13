@@ -22,7 +22,18 @@ import numpy as np
 
 
 class Anchors(keras.layers.Layer):
+    """ Keras layer for generating achors for a given shape.
+    """
+
     def __init__(self, size, stride, ratios=None, scales=None, *args, **kwargs):
+        """ Initializer for an Anchors layer.
+
+        Args
+            size: The base size of the anchors to generate.
+            stride: The stride of the anchors to generate.
+            ratios: The ratios of the anchors to generate (defaults to [0.5, 1, 2]).
+            scales: The scales of the anchors to generate (defaults to [2^0, 2^(1/3), 2^(2/3)]).
+        """
         self.size   = size
         self.stride = stride
         self.ratios = ratios
@@ -76,6 +87,9 @@ class Anchors(keras.layers.Layer):
 
 
 class UpsampleLike(keras.layers.Layer):
+    """ Keras layer for upsampling a Tensor to be the same shape as another Tensor.
+    """
+
     def call(self, inputs, **kwargs):
         source, target = inputs
         target_shape = keras.backend.shape(target)
@@ -86,7 +100,16 @@ class UpsampleLike(keras.layers.Layer):
 
 
 class RegressBoxes(keras.layers.Layer):
+    """ Keras layer for applying regression values to boxes.
+    """
+
     def __init__(self, mean=None, std=None, *args, **kwargs):
+        """ Initializer for the RegressBoxes layer.
+
+        Args
+            mean: The mean value of the regression values which was used for normalization.
+            std: The standard value of the regression values which was used for normalization.
+        """
         if mean is None:
             mean = np.array([0, 0, 0, 0])
         if std is None:
@@ -124,6 +147,9 @@ class RegressBoxes(keras.layers.Layer):
 
 
 class ClipBoxes(keras.layers.Layer):
+    """ Keras layer to clip box values to lie inside a given shape.
+    """
+
     def call(self, inputs, **kwargs):
         image, boxes = inputs
         shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())

@@ -62,18 +62,41 @@ def makedirs(path):
 
 
 def get_session():
+    """ Construct a modified tf session.
+    """
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
 
 def model_with_weights(model, weights, skip_mismatch):
+    """ Load weights for model.
+
+    Args
+        model         : The model to load weights for.
+        weights       : The weights to load.
+        skip_mismatch : If True, skips layers whose shape of weights don't match with the model.
+    """
     if weights is not None:
         model.load_weights(weights, by_name=True, skip_mismatch=skip_mismatch)
     return model
 
 
 def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False):
+    """ Creates three models (model, training_model, prediction_model).
+
+    Args
+        backbone_retinanet : A function to call to create a retinanet model with a given backbone.
+        num_classes        : The number of classes to train.
+        weights            : The weights to load into the model.
+        multi_gpu          : The number of GPUs to use for training.
+        freeze_backbone    : If True, disables learning for the backbone.
+
+    Returns
+        model            : The base model. This is also the model that is saved in snapshots.
+        training_model   : The training model. If multi_gpu=0, this is identical to model.
+        prediction_model : The model wrapped with utility functions to perform object detection (applies regression values and performs NMS).
+    """
     modifier = freeze_model if freeze_backbone else None
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
@@ -102,6 +125,18 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
 
 
 def create_callbacks(model, training_model, prediction_model, validation_generator, args):
+    """ Creates the callbacks to use during training.
+
+    Args
+        model: The base model.
+        training_model: The model that is used for training.
+        prediction_model: The model that should be used for validation.
+        validation_generator: The generator for creating validation data.
+        args: parseargs args object.
+
+    Returns:
+        A list of callbacks used for training.
+    """
     callbacks = []
 
     tensorboard_callback = None
@@ -163,6 +198,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
 
 def create_generators(args):
+    """ Create generators for training and validation.
+    """
     # create random transform generator for augmenting training data
     if args.random_transform:
         transform_generator = random_transform_generator(
@@ -286,13 +323,15 @@ def create_generators(args):
 
 
 def check_args(parsed_args):
-    """
-    Function to check for inherent contradictions within parsed arguments.
+    """ Function to check for inherent contradictions within parsed arguments.
     For example, batch_size < num_gpus
     Intended to raise errors prior to backend initialisation.
 
-    :param parsed_args: parser.parse_args()
-    :return: parsed_args
+    Args
+        parsed_args: parser.parse_args()
+
+    Returns
+        parsed_args
     """
 
     if parsed_args.multi_gpu > 1 and parsed_args.batch_size < parsed_args.multi_gpu:
@@ -315,6 +354,8 @@ def check_args(parsed_args):
 
 
 def parse_args(args):
+    """ Parse the arguments.
+    """
     parser     = argparse.ArgumentParser(description='Simple training script for training a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True

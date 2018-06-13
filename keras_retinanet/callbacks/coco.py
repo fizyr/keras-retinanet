@@ -19,7 +19,16 @@ from ..utils.coco_eval import evaluate_coco
 
 
 class CocoEval(keras.callbacks.Callback):
+    """ Performs COCO evaluation on each epoch.
+    """
     def __init__(self, generator, tensorboard=None, threshold=0.05):
+        """ CocoEval callback intializer.
+
+        Args
+            generator   : The generator used for creating validation data.
+            tensorboard : If given, the results will be written to tensorboard.
+            threshold   : The score threshold to use.
+        """
         self.generator = generator
         self.threshold = threshold
         self.tensorboard = tensorboard

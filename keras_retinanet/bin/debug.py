@@ -38,6 +38,11 @@ from ..utils.visualization import draw_annotations, draw_boxes
 
 
 def create_generator(args):
+    """ Create the data generators.
+
+    Args:
+        args: parseargs arguments object.
+    """
     # create random transform generator for augmenting training data
     transform_generator = random_transform_generator(
         min_rotation=-0.1,
@@ -96,6 +101,8 @@ def create_generator(args):
 
 
 def parse_args(args):
+    """ Parse the arguments.
+    """
     parser     = argparse.ArgumentParser(description='Debug script for a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
@@ -137,6 +144,12 @@ def parse_args(args):
 
 
 def run(generator, args):
+    """ Main loop.
+
+    Args
+        generator: The generator to debug.
+        args: parseargs args object.
+    """
     # display images, one at a time
     for i in range(generator.size()):
         # load the data

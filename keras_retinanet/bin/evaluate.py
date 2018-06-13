@@ -38,12 +38,16 @@ from ..utils.keras_version import check_keras_version
 
 
 def get_session():
+    """ Construct a modified tf session.
+    """
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
 
 def create_generator(args):
+    """ Create generators for evaluation.
+    """
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
         from ..preprocessing.coco import CocoGenerator
@@ -75,6 +79,8 @@ def create_generator(args):
 
 
 def parse_args(args):
+    """ Parse the arguments.
+    """
     parser     = argparse.ArgumentParser(description='Evaluation script for a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True

@@ -33,6 +33,9 @@ from ..utils.transform import transform_aabb
 
 
 class Generator(object):
+    """ Abstract generator class.
+    """
+
     def __init__(
         self,
         transform_generator = None,
@@ -44,6 +47,18 @@ class Generator(object):
         transform_parameters=None,
         compute_anchor_targets=anchor_targets_bbox,
     ):
+        """ Initialize Generator object.
+
+        Args
+            transform_generator    : A generator used to randomly transform images and annotations.
+            batch_size             : The size of the batches to generate.
+            group_method           : Determines how images are grouped together (defaults to 'ratio', one of ('none', 'random', 'ratio')).
+            shuffle_groups         : If True, shuffles the groups each epoch.
+            image_min_side         : After resizing the minimum side of an image is equal to image_min_side.
+            image_max_side         : If after resizing the maximum side is larger than image_max_side, scales down further so that the max side is equal to image_max_side.
+            transform_parameters   : The transform parameters used for data augmentation.
+            compute_anchor_targets : Function handler for computing the targets of anchors for an image and its annotations.
+        """
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
         self.group_method           = group_method
@@ -59,30 +74,48 @@ class Generator(object):
         self.group_images()
 
     def size(self):
+        """ Size of the dataset.
+        """
         raise NotImplementedError('size method not implemented')
 
     def num_classes(self):
+        """ Number of classes in the dataset.
+        """
         raise NotImplementedError('num_classes method not implemented')
 
     def name_to_label(self, name):
+        """ Map name to label.
+        """
         raise NotImplementedError('name_to_label method not implemented')
 
     def label_to_name(self, label):
+        """ Map label to name.
+        """
         raise NotImplementedError('label_to_name method not implemented')
 
     def image_aspect_ratio(self, image_index):
+        """ Compute the aspect ratio for an image with image_index.
+        """
         raise NotImplementedError('image_aspect_ratio method not implemented')
 
     def load_image(self, image_index):
+        """ Load an image at the image_index.
+        """
         raise NotImplementedError('load_image method not implemented')
 
     def load_annotations(self, image_index):
+        """ Load annotations for an image_index.
+        """
         raise NotImplementedError('load_annotations method not implemented')
 
     def load_annotations_group(self, group):
+        """ Load annotations for all images in group.
+        """
         return [self.load_annotations(image_index) for image_index in group]
 
     def filter_annotations(self, image_group, annotations_group, group):
+        """ Filter annotations by removing those that are outside of the image bounds or whose width/height < 0.
+        """
         # test all annotations
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             assert(isinstance(annotations, np.ndarray)), '\'load_annotations\' should return a list of numpy arrays, received: {}'.format(type(annotations))
@@ -109,9 +142,13 @@ class Generator(object):
         return image_group, annotations_group
 
     def load_image_group(self, group):
+        """ Load images for all images in a group.
+        """
         return [self.load_image(image_index) for image_index in group]
 
     def random_transform_group_entry(self, image, annotations):
+        """ Randomly transforms image and annotation.
+        """
         # randomly transform both image and annotations
         if self.transform_generator:
             transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
@@ -125,12 +162,18 @@ class Generator(object):
         return image, annotations
 
     def resize_image(self, image):
+        """ Resize an image using image_min_side and image_max_side.
+        """
         return resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
 
     def preprocess_image(self, image):
+        """ Preprocess an image (e.g. subtracts ImageNet mean).
+        """
         return preprocess_image(image)
 
     def preprocess_group_entry(self, image, annotations):
+        """ Preprocess image and its annotations.
+        """
         # preprocess the image
         image = self.preprocess_image(image)
 
@@ -146,6 +189,8 @@ class Generator(object):
         return image, annotations
 
     def preprocess_group(self, image_group, annotations_group):
+        """ Preprocess each image and its annotations in its group.
+        """
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             # preprocess a single group entry
             image, annotations = self.preprocess_group_entry(image, annotations)
@@ -157,6 +202,8 @@ class Generator(object):
         return image_group, annotations_group
 
     def group_images(self):
+        """ Order the images according to self.order and makes groups of self.batch_size.
+        """
         # determine the order of the images
         order = list(range(self.size()))
         if self.group_method == 'random':
@@ -168,6 +215,8 @@ class Generator(object):
         self.groups = [[order[x % len(order)] for x in range(i, i + self.batch_size)] for i in range(0, len(order), self.batch_size)]
 
     def compute_inputs(self, image_group):
+        """ Compute inputs for the network using an image_group.
+        """
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
 
@@ -181,6 +230,8 @@ class Generator(object):
         return image_batch
 
     def compute_targets(self, image_group, annotations_group):
+        """ Compute target outputs for the network using images and their annotations.
+        """
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
 
@@ -212,6 +263,8 @@ class Generator(object):
         return [regression_batch, labels_batch]
 
     def compute_input_output(self, group):
+        """ Compute inputs and target outputs for the network.
+        """
         # load images and annotations
         image_group       = self.load_image_group(group)
         annotations_group = self.load_annotations_group(group)
