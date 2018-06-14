@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import keras
+from keras.utils import get_file
 import keras_resnet
 import keras_resnet.models
 from . import retinanet
@@ -50,7 +51,7 @@ class ResNetBackbone(Backbone):
         elif depth == 152:
             checksum = '6ee11ef2b135592f8031058820bb9e71'
 
-        return keras.applications.imagenet_utils.get_file(
+        return get_file(
             filename,
             resource,
             cache_subdir='models',

@@ -16,6 +16,7 @@ limitations under the License.
 
 
 import keras
+from keras.utils import get_file
 
 from . import retinanet
 from . import Backbone
@@ -43,7 +44,7 @@ class VGGBackbone(Backbone):
         else:
             raise ValueError("Backbone '{}' not recognized.".format(self.backbone))
 
-        return keras.applications.imagenet_utils.get_file(
+        return get_file(
             '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'.format(self.backbone),
             resource,
             cache_subdir='models',
