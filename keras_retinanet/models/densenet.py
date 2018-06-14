@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 import keras
-from keras.applications.densenet import DenseNet, get_file
+from keras.applications.densenet import densenet
+from keras.utils import get_file
 
 from . import retinanet
 from . import Backbone
@@ -75,19 +76,19 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
         inputs = keras.layers.Input((None, None, 3))
 
     blocks = allowed_backbones[backbone]
-    densenet = DenseNet(blocks=blocks, input_tensor=inputs, include_top=False, pooling=None, weights=None)
+    backbone = densenet.DenseNet(blocks=blocks, input_tensor=inputs, include_top=False, pooling=None, weights=None)
 
     # get last conv layer from the end of each dense block
-    layer_outputs = [densenet.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
+    layer_outputs = [backbone.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
 
     # create the densenet backbone
-    densenet = keras.models.Model(inputs=inputs, outputs=layer_outputs[1:], name=densenet.name)
+    backbone = keras.models.Model(inputs=inputs, outputs=layer_outputs[1:], name=backbone.name)
 
     # invoke modifier if given
     if modifier:
-        densenet = modifier(densenet)
+        backbone = modifier(backbone)
 
     # create the full model
-    model = retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=densenet.outputs, **kwargs)
+    model = retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone.outputs, **kwargs)
 
     return model
