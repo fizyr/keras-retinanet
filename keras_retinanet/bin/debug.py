@@ -64,19 +64,25 @@ def create_generator(args):
         generator = CocoGenerator(
             args.coco_path,
             args.coco_set,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'pascal':
         generator = PascalVocGenerator(
             args.pascal_path,
             args.pascal_set,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'csv':
         generator = CSVGenerator(
             args.annotations,
             args.classes,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'oid':
         generator = OpenImagesGenerator(
@@ -86,13 +92,17 @@ def create_generator(args):
             labels_filter=args.labels_filter,
             fixed_labels=args.fixed_labels,
             annotation_cache_dir=args.annotation_cache_dir,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     elif args.dataset_type == 'kitti':
         generator = KittiGenerator(
             args.kitti_path,
             subset=args.subset,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
@@ -139,6 +149,8 @@ def parse_args(args):
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
     parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
+    parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
+    parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
 
     return parser.parse_args(args)
 
