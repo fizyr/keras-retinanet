@@ -53,16 +53,17 @@ def backbone(backbone_name):
     return b(backbone_name)
 
 
-def load_model(filepath, backbone_name='resnet50', convert=False, nms=True):
+def load_model(filepath, backbone_name='resnet50', convert=False, nms=True, class_specific_filter=True):
     """ Loads a retinanet model using the correct custom objects.
 
     # Arguments
         filepath: one of the following:
             - string, path to the saved model, or
             - h5py.File object from which to load the model
-        backbone_name: Backbone with which the model was trained.
-        convert: Boolean, whether to convert the model to an inference model.
-        nms: Boolean, whether to add NMS filtering to the converted model. Only valid if convert=True.
+        backbone_name         : Backbone with which the model was trained.
+        convert               : Boolean, whether to convert the model to an inference model.
+        nms                   : Boolean, whether to add NMS filtering to the converted model. Only valid if convert=True.
+        class_specific_filter : Whether to use class specific filtering or filter for the best scoring class only.
 
     # Returns
         A keras.models.Model object.
@@ -76,6 +77,6 @@ def load_model(filepath, backbone_name='resnet50', convert=False, nms=True):
     model = keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
     if convert:
         from .retinanet import retinanet_bbox
-        model = retinanet_bbox(model=model, nms=nms)
+        model = retinanet_bbox(model=model, nms=nms, class_specific_filter=class_specific_filter)
 
     return model
