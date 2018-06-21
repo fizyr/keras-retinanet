@@ -1,4 +1,15 @@
 import setuptools
+from Cython.Build import cythonize
+from setuptools.extension import Extension
+import numpy as np
+
+extensions = [
+    Extension(
+        'keras_retinanet.utils.compute_overlap',
+        ['keras_retinanet/utils/compute_overlap.pyx'],
+        include_dirs=[np.get_include()]
+    ),
+]
 
 setuptools.setup(
     name='keras-retinanet',
@@ -18,5 +29,6 @@ setuptools.setup(
             'retinanet-debug=keras_retinanet.bin.debug:main',
             'retinanet-convert-model=keras_retinanet.bin.convert_model:main',
         ],
-    }
+    },
+    ext_modules = cythonize(extensions)
 )

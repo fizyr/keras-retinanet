@@ -16,6 +16,8 @@ limitations under the License.
 
 import numpy as np
 
+from ..utils.bbox import compute_overlap
+
 
 def anchor_targets_bbox(
     image_shape,
@@ -269,30 +271,3 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     targets = (targets - mean) / std
 
     return targets
-
-
-def compute_overlap(a, b):
-    """
-    Args
-
-        a: (N, 4) ndarray of float
-        b: (K, 4) ndarray of float
-
-    Returns
-        overlaps: (N, K) ndarray of overlap between boxes and query_boxes
-    """
-    area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
-
-    iw = np.minimum(np.expand_dims(a[:, 2], axis=1), b[:, 2]) - np.maximum(np.expand_dims(a[:, 0], 1), b[:, 0])
-    ih = np.minimum(np.expand_dims(a[:, 3], axis=1), b[:, 3]) - np.maximum(np.expand_dims(a[:, 1], 1), b[:, 1])
-
-    iw = np.maximum(iw, 0)
-    ih = np.maximum(ih, 0)
-
-    ua = np.expand_dims((a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1]), axis=1) + area - iw * ih
-
-    ua = np.maximum(ua, np.finfo(float).eps)
-
-    intersection = iw * ih
-
-    return intersection / ua
