@@ -21,7 +21,7 @@ import warnings
 
 import keras
 
-from ..utils.anchors import anchor_targets_bbox, bbox_transform
+from ..utils.anchors import anchor_targets_bbox, bbox_transform, anchors_for_shape
 from ..utils.image import (
     TransformParameters,
     adjust_transform_for_image,
@@ -229,36 +229,30 @@ class Generator(object):
 
         return image_batch
 
+    def generate_anchors(self, image_shape):
+        return anchors_for_shape(image_shape)
+
     def compute_targets(self, image_group, annotations_group):
         """ Compute target outputs for the network using images and their annotations.
         """
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
+        anchors   = self.generate_anchors(max_shape)
+
+        regression_batch = np.empty((self.batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
+        labels_batch     = np.empty((self.batch_size, anchors.shape[0], self.num_classes() + 1), dtype=keras.backend.floatx())
 
         # compute labels and regression targets
-        labels_group     = [None] * self.batch_size
-        regression_group = [None] * self.batch_size
         for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
             # compute regression targets
-            labels_group[index], annotations, anchors = self.compute_anchor_targets(
-                max_shape,
+            labels_batch[index, :, :-1], annotations, labels_batch[index, :, -1] = self.compute_anchor_targets(
+                anchors,
                 annotations,
                 self.num_classes(),
                 mask_shape=image.shape,
             )
-            regression_group[index] = bbox_transform(anchors, annotations)
-
-            # append anchor states to regression targets (necessary for filtering 'ignore', 'positive' and 'negative' anchors)
-            anchor_states           = np.max(labels_group[index], axis=1, keepdims=True)
-            regression_group[index] = np.append(regression_group[index], anchor_states, axis=1)
-
-        labels_batch     = np.zeros((self.batch_size,) + labels_group[0].shape, dtype=keras.backend.floatx())
-        regression_batch = np.zeros((self.batch_size,) + regression_group[0].shape, dtype=keras.backend.floatx())
-
-        # copy all labels and regression values to the batch blob
-        for index, (labels, regression) in enumerate(zip(labels_group, regression_group)):
-            labels_batch[index, ...]     = labels
-            regression_batch[index, ...] = regression
+            regression_batch[index, :, :-1] = bbox_transform(anchors, annotations)
+            regression_batch[index, :, -1]  = labels_batch[index, :, -1]  # copy the anchor states to the regression batch
 
         return [regression_batch, labels_batch]
 
