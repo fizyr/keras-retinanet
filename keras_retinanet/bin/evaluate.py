@@ -6,9 +6,7 @@ Copyright 2017-2018 Fizyr (https://fizyr.com)
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -152,9 +150,15 @@ def main(args=None):
         )
 
         # print evaluation
-        for label, average_precision in average_precisions.items():
-            print(generator.label_to_name(label), '{:.4f}'.format(average_precision))
-        print('mAP: {:.4f}'.format(sum(average_precisions.values()) / len(average_precisions)))
+        present_classes = 0
+        precision = 0
+        for label, (average_precision, num_annotations) in average_precisions.items():
+            print('{:.0f} instances of class'.format(num_annotations),
+                  generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
+            if(average_precision[1] > 0):
+                present_classes += 1
+                precision       += average_precision
+        print('mAP: {:.4f}'.format(precision / present_classes))
 
 
 if __name__ == '__main__':
