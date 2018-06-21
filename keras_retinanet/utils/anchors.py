@@ -44,7 +44,7 @@ def anchor_targets_bbox(
     anchors = anchors_for_shape(image_shape, **kwargs)
 
     # label: 1 is positive, 0 is negative, -1 is dont care
-    labels = np.ones((anchors.shape[0], num_classes)) * -1
+    labels = np.zeros((anchors.shape[0], num_classes))
 
     if annotations.shape[0]:
         # obtain indices of gt annotations with the greatest overlap
@@ -52,19 +52,17 @@ def anchor_targets_bbox(
         argmax_overlaps_inds = np.argmax(overlaps, axis=1)
         max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
-        # assign bg labels first so that positive labels can clobber them
-        labels[max_overlaps < negative_overlap, :] = 0
+        # assign "dont care" labels
+        positive_indices = max_overlaps >= positive_overlap
+        labels[(max_overlaps > negative_overlap) & ~positive_indices, :] = -1
 
         # compute box regression targets
         annotations = annotations[argmax_overlaps_inds]
 
         # fg label: above threshold IOU
-        positive_indices = max_overlaps >= positive_overlap
-        labels[positive_indices, :] = 0
         labels[positive_indices, annotations[positive_indices, 4].astype(int)] = 1
     else:
         # no annotations? then everything is background
-        labels[:] = 0
         annotations = np.zeros((anchors.shape[0], annotations.shape[1]))
 
     # ignore annotations outside of image
