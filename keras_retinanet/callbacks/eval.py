@@ -54,6 +54,7 @@ class Evaluate(keras.callbacks.Callback):
             save_path=self.save_path
         )
 
+        # compute per class average precision
         present_classes = 0
         precision = 0
         for label, (average_precision, num_annotations ) in average_precisions.items():
@@ -63,7 +64,7 @@ class Evaluate(keras.callbacks.Callback):
             if num_annotations > 0:
                 present_classes += 1
                 precision       += average_precision
-        self.mean_ap = sum(precision / present_classes)
+        self.mean_ap = precision / present_classes
 
         if self.tensorboard is not None and self.tensorboard.writer is not None:
             import tensorflow as tf
