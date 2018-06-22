@@ -48,7 +48,7 @@ from ..utils.anchors import make_shapes_callback, anchor_targets_bbox
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
-
+from keras.optimizers import SGD, Adam, RMSprop, Nadam, Adamax, Adadelta, Adagrad
 
 def makedirs(path):
     # Intended behavior: try to create the directory,
@@ -82,7 +82,7 @@ def model_with_weights(model, weights, skip_mismatch):
     return model
 
 
-def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False):
+def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False, opt=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)):
     """ Creates three models (model, training_model, prediction_model).
 
     Args
@@ -118,13 +118,13 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
             'regression'    : losses.smooth_l1(),
             'classification': losses.focal()
         },
-        optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+        optimizer=opt
     )
 
     return model, training_model, prediction_model
 
 
-def create_callbacks(model, training_model, prediction_model, validation_generator, args):
+def create_callbacks(model, training_model, prediction_model, validation_generator, args, tensorboard_image=None):
     """ Creates the callbacks to use during training.
 
     Args
@@ -162,7 +162,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             # use prediction model for evaluation
             evaluation = CocoEval(validation_generator, tensorboard=tensorboard_callback)
         else:
-            evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback)
+            evaluation = Evaluate(validation_generator, tensorboard=tensorboard_callback, tensorboard_image=tensorboard_image, number_images=args.tensorboxes)
         evaluation = RedirectModel(evaluation, prediction_model)
         callbacks.append(evaluation)
 
@@ -258,6 +258,7 @@ def create_generators(args):
         train_generator = CSVGenerator(
             args.annotations,
             args.classes,
+            base_dir=args.dataset_dir,
             transform_generator=transform_generator,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
@@ -268,6 +269,7 @@ def create_generators(args):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
+                base_dir=args.dataset_dir,
                 batch_size=args.batch_size,
                 image_min_side=args.image_min_side,
                 image_max_side=args.image_max_side
@@ -352,6 +354,25 @@ def check_args(parsed_args):
 
     return parsed_args
 
+def optimizers(args):
+    if args.optimizer == 'adamax':
+        opt = Adamax(lr=args.lr, clipnorm=args.clip_norm)
+    elif args.optimizer == 'sgd':
+        opt = SGD(lr=args.lr, decay=0.00005, momentum=0.9, nesterov=True, clipnorm=args.clip_norm)
+    elif args.optimizer == 'adadelta':
+        opt = Adadelta(lr=args.lr, clipnorm=args.clip_norm)
+    elif args.optimizer == 'adagrad':
+        opt = Adagrad(lr=args.lr, clipnorm=args.clip_norm)
+    elif args.optimizer == 'nadam':
+        opt = Nadam(lr=args.lr, clipnorm=args.clip_norm)
+    elif args.optimizer == 'rmsprop':
+        opt = RMSprop(lr=args.lr, clipnorm=args.clip_norm)
+        
+    else:
+        opt = Adam(lr=args.lr, clipnorm=args.clip_norm)
+        
+    print(args.optimizer + ':' + str(args.lr) + ' ' + str(args.clip_norm))
+    return opt
 
 def parse_args(args):
     """ Parse the arguments.
@@ -383,7 +404,8 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
-
+    csv_parser.add_argument('--dataset_dir', help='path to the dataset', default=None)
+    
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
     group.add_argument('--imagenet-weights',  help='Initialize the model with pretrained imagenet weights. This is the default behaviour.', action='store_const', const=True, default=True)
@@ -406,6 +428,12 @@ def parse_args(args):
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
 
+    parser.add_argument('--tensorboxes', dest='tensorboxes',  help='Number of images to store on tensorboard', type=int, default=0)
+    parser.add_argument('--use-val-loss', dest='val_loss', help='Compute validation loss', type=bool, default=False)
+    parser.add_argument('--optimizer', dest="optimizer", help='choose optimizer : sgd, adam, rmsprop, adagrad, adadelta, adamax, nadam. default=adam', default='adam')   
+    parser.add_argument('--lr', dest='lr',  help='Choose learning rate value, default = 0.00001.', type=float, default=1e-5)
+    parser.add_argument('--clip-norm', dest='clip_norm', help='Choose clip norm value', type=float, default=0.001)
+    
     return check_args(parser.parse_args(args))
 
 
@@ -415,6 +443,8 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
+    writer = tf.summary.FileWriter(args.tensorboard_dir+'/image')
+    
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
 
@@ -447,7 +477,8 @@ def main(args=None):
             num_classes=train_generator.num_classes(),
             weights=weights,
             multi_gpu=args.multi_gpu,
-            freeze_backbone=args.freeze_backbone
+            freeze_backbone=args.freeze_backbone,
+            opt=optimizers(args),
         )
 
     # print model summary
@@ -467,16 +498,34 @@ def main(args=None):
         prediction_model,
         validation_generator,
         args,
+        tensorboard_image=writer,
     )
 
     # start training
-    training_model.fit_generator(
+    # start training
+    if args.val_loss:
+        
+        training_model.fit_generator(
+            generator=train_generator,
+            steps_per_epoch=args.steps,
+            validation_data=validation_generator,
+            validation_steps= int(round(validation_generator.size()/args.batch_size)),
+            epochs=args.epochs,
+            verbose=1,
+            callbacks=callbacks
+            
+        )
+    else:
+        training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=args.steps,
+        #validation_data=validation_generator,
+        #validation_steps= int(round(validation_generator.size()/args.batch_size)),
         epochs=args.epochs,
         verbose=1,
-        callbacks=callbacks,
-    )
+        callbacks=callbacks
+        
+        )
 
 
 if __name__ == '__main__':
