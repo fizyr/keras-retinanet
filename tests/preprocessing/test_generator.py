@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras.backend
 from keras_retinanet.preprocessing.generator import Generator
 
 import numpy as np
@@ -166,7 +165,7 @@ class TestFilterAnnotations(object):
             np.array([
                 [  0,   0, 50, 50, 0],  # one object of class 0
                 [150, 150, 50, 50, 1],  # one object of class 1 with an invalid box
-            ], dtype=keras.backend.floatx()),
+            ], dtype=float)
         ]
 
         input_image = np.zeros((500, 500, 3), dtype=np.uint8)

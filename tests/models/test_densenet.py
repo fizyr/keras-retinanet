@@ -32,7 +32,7 @@ def test_backbone(backbone):
     num_classes = 10
 
     inputs = np.zeros((1, 200, 400, 3), dtype=np.float32)
-    targets = [np.zeros((1, 14814, 5), dtype=np.float32), np.zeros((1, 14814, num_classes))]
+    targets = [np.zeros((1, 14814, 5), dtype=np.float32), np.zeros((1, 14814, num_classes + 1))]
 
     inp = keras.layers.Input(inputs[0].shape)
 
