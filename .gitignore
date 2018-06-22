@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 /.pytest_cache
 /.cache
+*.h5
+logs*
+events.out*
+/snapshot*
