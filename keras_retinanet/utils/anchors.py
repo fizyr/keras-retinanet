@@ -49,7 +49,7 @@ def anchor_targets_bbox(
 
     if annotations.shape[0]:
         # obtain indices of gt annotations with the greatest overlap
-        overlaps             = compute_overlap(anchors, annotations)
+        overlaps             = compute_overlap(anchors.astype(np.float64), annotations.astype(np.float64))
         argmax_overlaps_inds = np.argmax(overlaps, axis=1)
         max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 

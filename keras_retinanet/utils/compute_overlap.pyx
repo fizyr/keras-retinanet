@@ -9,12 +9,10 @@ cimport cython
 import numpy as np
 cimport numpy as np
 
-DTYPE = np.float
-ctypedef np.float_t DTYPE_t
 
 def compute_overlap(
-        np.ndarray[DTYPE_t, ndim=2] boxes,
-        np.ndarray[DTYPE_t, ndim=2] query_boxes
+    np.ndarray[double, ndim=2] boxes,
+    np.ndarray[double, ndim=2] query_boxes
 ):
     """
     Args
@@ -26,9 +24,9 @@ def compute_overlap(
     """
     cdef unsigned int N = boxes.shape[0]
     cdef unsigned int K = query_boxes.shape[0]
-    cdef np.ndarray[DTYPE_t, ndim=2] overlaps = np.zeros((N, K), dtype=DTYPE)
-    cdef DTYPE_t iw, ih, box_area
-    cdef DTYPE_t ua
+    cdef np.ndarray[double, ndim=2] overlaps = np.zeros((N, K), dtype=np.float64)
+    cdef double iw, ih, box_area
+    cdef double ua
     cdef unsigned int k, n
     for k in range(K):
         box_area = (
@@ -46,7 +44,7 @@ def compute_overlap(
                     max(boxes[n, 1], query_boxes[k, 1]) + 1
                 )
                 if ih > 0:
-                    ua = float(
+                    ua = np.float64(
                         (boxes[n, 2] - boxes[n, 0] + 1) *
                         (boxes[n, 3] - boxes[n, 1] + 1) +
                         box_area - iw * ih
