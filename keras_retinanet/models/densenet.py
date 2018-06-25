@@ -58,7 +58,7 @@ class DenseNetBackbone(Backbone):
             raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones.keys()))
 
 
-def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifier=None, **kwargs):
+def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifier=None, channels=3 **kwargs):
     """ Constructs a retinanet model using a densenet backbone.
 
     Args
@@ -66,13 +66,14 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
         backbone: Which backbone to use (one of ('densenet121', 'densenet169', 'densenet201')).
         inputs: The inputs to the network (defaults to a Tensor of shape (None, None, 3)).
         modifier: A function handler which can modify the backbone before using it in retinanet (this can be used to freeze backbone layers for example).
+        channels: An integer thath indicates the number of channels of the input, used only if the input is not specified.
 
     Returns
         RetinaNet model with a DenseNet backbone.
     """
     # choose default input
     if inputs is None:
-        inputs = keras.layers.Input((None, None, 3))
+        inputs = keras.layers.Input((None, None, channels))
 
     blocks = allowed_backbones[backbone]
     densenet = DenseNet(blocks=blocks, input_tensor=inputs, include_top=False, pooling=None, weights=None)

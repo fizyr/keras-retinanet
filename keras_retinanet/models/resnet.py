@@ -67,7 +67,7 @@ class ResNetBackbone(Backbone):
             raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones))
 
 
-def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, **kwargs):
+def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=None, channels=3, **kwargs):
     """ Constructs a retinanet model using a resnet backbone.
 
     Args
@@ -75,13 +75,14 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
         backbone: Which backbone to use (one of ('resnet50', 'resnet101', 'resnet152')).
         inputs: The inputs to the network (defaults to a Tensor of shape (None, None, 3)).
         modifier: A function handler which can modify the backbone before using it in retinanet (this can be used to freeze backbone layers for example).
+        channels: An integer thath indicates the number of channels of the input, used only if the input is not specified.
 
     Returns
         RetinaNet model with a ResNet backbone.
     """
     # choose default input
     if inputs is None:
-        inputs = keras.layers.Input(shape=(None, None, 3))
+        inputs = keras.layers.Input(shape=(None, None, channels))
 
     # create the resnet backbone
     if backbone == 'resnet50':

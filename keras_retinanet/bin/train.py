@@ -82,7 +82,7 @@ def model_with_weights(model, weights, skip_mismatch):
     return model
 
 
-def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False):
+def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False, channels=3):
     """ Creates three models (model, training_model, prediction_model).
 
     Args
@@ -91,6 +91,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
         weights            : The weights to load into the model.
         multi_gpu          : The number of GPUs to use for training.
         freeze_backbone    : If True, disables learning for the backbone.
+        channels           : Number of channels of the input.
 
     Returns
         model            : The base model. This is also the model that is saved in snapshots.
@@ -103,7 +104,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, modifier=modifier, channels=channels), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
         model          = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
@@ -405,7 +406,7 @@ def parse_args(args):
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
-
+    parser.add_argument('--channels', help='Number of channels of the input.', type=int, default=3)
     return check_args(parser.parse_args(args))
 
 
@@ -447,7 +448,8 @@ def main(args=None):
             num_classes=train_generator.num_classes(),
             weights=weights,
             multi_gpu=args.multi_gpu,
-            freeze_backbone=args.freeze_backbone
+            freeze_backbone=args.freeze_backbone,
+            channels=args.channels
         )
 
     # print model summary

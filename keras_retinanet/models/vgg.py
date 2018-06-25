@@ -59,7 +59,7 @@ class VGGBackbone(Backbone):
             raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(self.backbone, allowed_backbones))
 
 
-def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **kwargs):
+def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, channels=3 **kwargs):
     """ Constructs a retinanet model using a vgg backbone.
 
     Args
@@ -67,13 +67,14 @@ def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **k
         backbone: Which backbone to use (one of ('vgg16', 'vgg19')).
         inputs: The inputs to the network (defaults to a Tensor of shape (None, None, 3)).
         modifier: A function handler which can modify the backbone before using it in retinanet (this can be used to freeze backbone layers for example).
+        channels: An integer thath indicates the number of channels of the input, used only if the input is not specified.
 
     Returns
         RetinaNet model with a VGG backbone.
     """
     # choose default input
     if inputs is None:
-        inputs = keras.layers.Input(shape=(None, None, 3))
+        inputs = keras.layers.Input(shape=(None, None, channels))
 
     # create the vgg backbone
     if backbone == 'vgg16':
