@@ -107,7 +107,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
             model = model_with_weights(backbone_retinanet(num_classes, modifier=modifier, channels=channels), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
-        model          = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
+        model          = model_with_weights(backbone_retinanet(num_classes, modifier=modifier, channels=channels), weights=weights, skip_mismatch=True)
         training_model = model
 
     # make prediction model

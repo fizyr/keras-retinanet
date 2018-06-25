@@ -58,7 +58,7 @@ class DenseNetBackbone(Backbone):
             raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, allowed_backbones.keys()))
 
 
-def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifier=None, channels=3 **kwargs):
+def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifier=None, channels=3, **kwargs):
     """ Constructs a retinanet model using a densenet backbone.
 
     Args

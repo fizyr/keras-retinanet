@@ -102,13 +102,13 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
     return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=resnet.outputs[1:], **kwargs)
 
 
-def resnet50_retinanet(num_classes, inputs=None, **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone='resnet50', inputs=inputs, **kwargs)
+def resnet50_retinanet(num_classes, inputs=None, channels=3, **kwargs):
+    return resnet_retinanet(num_classes=num_classes, backbone='resnet50', inputs=inputs, channels=channels, **kwargs)
 
 
-def resnet101_retinanet(num_classes, inputs=None, **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone='resnet101', inputs=inputs, **kwargs)
+def resnet101_retinanet(num_classes, inputs=None, channels=3, **kwargs):
+    return resnet_retinanet(num_classes=num_classes, backbone='resnet101', inputs=inputs, channels=channels, **kwargs)
 
 
-def resnet152_retinanet(num_classes, inputs=None, **kwargs):
-    return resnet_retinanet(num_classes=num_classes, backbone='resnet152', inputs=inputs, **kwargs)
+def resnet152_retinanet(num_classes, inputs=None, channels=3, **kwargs):
+    return resnet_retinanet(num_classes=num_classes, backbone='resnet152', inputs=inputs, channels=channels, **kwargs)
