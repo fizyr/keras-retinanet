@@ -2,4 +2,3 @@ __pycache__/
 *.pyc
 /.pytest_cache
 /.cache
-keras_retinanet_rgbd/
