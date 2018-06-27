@@ -15,7 +15,8 @@ limitations under the License.
 """
 
 import keras
-from keras.applications.mobilenet import MobileNet, BASE_WEIGHT_PATH, get_file, relu6, DepthwiseConv2D
+from keras.applications.mobilenet import mobilenet
+from keras.utils import get_file
 
 from . import retinanet
 from . import Backbone
@@ -31,8 +32,8 @@ class MobileNetBackbone(Backbone):
         super(MobileNetBackbone, self).__init__(backbone)
 
         self.custom_objects.update({
-            'relu6': relu6,
-            'DepthwiseConv2D': DepthwiseConv2D
+            'relu6': mobilenet.relu6,
+            'DepthwiseConv2D': keras.layers.DepthwiseConv2D
         })
 
     def retinanet(self, *args, **kwargs):
@@ -64,7 +65,7 @@ class MobileNetBackbone(Backbone):
             alpha_text = '2_5'
 
         model_name = 'mobilenet_{}_{}_tf_no_top.h5'.format(alpha_text, rows)
-        weights_url = BASE_WEIGHT_PATH + model_name
+        weights_url = mobilenet.BASE_WEIGHT_PATH + model_name
         weights_path = get_file(model_name, weights_url, cache_subdir='models')
 
         return weights_path
@@ -96,15 +97,15 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, m
     if inputs is None:
         inputs = keras.layers.Input((None, None, 3))
 
-    mobilenet = MobileNet(input_tensor=inputs, alpha=alpha, include_top=False, pooling=None, weights=None)
+    backbone = mobilenet.MobileNet(input_tensor=inputs, alpha=alpha, include_top=False, pooling=None, weights=None)
 
     # create the full model
     layer_names = ['conv_pw_5_relu', 'conv_pw_11_relu', 'conv_pw_13_relu']
-    layer_outputs = [mobilenet.get_layer(name).output for name in layer_names]
-    mobilenet = keras.models.Model(inputs=inputs, outputs=layer_outputs, name=mobilenet.name)
+    layer_outputs = [backbone.get_layer(name).output for name in layer_names]
+    backbone = keras.models.Model(inputs=inputs, outputs=layer_outputs, name=backbone.name)
 
     # invoke modifier if given
     if modifier:
-        mobilenet = modifier(mobilenet)
+        backbone = modifier(backbone)
 
-    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=mobilenet.outputs, **kwargs)
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone.outputs, **kwargs)
