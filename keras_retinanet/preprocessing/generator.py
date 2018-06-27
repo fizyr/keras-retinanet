@@ -21,7 +21,12 @@ import warnings
 
 import keras
 
-from ..utils.anchors import anchor_targets_bbox, bbox_transform, anchors_for_shape
+from ..utils.anchors import (
+    anchor_targets_bbox,
+    bbox_transform,
+    anchors_for_shape,
+    guess_shapes
+)
 from ..utils.image import (
     TransformParameters,
     adjust_transform_for_image,
@@ -46,6 +51,7 @@ class Generator(object):
         image_max_side=1333,
         transform_parameters=None,
         compute_anchor_targets=anchor_targets_bbox,
+        compute_shapes=guess_shapes,
     ):
         """ Initialize Generator object.
 
@@ -58,6 +64,7 @@ class Generator(object):
             image_max_side         : If after resizing the maximum side is larger than image_max_side, scales down further so that the max side is equal to image_max_side.
             transform_parameters   : The transform parameters used for data augmentation.
             compute_anchor_targets : Function handler for computing the targets of anchors for an image and its annotations.
+            compute_shapes         : Function handler for computing the shapes of the pyramid for a given input.
         """
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
@@ -67,6 +74,7 @@ class Generator(object):
         self.image_max_side         = image_max_side
         self.transform_parameters   = transform_parameters or TransformParameters()
         self.compute_anchor_targets = compute_anchor_targets
+        self.compute_shapes         = compute_shapes
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -230,7 +238,7 @@ class Generator(object):
         return image_batch
 
     def generate_anchors(self, image_shape):
-        return anchors_for_shape(image_shape)
+        return anchors_for_shape(image_shape, shapes_callback=self.compute_shapes)
 
     def compute_targets(self, image_group, annotations_group):
         """ Compute target outputs for the network using images and their annotations.
