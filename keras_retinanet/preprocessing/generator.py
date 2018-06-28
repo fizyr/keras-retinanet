@@ -52,6 +52,7 @@ class Generator(object):
         transform_parameters=None,
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
+        preprocess_image=preprocess_image,
     ):
         """ Initialize Generator object.
 
@@ -65,6 +66,7 @@ class Generator(object):
             transform_parameters   : The transform parameters used for data augmentation.
             compute_anchor_targets : Function handler for computing the targets of anchors for an image and its annotations.
             compute_shapes         : Function handler for computing the shapes of the pyramid for a given input.
+            preprocess_image       : Function handler for preprocessing an image (scaling / normalizing) for passing through a network.
         """
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
@@ -75,6 +77,7 @@ class Generator(object):
         self.transform_parameters   = transform_parameters or TransformParameters()
         self.compute_anchor_targets = compute_anchor_targets
         self.compute_shapes         = compute_shapes
+        self.preprocess_image       = preprocess_image
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -173,11 +176,6 @@ class Generator(object):
         """ Resize an image using image_min_side and image_max_side.
         """
         return resize_image(image, min_side=self.image_min_side, max_side=self.image_max_side)
-
-    def preprocess_image(self, image):
-        """ Preprocess an image (e.g. subtracts ImageNet mean).
-        """
-        return preprocess_image(image)
 
     def preprocess_group_entry(self, image, annotations):
         """ Preprocess image and its annotations.
