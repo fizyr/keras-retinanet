@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
+*.c
+*.so
 /.pytest_cache
 /.cache

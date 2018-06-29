@@ -18,4 +18,5 @@ install:
     - pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
 cache: pip
 script:
+    - python setup.py build_ext --inplace
     - py.test --flake8 --forked

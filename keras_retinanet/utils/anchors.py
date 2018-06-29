@@ -16,9 +16,11 @@ limitations under the License.
 
 import numpy as np
 
+from ..utils.compute_overlap import compute_overlap
+
 
 def anchor_targets_bbox(
-    image_shape,
+    anchors,
     annotations,
     num_classes,
     mask_shape=None,
@@ -29,7 +31,7 @@ def anchor_targets_bbox(
     """ Generate anchor targets for bbox detection.
 
     Args
-        image_shape: Shape of the image.
+        anchors: np.array of annotations of shape (N, 4) for (x1, y1, x2, y2).
         annotations: np.array of shape (N, 5) for (x1, y1, x2, y2, label).
         num_classes: Number of classes to predict.
         mask_shape: If the image is padded with zeros, mask_shape can be used to mark the relevant part of the image.
@@ -37,43 +39,42 @@ def anchor_targets_bbox(
         positive_overlap: IoU overlap or positive anchors (all anchors with overlap > positive_overlap are positive).
 
     Returns
-        labels: np.array of shape (A, num_classes) where a cols consists of -1 for ignore, 0 for negative and 1 for positive for a certain class.
+        labels: np.array of shape (A, num_classes) where a row consists of 0 for negative and 1 for positive for a certain class.
         annotations: np.array of shape (A, 5) for (x1, y1, x2, y2, label) containing the annotations corresponding to each anchor or 0 if there is no corresponding anchor.
-        anchors: np.array of shape (A, 4) for (x1, y1, x2, y2) containing the anchor boxes.
+        anchor_states: np.array of shape (N,) containing the state of an anchor (-1 for ignore, 0 for bg, 1 for fg).
     """
-    anchors = anchors_for_shape(image_shape, **kwargs)
-
-    # label: 1 is positive, 0 is negative, -1 is dont care
-    labels = np.ones((anchors.shape[0], num_classes)) * -1
+    # anchor states: 1 is positive, 0 is negative, -1 is dont care
+    anchor_states = np.zeros((anchors.shape[0],))
+    labels        = np.zeros((anchors.shape[0], num_classes))
 
     if annotations.shape[0]:
         # obtain indices of gt annotations with the greatest overlap
-        overlaps             = compute_overlap(anchors, annotations)
+        overlaps             = compute_overlap(anchors.astype(np.float64), annotations.astype(np.float64))
         argmax_overlaps_inds = np.argmax(overlaps, axis=1)
         max_overlaps         = overlaps[np.arange(overlaps.shape[0]), argmax_overlaps_inds]
 
-        # assign bg labels first so that positive labels can clobber them
-        labels[max_overlaps < negative_overlap, :] = 0
+        # assign "dont care" labels
+        positive_indices                = max_overlaps >= positive_overlap
+        ignore_indices                  = (max_overlaps > negative_overlap) & ~positive_indices
+        anchor_states[ignore_indices]   = -1
+        anchor_states[positive_indices] = 1
 
         # compute box regression targets
         annotations = annotations[argmax_overlaps_inds]
 
-        # fg label: above threshold IOU
-        positive_indices = max_overlaps >= positive_overlap
-        labels[positive_indices, :] = 0
+        # compute target class labels
         labels[positive_indices, annotations[positive_indices, 4].astype(int)] = 1
     else:
         # no annotations? then everything is background
-        labels[:] = 0
         annotations = np.zeros((anchors.shape[0], annotations.shape[1]))
 
     # ignore annotations outside of image
-    mask_shape         = image_shape if mask_shape is None else mask_shape
-    anchors_centers    = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
-    indices            = np.logical_or(anchors_centers[:, 0] >= mask_shape[1], anchors_centers[:, 1] >= mask_shape[0])
-    labels[indices, :] = -1
+    if mask_shape:
+        anchors_centers        = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
+        indices                = np.logical_or(anchors_centers[:, 0] >= mask_shape[1], anchors_centers[:, 1] >= mask_shape[0])
+        anchor_states[indices] = -1
 
-    return labels, annotations, anchors
+    return labels, annotations, anchor_states
 
 
 def layer_shapes(image_shape, model):
@@ -271,30 +272,3 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     targets = (targets - mean) / std
 
     return targets
-
-
-def compute_overlap(a, b):
-    """
-    Args
-
-        a: (N, 4) ndarray of float
-        b: (K, 4) ndarray of float
-
-    Returns
-        overlaps: (N, K) ndarray of overlap between boxes and query_boxes
-    """
-    area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
-
-    iw = np.minimum(np.expand_dims(a[:, 2], axis=1), b[:, 2]) - np.maximum(np.expand_dims(a[:, 0], 1), b[:, 0])
-    ih = np.minimum(np.expand_dims(a[:, 3], axis=1), b[:, 3]) - np.maximum(np.expand_dims(a[:, 1], 1), b[:, 1])
-
-    iw = np.maximum(iw, 0)
-    ih = np.maximum(ih, 0)
-
-    ua = np.expand_dims((a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1]), axis=1) + area - iw * ih
-
-    ua = np.maximum(ua, np.finfo(float).eps)
-
-    intersection = iw * ih
-
-    return intersection / ua
