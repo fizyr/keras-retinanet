@@ -17,6 +17,7 @@ limitations under the License.
 import keras
 from keras.applications.mobilenet import mobilenet
 from keras.utils import get_file
+from ..utils.image import preprocess_image
 
 from . import retinanet
 from . import Backbone
@@ -77,6 +78,11 @@ class MobileNetBackbone(Backbone):
 
         if backbone not in MobileNetBackbone.allowed_backbones:
             raise ValueError('Backbone (\'{}\') not in allowed backbones ({}).'.format(backbone, MobileNetBackbone.allowed_backbones))
+
+    def preprocess_image(self, inputs):
+        """ Takes as input an image and prepares it for being passed through the network.
+        """
+        return preprocess_image(inputs, mode='tf')
 
 
 def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, modifier=None, **kwargs):
