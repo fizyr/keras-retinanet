@@ -37,6 +37,7 @@ def parse_args(args):
     parser.add_argument('model_out', help='Path to save the converted model to.')
     parser.add_argument('--backbone', help='The backbone of the model to convert.', default='resnet50')
     parser.add_argument('--no-nms', help='Disables non maximum suppression.', dest='nms', action='store_false')
+    parser.add_argument('--no-class-specific-filter', help='Disables class specific filtering.', dest='class_specific_filter', action='store_false')
 
     return parser.parse_args(args)
 
