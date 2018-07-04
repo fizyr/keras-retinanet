@@ -185,7 +185,11 @@ class OpenImagesGenerator(Generator):
         else:
             raise NotImplementedError('There is currently no implementation for versions older than v3')
 
-        self.base_dir         = os.path.join(main_dir, 'images', subset)
+        if version == 'challenge2018':
+            self.base_dir     = os.path.join(main_dir, 'images', 'train')
+        else:
+            self.base_dir     = os.path.join(main_dir, 'images', subset)
+
         metadata_dir          = os.path.join(main_dir, metadata)
         annotation_cache_json = os.path.join(annotation_cache_dir, subset + '.json')
 
