@@ -191,7 +191,7 @@ def run(generator, args):
             # draw regressed anchors in green to override most red annotations
             # result is that annotations without anchors are red, with anchors are green
             anchors = anchors_for_shape(image.shape)
-            labels, boxes, _ = generator.compute_anchor_targets(anchors, annotations, generator.num_classes())
+            labels, boxes, anchor_states = generator.compute_anchor_targets(anchors, annotations, generator.num_classes())
             draw_boxes(image, boxes[anchor_states == 1, :], (0, 255, 0))
 
         cv2.imshow('Image', image)
