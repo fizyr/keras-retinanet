@@ -27,8 +27,10 @@ from ..utils.image import read_image_bgr
 
 
 def get_labels(metadata_dir, version='v4'):
-    if version == 'v4':
-        boxable_classes_descriptions = os.path.join(metadata_dir, 'class-descriptions-boxable.csv')
+    if version == 'v4' or version == 'challenge2018':
+        csv_file = 'class-descriptions-boxable.csv' if version == 'v4' else 'challenge-2018-class-descriptions-500.csv'
+
+        boxable_classes_descriptions = os.path.join(metadata_dir, csv_file)
         id_to_labels = {}
         cls_index    = {}
 
@@ -65,32 +67,47 @@ def get_labels(metadata_dir, version='v4'):
 
 
 def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, version='v4'):
+    validation_image_ids = {}
+
     if version == 'v4':
         annotations_path = os.path.join(metadata_dir, subset, '{}-annotations-bbox.csv'.format(subset))
+    elif version == 'challenge2018':
+        validation_image_ids_path = os.path.join(metadata_dir, 'challenge-2018-image-ids-valset-od.csv')
+
+        with open(validation_image_ids_path, 'r') as csv_file:
+            reader = csv.DictReader(csv_file, fieldnames=['ImageID'])
+            reader.next()
+            for line, row in enumerate(reader):
+                image_id = row['ImageID']
+                validation_image_ids[image_id] = True
+
+        annotations_path = os.path.join(metadata_dir, 'challenge-2018-train-annotations-bbox.csv')
     else:
         annotations_path = os.path.join(metadata_dir, subset, 'annotations-human-bbox.csv')
 
-    cnt = 0
-    with open(annotations_path, 'r') as csv_file:
-        reader = csv.DictReader(csv_file,
-                                fieldnames=['ImageID', 'Source', 'LabelName',
-                                            'Confidence', 'XMin', 'XMax', 'YMin',
-                                            'YMax'])
-        next(reader)
-        for _ in reader:
-            cnt += 1
+    fieldnames = ['ImageID', 'Source', 'LabelName', 'Confidence',
+                  'XMin', 'XMax', 'YMin', 'YMax',
+                  'IsOccluded', 'IsTruncated', 'IsGroupOf', 'IsDepiction', 'IsInside']
 
     id_annotations = dict()
     with open(annotations_path, 'r') as csv_file:
-        reader = csv.DictReader(csv_file,
-                                fieldnames=['ImageID', 'Source', 'LabelName',
-                                            'Confidence', 'XMin', 'XMax', 'YMin',
-                                            'YMax'])
+        reader = csv.DictReader(csv_file, fieldnames=fieldnames)
         next(reader)
 
         images_sizes = {}
         for line, row in enumerate(reader):
             frame = row['ImageID']
+
+            if version == 'challenge2018':
+                if subset == 'train':
+                    if frame in validation_image_ids:
+                        continue
+                elif subset == 'validation':
+                    if frame not in validation_image_ids:
+                        continue
+                else:
+                    raise NotImplementedError('This generator handles only the train and validation subsets')
+
             class_name = row['LabelName']
 
             if class_name not in cls_index:
@@ -98,7 +115,13 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, 
 
             cls_id = cls_index[class_name]
 
-            img_path = os.path.join(main_dir, 'images', subset, frame + '.jpg')
+            if version == 'challenge2018':
+                # We recommend participants to use the provided subset of the training set as a validation set.
+                # This is preferable over using the V4 val/test sets, as the training set is more densely annotated.
+                img_path = os.path.join(main_dir, 'images', 'train', frame + '.jpg')
+            else:
+                img_path = os.path.join(main_dir, 'images', subset, frame + '.jpg')
+
             if frame in images_sizes:
                 width, height = images_sizes[frame]
             else:
@@ -106,7 +129,9 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, 
                     with Image.open(img_path) as img:
                         width, height = img.width, img.height
                         images_sizes[frame] = (width, height)
-                except Exception:
+                except Exception as ex:
+                    if version == 'challenge2018':
+                        raise ex
                     continue
 
             x1 = float(row['XMin'])
@@ -153,12 +178,18 @@ class OpenImagesGenerator(Generator):
     ):
         if version == 'v4':
             metadata = '2018_04'
+        elif version == 'challenge2018':
+            metadata = 'challenge2018'
         elif version == 'v3':
             metadata = '2017_11'
         else:
             raise NotImplementedError('There is currently no implementation for versions older than v3')
 
-        self.base_dir         = os.path.join(main_dir, 'images', subset)
+        if version == 'challenge2018':
+            self.base_dir     = os.path.join(main_dir, 'images', 'train')
+        else:
+            self.base_dir     = os.path.join(main_dir, 'images', subset)
+
         metadata_dir          = os.path.join(main_dir, metadata)
         annotation_cache_json = os.path.join(annotation_cache_dir, subset + '.json')
 
