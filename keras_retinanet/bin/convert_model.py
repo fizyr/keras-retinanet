@@ -49,7 +49,7 @@ def main(args=None):
     args = parse_args(args)
 
     # load and convert model
-    model = models.load_model(args.model_in, convert=True, backbone_name=args.backbone, nms=args.nms)
+    model = models.load_model(args.model_in, convert=True, backbone_name=args.backbone, nms=args.nms, class_specific_filter=args.class_specific_filter)
 
     # save model
     model.save(args.model_out)
