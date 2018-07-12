@@ -107,6 +107,12 @@ retinanet-train oid /path/to/OID
 # You can also specify a list of labels if you want to train on a subset
 # by adding the argument 'labels_filter':
 keras_retinanet/bin/train.py oid /path/to/OID --labels_filter=Helmet,Tree
+
+# You can also specify a parent label if you want to train on a branch
+# from the semantic hierarchical tree (i.e a parent and all children)
+(https://storage.googleapis.com/openimages/challenge_2018/bbox_labels_500_hierarchy_visualizer/circle.html)
+# by adding the argument 'parent_label':
+keras_retinanet/bin/train.py oid /path/to/OID --parent_label=Boat
 ```
 
 
