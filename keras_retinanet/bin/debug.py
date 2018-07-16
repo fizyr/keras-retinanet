@@ -180,7 +180,7 @@ def run(generator, args):
         anchors = anchors_for_shape(image.shape)
 
         labels_batch, regression_batch, boxes = generator.compute_anchor_targets(anchors, 1, [image], [annotations], generator.num_classes())
-        labels, anchor_states                 = labels_batch[0, :, :-1], labels_batch[0, :, -1]
+        anchor_states                         = labels_batch[0, :, -1]
 
         # draw anchors on the image
         if args.anchors:

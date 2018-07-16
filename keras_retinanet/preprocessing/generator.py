@@ -245,13 +245,13 @@ class Generator(object):
         anchors   = self.generate_anchors(max_shape)
 
         labels_batch, regression_batch, _ = self.compute_anchor_targets(
-                anchors,
-                self.batch_size,
-                image_group,
-                annotations_group,
-                self.num_classes(),
-                dtype=keras.backend.floatx()
-            )
+            anchors,
+            self.batch_size,
+            image_group,
+            annotations_group,
+            self.num_classes(),
+            dtype=keras.backend.floatx()
+        )
 
         return [regression_batch, labels_batch]
 
