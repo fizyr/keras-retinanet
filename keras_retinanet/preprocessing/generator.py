@@ -246,11 +246,9 @@ class Generator(object):
 
         labels_batch, regression_batch, _ = self.compute_anchor_targets(
             anchors,
-            self.batch_size,
             image_group,
             annotations_group,
-            self.num_classes(),
-            dtype=keras.backend.floatx()
+            self.num_classes()
         )
 
         return [regression_batch, labels_batch]

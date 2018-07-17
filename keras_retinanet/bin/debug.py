@@ -179,12 +179,12 @@ def run(generator, args):
 
         anchors = anchors_for_shape(image.shape)
 
-        labels_batch, regression_batch, boxes = generator.compute_anchor_targets(anchors, 1, [image], [annotations], generator.num_classes())
-        anchor_states                         = labels_batch[0, :, -1]
+        labels_batch, regression_batch, boxes_batch = generator.compute_anchor_targets(anchors, [image], [annotations], generator.num_classes())
+        anchor_states                               = labels_batch[0, :, -1]
 
         # draw anchors on the image
         if args.anchors:
-            draw_boxes(image, boxes[anchor_states == 1, :], (0, 255, 0), thickness=1)
+            draw_boxes(image, boxes_batch[0, anchor_states == 1, :], (0, 255, 0), thickness=1)
 
         # draw annotations on the image
         if args.annotations:
@@ -193,7 +193,7 @@ def run(generator, args):
 
             # draw regressed anchors in green to override most red annotations
             # result is that annotations without anchors are red, with anchors are green
-            draw_boxes(image, boxes[anchor_states == 1, :], (0, 255, 0))
+            draw_boxes(image, boxes_batch[0, anchor_states == 1, :], (0, 255, 0))
 
         cv2.imshow('Image', image)
         if cv2.waitKey() == ord('q'):
