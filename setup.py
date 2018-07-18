@@ -12,7 +12,7 @@ extensions = [
 
 setuptools.setup(
     name             = 'keras-retinanet',
-    version          = '0.4.0',
+    version          = '0.4.1',
     description      = 'Keras implementation of RetinaNet object detection.',
     url              = 'https://github.com/fizyr/keras-retinanet',
     author           = 'Hans Gaiser',
