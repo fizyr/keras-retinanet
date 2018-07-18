@@ -23,7 +23,6 @@ import keras
 
 from ..utils.anchors import (
     anchor_targets_bbox,
-    bbox_transform,
     anchors_for_shape,
     guess_shapes
 )
@@ -245,20 +244,12 @@ class Generator(object):
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
         anchors   = self.generate_anchors(max_shape)
 
-        regression_batch = np.empty((self.batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
-        labels_batch     = np.empty((self.batch_size, anchors.shape[0], self.num_classes() + 1), dtype=keras.backend.floatx())
-
-        # compute labels and regression targets
-        for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
-            # compute regression targets
-            labels_batch[index, :, :-1], annotations, labels_batch[index, :, -1] = self.compute_anchor_targets(
-                anchors,
-                annotations,
-                self.num_classes(),
-                mask_shape=image.shape,
-            )
-            regression_batch[index, :, :-1] = bbox_transform(anchors, annotations)
-            regression_batch[index, :, -1]  = labels_batch[index, :, -1]  # copy the anchor states to the regression batch
+        labels_batch, regression_batch, _ = self.compute_anchor_targets(
+            anchors,
+            image_group,
+            annotations_group,
+            self.num_classes()
+        )
 
         return [regression_batch, labels_batch]
 
