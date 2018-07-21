@@ -22,7 +22,7 @@ class Evaluate(keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
     """
 
-    def __init__(self, generator, iou_threshold=0.5, score_threshold=0.05, max_detections=100, save_path=None, tensorboard=None, verbose=1, tensorboard_image=None, number_images=0):
+    def __init__(self, generator, iou_threshold=0.5, score_threshold=0.05, max_detections=100, save_path=None, tensorboard=None, verbose=1, args=None):
         """ Evaluate a given dataset using a given model at the end of every epoch during training.
 
         # Arguments
@@ -41,8 +41,14 @@ class Evaluate(keras.callbacks.Callback):
         self.save_path       = save_path
         self.tensorboard     = tensorboard
         self.verbose         = verbose
-        self.tensorboard_image= tensorboard_image
-        self.number_images = number_images
+        
+        self.number_images = args.tensorboxes
+        if self.number_images > 0:
+            import tensorflow as tf
+            self.tensorboard_image= tf.summary.FileWriter(args.tensorboard_dir+'/image')
+            
+            
+            
         super(Evaluate, self).__init__()
 
     def on_epoch_end(self, epoch, logs=None):
@@ -60,7 +66,7 @@ class Evaluate(keras.callbacks.Callback):
             steps=epoch,
             number= self.number_images,
         )
-
+        # compute per class average precision
         self.mean_ap = sum(average_precisions.values()) / len(average_precisions)
 
         if self.tensorboard is not None and self.tensorboard.writer is not None:

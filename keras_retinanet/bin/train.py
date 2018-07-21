@@ -354,7 +354,10 @@ def check_args(parsed_args):
 
     return parsed_args
 
-def optimizers(args):
+def create_optimizers(args):
+    """
+        Choose the different optimizers : adam, sgd, adamax, adadelta, adagrad, nadam, rmsprop
+    """
     if args.optimizer == 'adamax':
         opt = Adamax(lr=args.lr, clipnorm=args.clip_norm)
     elif args.optimizer == 'sgd':
@@ -371,7 +374,7 @@ def optimizers(args):
     else:
         opt = Adam(lr=args.lr, clipnorm=args.clip_norm)
         
-    print(args.optimizer + ':' + str(args.lr) + ' ' + str(args.clip_norm))
+    print('{}: {} {}'.format(args.optimizer, args.lr, args.clip_norm))
     return opt
 
 def parse_args(args):
@@ -428,11 +431,11 @@ def parse_args(args):
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
 
-    parser.add_argument('--tensorboxes', dest='tensorboxes',  help='Number of images to store on tensorboard', type=int, default=0)
-    parser.add_argument('--use-val-loss', dest='val_loss', help='Compute validation loss', type=bool, default=False)
-    parser.add_argument('--optimizer', dest="optimizer", help='choose optimizer : sgd, adam, rmsprop, adagrad, adadelta, adamax, nadam. default=adam', default='adam')   
-    parser.add_argument('--lr', dest='lr',  help='Choose learning rate value, default = 0.00001.', type=float, default=1e-5)
-    parser.add_argument('--clip-norm', dest='clip_norm', help='Choose clip norm value', type=float, default=0.001)
+    parser.add_argument('--tensorboxes',  help='Number of images to store on tensorboard', type=int, default=0)
+    parser.add_argument('--use-val-loss', dest='val_loss', help='Compute validation loss', action='store_true')
+    parser.add_argument('--optimizer', help='choose optimizer. default=adam', default='adam', choices=['adam', 'sgd', 'adagrad', 'adadelta', 'adamax', 'nadam', 'rmsprop'])   
+    parser.add_argument('--lr',  help='Choose learning rate value, default = 0.00001.', type=float, default=1e-5)
+    parser.add_argument('--clip-norm', help='Choose clip norm value', type=float, default=0.001)
     
     return check_args(parser.parse_args(args))
 
@@ -443,7 +446,7 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    writer = tf.summary.FileWriter(args.tensorboard_dir+'/image')
+    #writer = tf.summary.FileWriter(args.tensorboard_dir+'/image')
     
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
@@ -478,7 +481,7 @@ def main(args=None):
             weights=weights,
             multi_gpu=args.multi_gpu,
             freeze_backbone=args.freeze_backbone,
-            opt=optimizers(args),
+            opt=create_optimizers(args),
         )
 
     # print model summary
@@ -498,34 +501,23 @@ def main(args=None):
         prediction_model,
         validation_generator,
         args,
-        tensorboard_image=writer,
+        #tensorboard_image=writer,
     )
 
     # start training
-    # start training
-    if args.val_loss:
+
         
-        training_model.fit_generator(
-            generator=train_generator,
-            steps_per_epoch=args.steps,
-            validation_data=validation_generator,
-            validation_steps= int(round(validation_generator.size()/args.batch_size)),
-            epochs=args.epochs,
-            verbose=1,
-            callbacks=callbacks
-            
-        )
-    else:
-        training_model.fit_generator(
+    training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=args.steps,
-        #validation_data=validation_generator,
-        #validation_steps= int(round(validation_generator.size()/args.batch_size)),
+        validation_data=validation_generator if args.val_loss else None,
+        validation_steps= int(round(validation_generator.size()/args.batch_size)) if args.val_loss else None,
         epochs=args.epochs,
         verbose=1,
         callbacks=callbacks
         
-        )
+    )
+
 
 
 if __name__ == '__main__':
