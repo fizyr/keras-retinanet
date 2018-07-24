@@ -117,7 +117,7 @@ def generate_images_annotations_json(main_dir, metadata_dir, subset, cls_index, 
 
         with open(validation_image_ids_path, 'r') as csv_file:
             reader = csv.DictReader(csv_file, fieldnames=['ImageID'])
-            reader.next()
+            next(reader)
             for line, row in enumerate(reader):
                 image_id = row['ImageID']
                 validation_image_ids[image_id] = True
