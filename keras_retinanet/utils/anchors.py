@@ -45,7 +45,7 @@ def anchor_targets_bbox(
         regression_batch: batch that contains bounding-box regression targets for an image & anchor states (np.array of shape (batch_size, N, 4 + 1),
                       where N is the number of anchors for an image, the first 4 columns define regression targets for (x1, y1, x2, y2) and the
                       last column defines anchor states (-1 for ignore, 0 for bg, 1 for fg).
-        boxes_batch: box regression targets (np.array of shape (batch_size, N, num_classes + 1), where N is the number of anchors for an image)
+        annotations_batch: annotations per anchor (np.array of shape (batch_size, N, annotations.shape[1]), where N is the number of anchors for an image)
     """
 
     assert (len(image_group) == len(annotations_group)), "The length of the images and annotations need to be equal."
@@ -53,9 +53,9 @@ def anchor_targets_bbox(
 
     batch_size = len(image_group)
 
-    regression_batch = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
-    labels_batch     = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=keras.backend.floatx())
-    boxes_batch      = np.zeros((batch_size, anchors.shape[0], annotations_group[0].shape[1]), dtype=keras.backend.floatx())
+    regression_batch  = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=keras.backend.floatx())
+    labels_batch      = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=keras.backend.floatx())
+    annotations_batch = np.zeros((batch_size, anchors.shape[0], annotations_group[0].shape[1]), dtype=keras.backend.floatx())
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
@@ -71,7 +71,7 @@ def anchor_targets_bbox(
 
             # compute box regression targets
             annotations = annotations[argmax_overlaps_inds]
-            boxes_batch[index, ...] = annotations
+            annotations_batch[index, ...] = annotations
 
             # compute target class labels
             labels_batch[index, positive_indices, annotations[positive_indices, 4].astype(int)] = 1
@@ -86,7 +86,7 @@ def anchor_targets_bbox(
             labels_batch[index, indices, -1]     = - 1
             regression_batch[index, indices, -1] = -1
 
-    return labels_batch, regression_batch, boxes_batch
+    return labels_batch, regression_batch, annotations_batch
 
 
 def compute_gt_annotations(
