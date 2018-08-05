@@ -155,7 +155,7 @@ def main(args=None):
         for label, (average_precision, num_annotations) in average_precisions.items():
             print('{:.0f} instances of class'.format(num_annotations),
                   generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
-            if(average_precision[1] > 0):
+            if(num_annotations > 0):
                 present_classes += 1
                 precision       += average_precision
         print('mAP: {:.4f}'.format(precision / present_classes))

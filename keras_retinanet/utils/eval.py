@@ -96,7 +96,6 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image_scores     = scores[scores_sort]
         image_labels     = labels[0, indices[scores_sort]]
         image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
-
         if save_path is not None:
             draw_annotations(raw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
             draw_detections(raw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name)
@@ -174,10 +173,12 @@ def evaluate(
         true_positives  = np.zeros((0,))
         scores          = np.zeros((0,))
         num_annotations = 0.0
-
+        print('----------------------------------------------------------------------------------')
         for i in range(generator.size()):
+            print('image ', i)
             detections           = all_detections[i][label]
             annotations          = all_annotations[i][label]
+            print('Detection ', detections.astype(int), 'Annotations ', annotations)
             num_annotations     += annotations.shape[0]
             detected_annotations = []
 
