@@ -232,6 +232,9 @@ class Generator(object):
         for image_index, image in enumerate(image_group):
             image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
 
+        if keras.backend.image_data_format() == 'channels_first':
+            image_batch = image_batch.transpose((0, 3, 1, 2))
+
         return image_batch
 
     def generate_anchors(self, image_shape):
