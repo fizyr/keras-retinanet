@@ -184,7 +184,7 @@ def run(generator, args):
 
         # draw anchors on the image
         if args.anchors:
-            draw_boxes(image, boxes_batch[0, anchor_states == 1, :], (0, 255, 0), thickness=1)
+            draw_boxes(image, anchors[anchor_states == 1], (255, 255, 0), thickness=1)
 
         # draw annotations on the image
         if args.annotations:
