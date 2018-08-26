@@ -53,7 +53,7 @@ def backbone(backbone_name):
     return b(backbone_name)
 
 
-def load_model(filepath, backbone_name='resnet50', convert=False, nms=True):
+def load_model(filepath, backbone_name='resnet50', convert=False, nms=True,anchor_parameters = None):
     """ Loads a retinanet model using the correct custom objects.
 
     # Arguments
@@ -63,6 +63,7 @@ def load_model(filepath, backbone_name='resnet50', convert=False, nms=True):
         backbone_name: Backbone with which the model was trained.
         convert: Boolean, whether to convert the model to an inference model.
         nms: Boolean, whether to add NMS filtering to the converted model. Only valid if convert=True.
+        anchor_parameters: AnchorParameters object pass to predict model, if omitted the AnchorParameters.default is assumed. This argument is valid only when 'convert' is set to True.
 
     # Returns
         A keras.models.Model object.
@@ -75,7 +76,8 @@ def load_model(filepath, backbone_name='resnet50', convert=False, nms=True):
 
     model = keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
     if convert:
-        from .retinanet import retinanet_bbox
-        model = retinanet_bbox(model=model, nms=nms)
+        from .retinanet import retinanet_bbox,AnchorParameters
+        anchor_parameters = anchor_parameters if anchor_parameters is not None else AnchorParameters.default
+        model = retinanet_bbox(model=model, nms=nms,anchor_parameters = anchor_parameters)
 
     return model
