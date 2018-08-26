@@ -38,6 +38,8 @@ def test_train_generate_anchors_config():
         'tests/test-data/anchors.yaml',
         '--snapshot-path',
         'tests/snapshot',
+#        '--gpu',
+#        '1',
         'csv',
         'tests/test-data/csv/annotations.csv',
         'tests/test-data/csv/classes.csv',
