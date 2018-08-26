@@ -269,7 +269,7 @@ class OpenImagesGenerator(Generator):
             # there is/are no other sublabel(s) other than the labels itself
 
             for label in labels_filter:
-                for i, lb in id_to_labels:
+                for i, lb in id_to_labels.iteritems():
                     if lb == label:
                         children_id_to_labels[i] = label
                         break
