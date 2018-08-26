@@ -44,6 +44,7 @@ class Generator(object):
         image_max_side=1333,
         transform_parameters=None,
         compute_anchor_targets=anchor_targets_bbox,
+        **kwargs
     ):
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
@@ -53,6 +54,7 @@ class Generator(object):
         self.image_max_side         = image_max_side
         self.transform_parameters   = transform_parameters or TransformParameters()
         self.compute_anchor_targets = compute_anchor_targets
+        self.kwargs = kwargs
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -195,6 +197,9 @@ class Generator(object):
                 annotations,
                 self.num_classes(),
                 mask_shape=image.shape,
+
+                #supply anchors parameters
+                **(self.kwargs),
             )
             regression_group[index] = bbox_transform(anchors, annotations)
 
