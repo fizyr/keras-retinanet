@@ -21,7 +21,10 @@ import functools
 import os
 import sys
 import warnings
+import numpy as np
 
+import yaml
+import copy
 import keras
 import keras.preprocessing.image
 from keras.utils import multi_gpu_model
@@ -34,20 +37,20 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
-from .. import layers
-from .. import losses
-from .. import models
-from ..callbacks import RedirectModel
-from ..callbacks.eval import Evaluate
-from ..models.retinanet import retinanet_bbox
-from ..preprocessing.csv_generator import CSVGenerator
-from ..preprocessing.kitti import KittiGenerator
-from ..preprocessing.open_images import OpenImagesGenerator
-from ..preprocessing.pascal_voc import PascalVocGenerator
-from ..utils.anchors import make_shapes_callback, anchor_targets_bbox
-from ..utils.keras_version import check_keras_version
-from ..utils.model import freeze as freeze_model
-from ..utils.transform import random_transform_generator
+from keras_retinanet import layers
+from keras_retinanet import losses
+from keras_retinanet import models
+from keras_retinanet.callbacks import RedirectModel
+from keras_retinanet.callbacks.eval import Evaluate
+from keras_retinanet.models.retinanet import retinanet_bbox, AnchorParameters
+from keras_retinanet.preprocessing.csv_generator import CSVGenerator
+from keras_retinanet.preprocessing.kitti import KittiGenerator
+from keras_retinanet.preprocessing.open_images import OpenImagesGenerator
+from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
+from keras_retinanet.utils.anchors import make_shapes_callback, anchor_targets_bbox
+from keras_retinanet.utils.keras_version import check_keras_version
+from keras_retinanet.utils.model import freeze as freeze_model
+from keras_retinanet.utils.transform import random_transform_generator
 
 
 def makedirs(path):
@@ -73,21 +76,40 @@ def model_with_weights(model, weights, skip_mismatch):
     return model
 
 
-def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False):
+def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_backbone=False,anchors_path = None):
+    anchors_dict = get_anchors_params(anchors_path)
+    anchors_params = AnchorParameters(**anchors_dict)
+    
     modifier = freeze_model if freeze_backbone else None
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
+            model = model_with_weights(
+                backbone_retinanet(
+                    num_classes,
+                    modifier=modifier,
+                    num_anchors=anchors_params.num_anchors()
+                ), 
+                weights=weights, 
+                skip_mismatch=True
+            )
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
-        model          = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
+        model   = model_with_weights(
+            backbone_retinanet(
+                num_classes, 
+                modifier=modifier,
+                num_anchors = anchors_params.num_anchors()
+            ), 
+            weights=weights, 
+            skip_mismatch=True
+        )
         training_model = model
 
     # make prediction model
-    prediction_model = retinanet_bbox(model=model)
+    prediction_model = retinanet_bbox(model=model,anchor_parameters = anchors_params)
 
     # compile model
     training_model.compile(
@@ -108,6 +130,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     if args.snapshots:
         # ensure directory created first; otherwise h5py will error after epoch.
         makedirs(args.snapshot_path)
+
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
@@ -160,6 +183,8 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
 
 def create_generators(args):
+    anchors_dict = get_anchors_params(args.anchors)
+
     # create random transform generator for augmenting training data
     if args.random_transform:
         transform_generator = random_transform_generator(
@@ -187,7 +212,8 @@ def create_generators(args):
             transform_generator=transform_generator,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
 
         validation_generator = CocoGenerator(
@@ -195,7 +221,8 @@ def create_generators(args):
             'val2017',
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
     elif args.dataset_type == 'pascal':
         train_generator = PascalVocGenerator(
@@ -204,7 +231,8 @@ def create_generators(args):
             transform_generator=transform_generator,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
 
         validation_generator = PascalVocGenerator(
@@ -212,7 +240,8 @@ def create_generators(args):
             'test',
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
     elif args.dataset_type == 'csv':
         train_generator = CSVGenerator(
@@ -221,7 +250,8 @@ def create_generators(args):
             transform_generator=transform_generator,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
 
         if args.val_annotations:
@@ -230,7 +260,8 @@ def create_generators(args):
                 args.classes,
                 batch_size=args.batch_size,
                 image_min_side=args.image_min_side,
-                image_max_side=args.image_max_side
+                image_max_side=args.image_max_side,
+                **anchors_dict
             )
         else:
             validation_generator = None
@@ -245,7 +276,8 @@ def create_generators(args):
             transform_generator=transform_generator,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
 
         validation_generator = OpenImagesGenerator(
@@ -257,7 +289,8 @@ def create_generators(args):
             fixed_labels=args.fixed_labels,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
     elif args.dataset_type == 'kitti':
         train_generator = KittiGenerator(
@@ -266,7 +299,8 @@ def create_generators(args):
             transform_generator=transform_generator,
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict,
         )
 
         validation_generator = KittiGenerator(
@@ -274,13 +308,37 @@ def create_generators(args):
             subset='val',
             batch_size=args.batch_size,
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            **anchors_dict
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
     return train_generator, validation_generator
 
+def get_anchors_params(anchors_in=None):
+    if anchors_in:
+        anchors_in  = open(anchors_in,'r')
+        anchors_params = yaml.load(anchors_in)
+        anchors_params.update(ratios=np.array(anchors_params['ratios'],keras.backend.floatx()))  
+        anchors_params.update(scales=np.array(anchors_params['scales'],keras.backend.floatx()))  
+    else:
+        #just use the default params.
+        anchors_params = {'sizes':AnchorParameters.default.sizes,
+                          'ratios':AnchorParameters.default.ratios,
+                          'scales':AnchorParameters.default.scales,
+                          'strides':AnchorParameters.default.strides}
+            
+    return anchors_params
+
+def save_anchors_params(anchors_params,anchors_out):
+    anchors_params = copy.deepcopy(anchors_params)
+
+    #cast ndarray to list so they are more human-readable and could be modified directly inside a yaml file
+    anchors_params.update(ratios=anchors_params["ratios"].tolist())
+    anchors_params.update(scales=anchors_params["scales"].tolist())
+    anchors_out = open(anchors_out,"w")
+    yaml.dump(anchors_params,anchors_out)
 
 def check_args(parsed_args):
     """
@@ -304,6 +362,9 @@ def check_args(parsed_args):
 
     if parsed_args.multi_gpu > 1 and not parsed_args.multi_gpu_force:
         raise ValueError("Multi-GPU support is experimental, use at own risk! Run with --multi-gpu-force if you wish to continue.")
+
+    if parsed_args.anchors is not None and not os.path.exists(parsed_args.anchors):
+        raise ValueError("Anchors parameters file {} not exist!".format(parsed_args.anchors))
 
     if 'resnet' not in parsed_args.backbone:
         warnings.warn('Using experimental backbone {}. Only resnet50 has been properly tested.'.format(parsed_args.backbone))
@@ -361,6 +422,7 @@ def parse_args(args):
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
+    parser.add_argument('--anchors',           help='Load anchors parameters by a yaml file.',default=None)
 
     return check_args(parser.parse_args(args))
 
@@ -382,6 +444,27 @@ def main(args=None):
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     keras.backend.tensorflow_backend.set_session(get_session())
 
+    if args.anchors:
+        anchors_dict = get_anchors_params(args.anchors)
+    elif args.snapshot:
+        #search the anchors parameters configure beside models
+        anchors_path = os.path.join(args.snapshot,"anchors.yaml")
+        anchors_path = anchors_path if os.path.exists(anchors_path) else None
+        anchors_dict = get_anchors_params(anchors_path)
+    else:
+        #default anchors params
+        anchors_dict = get_anchors_params(None)
+    anchors_params = AnchorParameters(**anchors_dict)
+
+    if args.snapshots and args.anchors:
+    #save anchors configure beside models
+        makedirs(args.snapshot_path)
+        anchors_out = os.path.join(
+            args.snapshot_path,
+            "anchors.yaml"
+        )
+        save_anchors_params(anchors_dict,anchors_out)
+ 
     # create the generators
     train_generator, validation_generator = create_generators(args)
 
@@ -390,20 +473,20 @@ def main(args=None):
         print('Loading model, this may take a second...')
         model            = models.load_model(args.snapshot, backbone_name=args.backbone)
         training_model   = model
-        prediction_model = retinanet_bbox(model=model)
+        prediction_model = retinanet_bbox(model=model,anchor_parameters = anchors_params)
     else:
         weights = args.weights
         # default to imagenet if nothing else is specified
         if weights is None and args.imagenet_weights:
             weights = backbone.download_imagenet()
-
         print('Creating model, this may take a second...')
         model, training_model, prediction_model = create_models(
             backbone_retinanet=backbone.retinanet,
             num_classes=train_generator.num_classes(),
             weights=weights,
             multi_gpu=args.multi_gpu,
-            freeze_backbone=args.freeze_backbone
+            freeze_backbone=args.freeze_backbone,
+            anchors_path=args.anchors
         )
 
     # print model summary

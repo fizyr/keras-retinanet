@@ -54,12 +54,11 @@ def _compute_ap(recall, precision):
     ap = np.sum((mrec[i + 1] - mrec[i]) * mpre[i + 1])
     return ap
 
-
 def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
     """ Get the detections from the model using the generator.
 
     The result is a list of lists such that the size is:
-        all_detections[num_images][num_classes] = detections[num_detections, 4 + num_classes]
+        all_detections[num_images][num_classes] = detections[num_detections, 5]
 
     # Arguments
         generator       : The generator used to run images through the model.
@@ -100,9 +99,9 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         if save_path is not None:
             draw_annotations(raw_image, generator.load_annotations(i), label_to_name=generator.label_to_name)
-            draw_detections(raw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name)
+            draw_detections(raw_image, image_boxes, image_scores, image_labels, label_to_name=generator.label_to_name,score_threshold=0.5)
 
-            cv2.imwrite(os.path.join(save_path, '{}.png'.format(i)), raw_image)
+            cv2.imwrite(os.path.join(save_path, '{:0>4d}.png'.format(i)), raw_image)
 
         # copy detections to all_detections
         for label in range(generator.num_classes()):
@@ -112,12 +111,11 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
     return all_detections
 
-
 def _get_annotations(generator):
     """ Get the ground truth annotations from the generator.
 
     The result is a list of lists such that the size is:
-        all_detections[num_images][num_classes] = annotations[num_detections, 5]
+        all_detections[num_images][num_classes] = annotations[num_detections, 4]
 
     # Arguments
         generator : The generator used to retrieve ground truth annotations.
@@ -138,14 +136,13 @@ def _get_annotations(generator):
 
     return all_annotations
 
-
 def evaluate(
     generator,
     model,
     iou_threshold=0.5,
     score_threshold=0.05,
     max_detections=100,
-    save_path=None
+    save_path=None,
 ):
     """ Evaluate a given dataset using a given model.
 
@@ -162,12 +159,8 @@ def evaluate(
     # gather all detections and annotations
     all_detections     = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_annotations    = _get_annotations(generator)
-    average_precisions = {}
 
-    # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
-    # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
-    # pickle.dump(all_detections, open('all_detections.pkl', 'wb'))
-    # pickle.dump(all_annotations, open('all_annotations.pkl', 'wb'))
+    average_precisions = {}
 
     # process detections and annotations
     for label in range(generator.num_classes()):
@@ -197,7 +190,7 @@ def evaluate(
                 if max_overlap >= iou_threshold and assigned_annotation not in detected_annotations:
                     false_positives = np.append(false_positives, 0)
                     true_positives  = np.append(true_positives, 1)
-                    detected_annotations.append(assigned_annotation)
+                    detected_annotations.append(assigned_annotation_glob)
                 else:
                     false_positives = np.append(false_positives, 1)
                     true_positives  = np.append(true_positives, 0)
@@ -220,8 +213,12 @@ def evaluate(
         recall    = true_positives / num_annotations
         precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
 
+
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision
 
+    #experimental
     return average_precisions
+
+
