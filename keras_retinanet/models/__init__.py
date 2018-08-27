@@ -59,17 +59,20 @@ def backbone(backbone_name):
     return b(backbone_name)
 
 
-def load_model(filepath, backbone_name='resnet50', convert=False, nms=True, class_specific_filter=True):
+def load_model(filepath, backbone_name='resnet50', convert=False, nms=True,
+class_specific_filter=True, anchor_parameters = None):
     """ Loads a retinanet model using the correct custom objects.
 
     # Arguments
         filepath: one of the following:
             - string, path to the saved model, or
             - h5py.File object from which to load the model
+<<<<<<< HEAD
         backbone_name         : Backbone with which the model was trained.
         convert               : Boolean, whether to convert the model to an inference model.
         nms                   : Boolean, whether to add NMS filtering to the converted model. Only valid if convert=True.
         class_specific_filter : Whether to use class specific filtering or filter for the best scoring class only.
+        anchor_parameters     : AnchorParameters object pass to predict model, if omitted the AnchorParameters.default is assumed. Only valid is convert=True.
 
     # Returns
         A keras.models.Model object.
@@ -82,7 +85,8 @@ def load_model(filepath, backbone_name='resnet50', convert=False, nms=True, clas
 
     model = keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
     if convert:
-        from .retinanet import retinanet_bbox
-        model = retinanet_bbox(model=model, nms=nms, class_specific_filter=class_specific_filter)
+        from .retinanet import retinanet_bbox,AnchorParameters
+        anchor_parameters = anchor_parameters if anchor_parameters is not None else AnchorParameters.default
+        model = retinanet_bbox(model=model, nms=nms, class_specific_filter=class_specific_filter, anchor_parameters = anchor_parameters)
 
     return model
