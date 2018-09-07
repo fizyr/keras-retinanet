@@ -103,6 +103,7 @@ def parse_args(args):
     parser.add_argument('--save-path',       help='Path for saving images with detections (doesn\'t work for COCO).')
     parser.add_argument('--image-min-side',  help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side',  help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
+    parser.add_argument('--weighted-average',   help='Compute the mAP using the weighted average of precisions among classes.', action='store_true')
 
     return parser.parse_args(args)
 
@@ -150,15 +151,17 @@ def main(args=None):
         )
 
         # print evaluation
-        present_classes = 0
-        precision = 0
+        total_instances = []
+        precisions = []
         for label, (average_precision, num_annotations) in average_precisions.items():
             print('{:.0f} instances of class'.format(num_annotations),
                   generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
-            if num_annotations > 0:
-                present_classes += 1
-                precision       += average_precision
-        print('mAP: {:.4f}'.format(precision / present_classes))
+            total_instances.append(num_annotations)
+            precisions.append(average_precision)
+        if args.weighted_average:
+            print('mAP: {:.4f}'.format(sum([a*b for a,b in zip(total_instances,precisions)]) / sum(total_instances)))
+        else:
+            print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
 
 
 if __name__ == '__main__':
