@@ -159,7 +159,7 @@ def main(args=None):
             total_instances.append(num_annotations)
             precisions.append(average_precision)
         if args.weighted_average:
-            print('mAP: {:.4f}'.format(sum([a*b for a,b in zip(total_instances,precisions)]) / sum(total_instances)))
+            print('mAP: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
         else:
             print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
 

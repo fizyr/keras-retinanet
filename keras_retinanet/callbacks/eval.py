@@ -22,7 +22,8 @@ class Evaluate(keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
     """
 
-    def __init__(self,
+    def __init__(
+        self,
         generator,
         iou_threshold=0.5,
         score_threshold=0.05,
@@ -78,7 +79,7 @@ class Evaluate(keras.callbacks.Callback):
             total_instances.append(num_annotations)
             precisions.append(average_precision)
         if self.weighted_average:
-            self.mean_ap = sum([a*b for a,b in zip(total_instances,precisions)]) / sum(total_instances)
+            self.mean_ap = sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
         else:
             self.mean_ap = sum(precisions) / sum(x > 0 for x in total_instances)
 
