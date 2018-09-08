@@ -141,7 +141,7 @@ retinanet-train csv /path/to/csv/file/containing/annotations /path/to/csv/file/c
 ```
 
 In general, the steps to train on your own datasets are:
-1) Create a model by calling for instance `keras_retinanet.models.resnet50_retinanet` and compile it.
+1) Create a model by calling for instance `keras_retinanet.models.backbone('resnet50').retinanet(num_classes=80)` and compile it.
    Empirically, the following compile arguments have been found to work well:
 ```python
 model.compile(
@@ -152,7 +152,7 @@ model.compile(
     optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
 )
 ```
-2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.PascalVocGenerator`](https://github.com/fizyr/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)).
+2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.pascal_voc.PascalVocGenerator`](https://github.com/fizyr/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)).
 3) Use `model.fit_generator` to start training.
 
 ## CSV datasets
