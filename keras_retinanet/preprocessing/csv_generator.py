@@ -199,16 +199,16 @@ class CSVGenerator(Generator):
     def load_annotations(self, image_index):
         """ Load annotations for an image_index.
         """
-        path   = self.image_names[image_index]
-        annots = self.image_data[path]
-        boxes  = np.zeros((len(annots), 5))
+        path        = self.image_names[image_index]
+        annotations = {'labels': np.empty((0,)), 'bboxes': np.empty((0, 4))}
 
-        for idx, annot in enumerate(annots):
-            class_name = annot['class']
-            boxes[idx, 0] = float(annot['x1'])
-            boxes[idx, 1] = float(annot['y1'])
-            boxes[idx, 2] = float(annot['x2'])
-            boxes[idx, 3] = float(annot['y2'])
-            boxes[idx, 4] = self.name_to_label(class_name)
+        for idx, annot in enumerate(self.image_data[path]):
+            annotations['labels'] = np.concatenate((annotations['labels'], [self.name_to_label(annot['class'])]))
+            annotations['bboxes'] = np.concatenate((annotations['bboxes'], [[
+                float(annot['x1']),
+                float(annot['y1']),
+                float(annot['x2']),
+                float(annot['y2']),
+            ]]))
 
-        return boxes
+        return annotations
