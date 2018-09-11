@@ -17,9 +17,7 @@ limitations under the License.
 import argparse
 import os
 import sys
-import numpy as np
 
-import yaml
 import keras
 import tensorflow as tf
 
@@ -30,12 +28,12 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
-from keras_retinanet import models
-from keras_retinanet.preprocessing.csv_generator import CSVGenerator
-from keras_retinanet.preprocessing.pascal_voc import PascalVocGenerator
-from keras_retinanet.utils.eval import evaluate
-from keras_retinanet.utils.keras_version import check_keras_version
-from keras_retinanet.models.retinanet import AnchorParameters
+from .. import models
+from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.pascal_voc import PascalVocGenerator
+from ..utils.config import read_parameters_file, parse_anchor_parameters
+from ..utils.eval import evaluate
+from ..utils.keras_version import check_keras_version
 
 
 def get_session():
@@ -45,23 +43,6 @@ def get_session():
     config.gpu_options.allow_growth = True
     return tf.Session(config=config)
 
-#def get_absolute_name(name,prefix):
-#    return name if os.path.exists(name) else os.path.join(prefix,name)
-
-def get_anchors_params(anchors_in=None):
-    if anchors_in:
-        anchors_in  = open(anchors_in,'r')
-        anchors_params = yaml.load(anchors_in)
-        anchors_params.update(ratios=np.array(anchors_params['ratios'],keras.backend.floatx()))  
-        anchors_params.update(scales=np.array(anchors_params['scales'],keras.backend.floatx()))  
-    else:
-        #just use the default params.
-        anchors_params = {'sizes':AnchorParameters.default.sizes,
-                          'ratios':AnchorParameters.default.ratios,
-                          'scales':AnchorParameters.default.scales,
-                          'strides':AnchorParameters.default.strides}
-            
-    return anchors_params
 
 def create_generator(args):
     """ Create generators for evaluation.
@@ -74,14 +55,16 @@ def create_generator(args):
             args.coco_path,
             'val2017',
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'pascal':
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
             image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'csv':
         validation_generator = CSVGenerator(
@@ -89,11 +72,13 @@ def create_generator(args):
             args.classes,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
+            config=args.config
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
     return validation_generator
+
 
 def parse_args(args):
     """ Parse the arguments.
@@ -113,8 +98,7 @@ def parse_args(args):
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
 
     parser.add_argument('model',             help='Path to RetinaNet model.')
-
-    parser.add_argument("--convert-model",   help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
+    parser.add_argument('--convert-model',   help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
     parser.add_argument('--backbone',        help='The backbone of the model.', default='resnet50')
     parser.add_argument('--gpu',             help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--score-threshold', help='Threshold on score to filter detections with (defaults to 0.05).', default=0.05, type=float)
@@ -123,7 +107,7 @@ def parse_args(args):
     parser.add_argument('--save-path',       help='Path for saving images with detections (doesn\'t work for COCO).')
     parser.add_argument('--image-min-side',  help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side',  help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
-    parser.add_argument('--anchors',         help='Load anchors parameters by a yaml file.',default=None)
+    parser.add_argument('--config',          help='Path to a configuration parameters .ini file.', default=None)
 
     return parser.parse_args(args)
 
@@ -144,24 +128,21 @@ def main(args=None):
     # make save path if it doesn't exist
     if args.save_path is not None and not os.path.exists(args.save_path):
         os.makedirs(args.save_path)
-    
-    if not args.anchors:
-    #automatically search the snapshot path for anchors configure
-    #if it doesn't exist, then default anchors paramaters are assumed.
-        anchors_path = os.path.join(os.path.dirname(args.model),"anchors.yaml")
-        anchors_path = anchors_path if os.path.exists(anchors_path) else None
-    else:
-        anchors_path = args.anchors
-    anchors_dict = get_anchors_params(anchors_path)
-    anchors_params = AnchorParameters(**anchors_dict)
+
+    # optionally load config parameters
+    if args.config:
+        args.config = read_parameters_file(args.config)
 
     # create the generator
-    #(It's ok not to update anchors args, as we only use the generator for load images and annotations.)
     generator = create_generator(args)
 
     # load the model
     print('Loading model, this may take a second...')
-    model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model,anchor_parameters = anchors_params)
+    if args.config and 'anchor_parameters' in args.config:
+        anchor_params = parse_anchor_parameters(args.config)
+        model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model, anchor_params=anchor_params)
+    else:
+        model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model)
 
     # print model summary
     # print(model.summary())

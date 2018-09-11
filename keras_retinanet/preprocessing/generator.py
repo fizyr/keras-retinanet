@@ -26,6 +26,7 @@ from ..utils.anchors import (
     anchors_for_shape,
     guess_shapes
 )
+from ..utils.config import parse_anchor_parameters
 from ..utils.image import (
     TransformParameters,
     adjust_transform_for_image,
@@ -52,7 +53,7 @@ class Generator(object):
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
-        **kwargs
+        config=None
     ):
         """ Initialize Generator object.
 
@@ -78,7 +79,7 @@ class Generator(object):
         self.compute_anchor_targets = compute_anchor_targets
         self.compute_shapes         = compute_shapes
         self.preprocess_image       = preprocess_image
-        self.kwargs = kwargs
+        self.config                 = config
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -239,15 +240,19 @@ class Generator(object):
 
         return image_batch
 
-    def generate_anchors(self, image_shape,**kwargs):
-        return anchors_for_shape(image_shape, shapes_callback=self.compute_shapes,**kwargs)
+    def generate_anchors(self, image_shape):
+        if self.config and 'anchor_parameters' in self.config:
+            anchor_params = parse_anchor_parameters(self.config)
+            return anchors_for_shape(image_shape, anchor_params=anchor_params, shapes_callback=self.compute_shapes)
+        else:
+            return anchors_for_shape(image_shape, shapes_callback=self.compute_shapes)
 
     def compute_targets(self, image_group, annotations_group):
         """ Compute target outputs for the network using images and their annotations.
         """
         # get the max image shape
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
-        anchors   = self.generate_anchors(max_shape,**(self.kwargs))
+        anchors   = self.generate_anchors(max_shape)
 
         labels_batch, regression_batch, _ = self.compute_anchor_targets(
             anchors,
@@ -255,6 +260,7 @@ class Generator(object):
             annotations_group,
             self.num_classes()
         )
+
         return [regression_batch, labels_batch]
 
     def compute_input_output(self, group):
