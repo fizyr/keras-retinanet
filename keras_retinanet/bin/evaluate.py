@@ -158,6 +158,11 @@ def main(args=None):
                   generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
             total_instances.append(num_annotations)
             precisions.append(average_precision)
+
+        if sum(total_instances) == 0:
+            print('No test instances found.')
+            return
+
         if args.weighted_average:
             print('mAP: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
         else:
