@@ -22,17 +22,28 @@ class Evaluate(keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
     """
 
-    def __init__(self, generator, iou_threshold=0.5, score_threshold=0.05, max_detections=100, save_path=None, tensorboard=None, verbose=1):
+    def __init__(
+        self,
+        generator,
+        iou_threshold=0.5,
+        score_threshold=0.05,
+        max_detections=100,
+        save_path=None,
+        tensorboard=None,
+        weighted_average=False,
+        verbose=1
+    ):
         """ Evaluate a given dataset using a given model at the end of every epoch during training.
 
         # Arguments
-            generator       : The generator that represents the dataset to evaluate.
-            iou_threshold   : The threshold used to consider when a detection is positive or negative.
-            score_threshold : The score confidence threshold to use for detections.
-            max_detections  : The maximum number of detections to use per image.
-            save_path       : The path to save images with visualized detections to.
-            tensorboard     : Instance of keras.callbacks.TensorBoard used to log the mAP value.
-            verbose         : Set the verbosity level, by default this is set to 1.
+            generator        : The generator that represents the dataset to evaluate.
+            iou_threshold    : The threshold used to consider when a detection is positive or negative.
+            score_threshold  : The score confidence threshold to use for detections.
+            max_detections   : The maximum number of detections to use per image.
+            save_path        : The path to save images with visualized detections to.
+            tensorboard      : Instance of keras.callbacks.TensorBoard used to log the mAP value.
+            weighted_average : Compute the mAP using the weighted average of precisions among classes.
+            verbose          : Set the verbosity level, by default this is set to 1.
         """
         self.generator       = generator
         self.iou_threshold   = iou_threshold
@@ -40,6 +51,7 @@ class Evaluate(keras.callbacks.Callback):
         self.max_detections  = max_detections
         self.save_path       = save_path
         self.tensorboard     = tensorboard
+        self.weighted_average = weighted_average
         self.verbose         = verbose
 
         super(Evaluate, self).__init__()
@@ -58,16 +70,18 @@ class Evaluate(keras.callbacks.Callback):
         )
 
         # compute per class average precision
-        present_classes = 0
-        precision = 0
+        total_instances = []
+        precisions = []
         for label, (average_precision, num_annotations ) in average_precisions.items():
             if self.verbose == 1:
                 print('{:.0f} instances of class'.format(num_annotations),
                       self.generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
-            if num_annotations > 0:
-                present_classes += 1
-                precision       += average_precision
-        self.mean_ap = precision / present_classes
+            total_instances.append(num_annotations)
+            precisions.append(average_precision)
+        if self.weighted_average:
+            self.mean_ap = sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
+        else:
+            self.mean_ap = sum(precisions) / sum(x > 0 for x in total_instances)
 
         if self.tensorboard is not None and self.tensorboard.writer is not None:
             import tensorflow as tf

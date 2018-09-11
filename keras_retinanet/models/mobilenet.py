@@ -29,14 +29,6 @@ class MobileNetBackbone(Backbone):
 
     allowed_backbones = ['mobilenet128', 'mobilenet160', 'mobilenet192', 'mobilenet224']
 
-    def __init__(self, backbone):
-        super(MobileNetBackbone, self).__init__(backbone)
-
-        self.custom_objects.update({
-            'relu6': mobilenet.relu6,
-            'DepthwiseConv2D': keras.layers.DepthwiseConv2D
-        })
-
     def retinanet(self, *args, **kwargs):
         """ Returns a retinanet model using the correct backbone.
         """

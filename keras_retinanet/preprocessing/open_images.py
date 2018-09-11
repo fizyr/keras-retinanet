@@ -269,16 +269,16 @@ class OpenImagesGenerator(Generator):
             # there is/are no other sublabel(s) other than the labels itself
 
             for label in labels_filter:
-                for i, lb in id_to_labels:
+                for i, lb in id_to_labels.items():
                     if lb == label:
                         children_id_to_labels[i] = label
                         break
         else:
             parent_cls = None
-            for i, lb in id_to_labels.iteritems():
+            for i, lb in id_to_labels.items():
                 if lb == parent_label:
                     parent_id = i
-                    for c, index in cls_index.iteritems():
+                    for c, index in cls_index.items():
                         if index == parent_id:
                             parent_cls = c
                     break
@@ -298,7 +298,7 @@ class OpenImagesGenerator(Generator):
                 label = id_to_labels[index]
                 children_id_to_labels[index] = label
 
-        id_map = dict([(ind, i) for i, ind in enumerate(children_id_to_labels.iterkeys())])
+        id_map = dict([(ind, i) for i, ind in enumerate(children_id_to_labels.keys())])
 
         filtered_annotations = {}
         for k in self.annotations:
@@ -314,7 +314,7 @@ class OpenImagesGenerator(Generator):
             if len(filtered_boxes) > 0:
                 filtered_annotations[k] = {'w': img_ann['w'], 'h': img_ann['h'], 'boxes': filtered_boxes}
 
-        children_id_to_labels = dict([(id_map[i], l) for (i, l) in children_id_to_labels.iteritems()])
+        children_id_to_labels = dict([(id_map[i], l) for (i, l) in children_id_to_labels.items()])
 
         return children_id_to_labels, filtered_annotations
 
