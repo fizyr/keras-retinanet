@@ -1,59 +1,190 @@
-import keras_retinanet.bin.train
-import keras_retinanet.bin.evaluate
-from keras_retinanet.bin.train import get_anchors_params
-from keras_retinanet.preprocessing.csv_generator import CSVGenerator
-from keras_retinanet.utils.anchors import anchors_for_shape
-
+import os
+import sys
 import warnings
+import numpy as np
+import configparser
+import keras
 
-def test_csv_generator_anchors():
-    anchors_dict = get_anchors_params("tests/test-data/anchors.yaml")
-    train_generator = CSVGenerator(
-        "tests/test-data/csv/annotations.csv",
-        "tests/test-data/csv/classes.csv",
-        transform_generator=None,
-        batch_size=1,
-        image_min_side=512,
-        image_max_side=512,
-        **anchors_dict
-    )
+from keras_retinanet.utils.anchors import anchors_for_shape, AnchorParameters
+from keras_retinanet.utils.config  import read_parameters_file, parse_anchor_parameters
 
-    inputs,targets = train_generator.next()
-    regreession_batch,labels_batch = targets
-    labels = labels_batch[0]
-    image = inputs[0]
-    anchors = anchors_for_shape(image.shape,**anchors_dict)
-    assert len(labels) == len(anchors)
-    
-def test_train_generate_anchors_config():
-    # ignore warnings in this test
-    warnings.simplefilter('ignore')
 
-    # run training / evaluation
-    keras_retinanet.bin.train.main([
-        '--epochs=1',
-        '--steps=1',
-        '--no-weights',
-        '--anchors',
-        'tests/test-data/anchors.yaml',
-        '--snapshot-path',
-        'tests/snapshot',
-#        '--gpu',
-#        '1',
-        'csv',
-        'tests/test-data/csv/annotations.csv',
-        'tests/test-data/csv/classes.csv',
-    ])
+def test_config_read(path):
+    config = read_parameters_file(path)
+    assert 'anchor_parameters' in config
+    assert 'sizes'   in config['anchor_parameters']
+    assert 'strides' in config['anchor_parameters']
+    assert 'ratios'  in config['anchor_parameters']
+    assert 'scales'  in config['anchor_parameters']
+    assert config['anchor_parameters']['sizes']   == '32 64 128 256 512'
+    assert config['anchor_parameters']['strides'] == '8 16 32 64 128'
+    assert config['anchor_parameters']['ratios']  == '0.5 1 2 3'
+    assert config['anchor_parameters']['scales']  == '1 1.2 1.6'
 
-def test_evaluate_config_anchors_params():
-    # ignore warnings in this test
-    warnings.simplefilter('ignore')
+def create_anchor_params_config():
+    config = configparser.ConfigParser()
+    config['anchor_parameters'] = {}
+    config['anchor_parameters']['sizes']   = '32 64 128 256 512'
+    config['anchor_parameters']['strides'] = '8 16 32 64 128'
+    config['anchor_parameters']['ratios']  = '0.5 1'
+    config['anchor_parameters']['scales']  = '1 1.2 1.6'
 
-    # run training / evaluation
-    keras_retinanet.bin.evaluate.main([
-        '--convert-model',
-        'csv',
-        'tests/test-data/csv/annotations.csv',
-        'tests/test-data/csv/classes.csv',
-        'tests/snapshot/resnet50_csv_01.h5'
-    ])
+    return config
+
+def test_parse_anchor_parameters():
+    config = create_anchor_params_config()
+    anchor_params_parsed = parse_anchor_parameters(config)
+
+    sizes   = [32, 64, 128, 256, 512]
+    strides = [8, 16, 32, 64, 128]
+    ratios  = np.array([0.5, 1], keras.backend.floatx())
+    scales  = np.array([1, 1.2, 1.6], keras.backend.floatx())
+
+    assert sizes   == anchor_params_parsed.sizes
+    assert strides == anchor_params_parsed.strides
+    np.testing.assert_equal(ratios, anchor_params_parsed.ratios)
+    np.testing.assert_equal(scales, anchor_params_parsed.scales)
+
+def test_anchors_for_shape_dimensions():
+    sizes   = [32, 64, 128]
+    strides = [8, 16, 32]
+    ratios  = np.array([0.5, 1, 2, 3], keras.backend.floatx())
+    scales  = np.array([1, 1.2, 1.6], keras.backend.floatx())
+    anchor_params = AnchorParameters(sizes, strides, ratios, scales)
+
+    pyramid_levels = [3, 4, 5]
+    image_shape    = (64, 64)
+    all_anchors    = anchors_for_shape(image_shape, pyramid_levels=pyramid_levels, anchor_params=anchor_params)
+
+    assert all_anchors.shape == (1008, 4)
+
+def test_anchors_for_shape_values():
+    sizes   = [12]
+    strides = [8]
+    ratios  = np.array([1, 2], keras.backend.floatx())
+    scales  = np.array([1, 2], keras.backend.floatx())
+    anchor_params = AnchorParameters(sizes, strides, ratios, scales)
+
+    pyramid_levels = [3]
+    image_shape    = (16, 16)
+    all_anchors    = anchors_for_shape(image_shape, pyramid_levels=pyramid_levels, anchor_params=anchor_params)
+
+    # using almost_equal for floating point imprecisions
+    np.testing.assert_almost_equal(all_anchors[0, :], [
+        strides[0] / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[1, :], [
+        strides[0] / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[2, :], [
+        strides[0] / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[3, :], [
+        strides[0] / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[4, :], [
+        strides[0]* 3 / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[5, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[6, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[7, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[8, :], [
+        strides[0] / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[9, :], [
+        strides[0] / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[10, :], [
+        strides[0] / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[11, :], [
+        strides[0] / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+        strides[0] / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[12, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[13, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[0])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[14, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+    np.testing.assert_almost_equal(all_anchors[15, :], [
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
+        strides[0] * 3 / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
+    ], decimal=6)
+
+
+def main(args=None):
+    if len(sys.argv) != 2:
+        print('Provide only one argument to the tester, the path of an .ini file containing config parameters.')
+        raise
+
+    # Test read_parameters_file function
+    test_config_read(sys.argv[1])
+    print('read_parameters_file works!')
+
+    # Test parse_anchor_parameters function
+    test_parse_anchor_parameters()
+    print('parse_anchor_parameters works!')
+
+    # Test anchors_for_shape function
+    test_anchors_for_shape_dimensions()
+    test_anchors_for_shape_values()
+    print('anchors_for_shape works!')
+
+if __name__ == '__main__':
+    main()
