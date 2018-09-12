@@ -43,7 +43,7 @@ from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
-from ..utils.config import read_parameters_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
@@ -112,11 +112,10 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
         training_model = model
 
     # make prediction model
+    anchor_params = None
     if config and 'anchor_parameters' in config:
         anchor_params = parse_anchor_parameters(config)
-        prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
-    else:
-        prediction_model = retinanet_bbox(model=model)
+    prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
 
     # compile model
     training_model.compile(
@@ -403,7 +402,7 @@ def parse_args(args):
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--image-min-side',   help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side',   help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
-    parser.add_argument('--config',           help='Path to a configuration parameters .ini file.', default=None)
+    parser.add_argument('--config',           help='Path to a configuration parameters .ini file.')
     parser.add_argument('--weighted-average', help='Compute the mAP using the weighted average of precisions among classes.', action='store_true')
 
     return check_args(parser.parse_args(args))
@@ -428,7 +427,7 @@ def main(args=None):
 
     # optionally load config parameters
     if args.config:
-        args.config = read_parameters_file(args.config)
+        args.config = read_config_file(args.config)
 
     # create the generators
     train_generator, validation_generator = create_generators(args, backbone.preprocess_image)
@@ -438,11 +437,10 @@ def main(args=None):
         print('Loading model, this may take a second...')
         model            = models.load_model(args.snapshot, backbone_name=args.backbone)
         training_model   = model
+        anchor_params    = None
         if args.config and 'anchor_parameters' in args.config:
             anchor_params = parse_anchor_parameters(args.config)
-            prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
-        else:
-            prediction_model = retinanet_bbox(model=model)
+        prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
     else:
         weights = args.weights
         # default to imagenet if nothing else is specified

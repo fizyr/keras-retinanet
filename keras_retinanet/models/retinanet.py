@@ -19,8 +19,6 @@ from .. import initializers
 from .. import layers
 from ..utils.anchors import AnchorParameters
 
-import numpy as np
-
 
 def default_classification_model(
     num_classes,

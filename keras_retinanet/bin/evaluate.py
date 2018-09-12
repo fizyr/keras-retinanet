@@ -31,7 +31,7 @@ if __name__ == "__main__" and __package__ is None:
 from .. import models
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
-from ..utils.config import read_parameters_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.eval import evaluate
 from ..utils.keras_version import check_keras_version
 
@@ -107,10 +107,11 @@ def parse_args(args):
     parser.add_argument('--save-path',        help='Path for saving images with detections (doesn\'t work for COCO).')
     parser.add_argument('--image-min-side',   help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side',   help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
-    parser.add_argument('--config',           help='Path to a configuration parameters .ini file.', default=None)
+    parser.add_argument('--config',           help='Path to a configuration parameters .ini file.')
     parser.add_argument('--weighted-average', help='Compute the mAP using the weighted average of precisions among classes.', action='store_true')
 
     return parser.parse_args(args)
+
 
 def main(args=None):
     # parse arguments
@@ -132,18 +133,19 @@ def main(args=None):
 
     # optionally load config parameters
     if args.config:
-        args.config = read_parameters_file(args.config)
+        args.config = read_config_file(args.config)
 
     # create the generator
     generator = create_generator(args)
 
-    # load the model
-    print('Loading model, this may take a second...')
+    # optionally load anchor parameters
+    anchor_params = None
     if args.config and 'anchor_parameters' in args.config:
         anchor_params = parse_anchor_parameters(args.config)
-        model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model, anchor_params=anchor_params)
-    else:
-        model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model)
+
+    # load the model
+    print('Loading model, this may take a second...')
+    model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model, anchor_params=anchor_params)
 
     # print model summary
     # print(model.summary())

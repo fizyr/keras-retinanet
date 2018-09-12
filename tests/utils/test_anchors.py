@@ -1,25 +1,23 @@
-import os
-import sys
-import warnings
 import numpy as np
 import configparser
 import keras
 
 from keras_retinanet.utils.anchors import anchors_for_shape, AnchorParameters
-from keras_retinanet.utils.config  import read_parameters_file, parse_anchor_parameters
+from keras_retinanet.utils.config import read_config_file, parse_anchor_parameters
 
 
-def test_config_read(path):
-    config = read_parameters_file(path)
+def test_config_read():
+    config = read_config_file('tests/test-data/config/config.ini')
     assert 'anchor_parameters' in config
-    assert 'sizes'   in config['anchor_parameters']
+    assert 'sizes' in config['anchor_parameters']
     assert 'strides' in config['anchor_parameters']
-    assert 'ratios'  in config['anchor_parameters']
-    assert 'scales'  in config['anchor_parameters']
+    assert 'ratios' in config['anchor_parameters']
+    assert 'scales' in config['anchor_parameters']
     assert config['anchor_parameters']['sizes']   == '32 64 128 256 512'
     assert config['anchor_parameters']['strides'] == '8 16 32 64 128'
     assert config['anchor_parameters']['ratios']  == '0.5 1 2 3'
     assert config['anchor_parameters']['scales']  == '1 1.2 1.6'
+
 
 def create_anchor_params_config():
     config = configparser.ConfigParser()
@@ -30,6 +28,7 @@ def create_anchor_params_config():
     config['anchor_parameters']['scales']  = '1 1.2 1.6'
 
     return config
+
 
 def test_parse_anchor_parameters():
     config = create_anchor_params_config()
@@ -45,6 +44,7 @@ def test_parse_anchor_parameters():
     np.testing.assert_equal(ratios, anchor_params_parsed.ratios)
     np.testing.assert_equal(scales, anchor_params_parsed.scales)
 
+
 def test_anchors_for_shape_dimensions():
     sizes   = [32, 64, 128]
     strides = [8, 16, 32]
@@ -57,6 +57,7 @@ def test_anchors_for_shape_dimensions():
     all_anchors    = anchors_for_shape(image_shape, pyramid_levels=pyramid_levels, anchor_params=anchor_params)
 
     assert all_anchors.shape == (1008, 4)
+
 
 def test_anchors_for_shape_values():
     sizes   = [12]
@@ -95,7 +96,7 @@ def test_anchors_for_shape_values():
         strides[0] / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
     ], decimal=6)
     np.testing.assert_almost_equal(all_anchors[4, :], [
-        strides[0]* 3 / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
+        strides[0] * 3 / 2 - (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
         strides[0] / 2 - (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
         strides[0] * 3 / 2 + (sizes[0] * scales[0] / np.sqrt(ratios[0])) / 2,
         strides[0] / 2 + (sizes[0] * scales[0] * np.sqrt(ratios[0])) / 2,
@@ -166,25 +167,3 @@ def test_anchors_for_shape_values():
         strides[0] * 3 / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
         strides[0] * 3 / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
     ], decimal=6)
-
-
-def main(args=None):
-    if len(sys.argv) != 2:
-        print('Provide only one argument to the tester, the path of an .ini file containing config parameters.')
-        raise
-
-    # Test read_parameters_file function
-    test_config_read(sys.argv[1])
-    print('read_parameters_file works!')
-
-    # Test parse_anchor_parameters function
-    test_parse_anchor_parameters()
-    print('parse_anchor_parameters works!')
-
-    # Test anchors_for_shape function
-    test_anchors_for_shape_dimensions()
-    test_anchors_for_shape_values()
-    print('anchors_for_shape works!')
-
-if __name__ == '__main__':
-    main()

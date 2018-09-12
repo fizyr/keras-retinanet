@@ -38,6 +38,7 @@ class AnchorParameters:
     def num_anchors(self):
         return len(self.ratios) * len(self.scales)
 
+
 """
 The default anchor parameters.
 """
@@ -231,9 +232,11 @@ def anchors_for_shape(
     # compute anchors over all pyramid levels
     all_anchors = np.zeros((0, 4))
     for idx, p in enumerate(pyramid_levels):
-        anchors         = generate_anchors(base_size=anchor_params.sizes[idx],
-                                           ratios=anchor_params.ratios,
-                                           scales=anchor_params.scales)
+        anchors = generate_anchors(
+            base_size=anchor_params.sizes[idx],
+            ratios=anchor_params.ratios,
+            scales=anchor_params.scales
+        )
         shifted_anchors = shift(image_shapes[idx], anchor_params.strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
