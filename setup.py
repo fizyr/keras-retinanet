@@ -20,7 +20,7 @@ setuptools.setup(
     maintainer       = 'Hans Gaiser',
     maintainer_email = 'h.gaiser@fizyr.com',
     packages         = setuptools.find_packages(),
-    install_requires = ['keras', 'keras-resnet', 'six', 'scipy', 'cython'],
+    install_requires = ['keras', 'keras-resnet', 'six', 'scipy', 'cython', 'Pillow', 'opencv-python'],
     entry_points     = {
         'console_scripts': [
             'retinanet-train=keras_retinanet.bin.train:main',
