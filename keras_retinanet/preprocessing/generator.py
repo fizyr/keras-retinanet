@@ -164,13 +164,16 @@ class Generator(object):
         """
         return [self.load_image(image_index) for image_index in group]
 
-    def random_transform_group_entry(self, image, annotations):
+    def random_transform_group_entry(self, image, annotations, transform=None):
         """ Randomly transforms image and annotation.
         """
         # randomly transform both image and annotations
-        if self.transform_generator:
-            transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
-            image     = apply_transform(transform, image, self.transform_parameters)
+        if transform or self.transform_generator:
+            if transform is None:
+                transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
+
+            # apply transformation to image
+            image = apply_transform(transform, image, self.transform_parameters)
 
             # Transform the bounding boxes in the annotations.
             annotations['bboxes'] = annotations['bboxes'].copy()
