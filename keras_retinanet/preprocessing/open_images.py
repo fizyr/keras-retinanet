@@ -348,7 +348,7 @@ class OpenImagesGenerator(Generator):
         labels = image_annotations['boxes']
         height, width = image_annotations['h'], image_annotations['w']
 
-        boxes = np.zeros((len(labels), 5))
+        annotations = {'labels': np.empty((len(labels),)), 'bboxes': np.empty((len(labels), 4))}
         for idx, ann in enumerate(labels):
             cls_id = ann['cls_id']
             x1 = ann['x1'] * width
@@ -356,10 +356,10 @@ class OpenImagesGenerator(Generator):
             y1 = ann['y1'] * height
             y2 = ann['y2'] * height
 
-            boxes[idx, 0] = x1
-            boxes[idx, 1] = y1
-            boxes[idx, 2] = x2
-            boxes[idx, 3] = y2
-            boxes[idx, 4] = cls_id
+            annotations['bboxes'][idx, 0] = x1
+            annotations['bboxes'][idx, 1] = y1
+            annotations['bboxes'][idx, 2] = x2
+            annotations['bboxes'][idx, 3] = y2
+            annotations['labels'][idx, 4] = cls_id
 
-        return boxes
+        return annotations

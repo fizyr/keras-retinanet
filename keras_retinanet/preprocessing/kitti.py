@@ -139,13 +139,14 @@ class KittiGenerator(Generator):
     def load_annotations(self, image_index):
         """ Load annotations for an image_index.
         """
-        annotations = self.image_data[image_index]
+        image_data = self.image_data[image_index]
+        annotations = {'labels': np.empty((len(image_data),)), 'bboxes': np.empty((len(image_data), 4))}
 
-        boxes = np.zeros((len(annotations), 5))
-        for idx, ann in enumerate(annotations):
-            boxes[idx, 0] = float(ann['x1'])
-            boxes[idx, 1] = float(ann['y1'])
-            boxes[idx, 2] = float(ann['x2'])
-            boxes[idx, 3] = float(ann['y2'])
-            boxes[idx, 4] = int(ann['cls_id'])
-        return boxes
+        for idx, ann in enumerate(image_data):
+            annotations['bboxes'][idx, 0] = float(ann['x1'])
+            annotations['bboxes'][idx, 1] = float(ann['y1'])
+            annotations['bboxes'][idx, 2] = float(ann['x2'])
+            annotations['bboxes'][idx, 3] = float(ann['y2'])
+            annotations['labels'][idx] = int(ann['cls_id'])
+
+        return annotations
