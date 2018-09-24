@@ -20,6 +20,36 @@ import keras
 from ..utils.compute_overlap import compute_overlap
 
 
+class AnchorParameters:
+    """ The parameteres that define how anchors are generated.
+
+    Args
+        sizes   : List of sizes to use. Each size corresponds to one feature level.
+        strides : List of strides to use. Each stride correspond to one feature level.
+        ratios  : List of ratios to use per location in a feature map.
+        scales  : List of scales to use per location in a feature map.
+    """
+    def __init__(self, sizes, strides, ratios, scales):
+        self.sizes   = sizes
+        self.strides = strides
+        self.ratios  = ratios
+        self.scales  = scales
+
+    def num_anchors(self):
+        return len(self.ratios) * len(self.scales)
+
+
+"""
+The default anchor parameters.
+"""
+AnchorParameters.default = AnchorParameters(
+    sizes   = [32, 64, 128, 256, 512],
+    strides = [8, 16, 32, 64, 128],
+    ratios  = np.array([0.5, 1, 2], keras.backend.floatx()),
+    scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
+)
+
+
 def anchor_targets_bbox(
     anchors,
     image_group,
@@ -174,10 +204,7 @@ def guess_shapes(image_shape, pyramid_levels):
 def anchors_for_shape(
     image_shape,
     pyramid_levels=None,
-    ratios=None,
-    scales=None,
-    strides=None,
-    sizes=None,
+    anchor_params=None,
     shapes_callback=None,
 ):
     """ Generators anchors for a given shape.
@@ -185,25 +212,18 @@ def anchors_for_shape(
     Args
         image_shape: The shape of the image.
         pyramid_levels: List of ints representing which pyramids to use (defaults to [3, 4, 5, 6, 7]).
-        ratios: List of ratios with which anchors are generated (defaults to [0.5, 1, 2]).
-        scales: List of scales with which anchors are generated (defaults to [2^0, 2^(1/3), 2^(2/3)]).
-        strides: Stride per pyramid level, defines how the pyramids are constructed.
-        sizes: Sizes of the anchors per pyramid level.
+        anchor_params: Struct containing anchor parameters. If None, default values are used.
         shapes_callback: Function to call for getting the shape of the image at different pyramid levels.
 
     Returns
         np.array of shape (N, 4) containing the (x1, y1, x2, y2) coordinates for the anchors.
     """
+
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
-    if strides is None:
-        strides = [2 ** x for x in pyramid_levels]
-    if sizes is None:
-        sizes = [2 ** (x + 2) for x in pyramid_levels]
-    if ratios is None:
-        ratios = np.array([0.5, 1, 2])
-    if scales is None:
-        scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
+
+    if anchor_params is None:
+        anchor_params = AnchorParameters.default
 
     if shapes_callback is None:
         shapes_callback = guess_shapes
@@ -212,8 +232,12 @@ def anchors_for_shape(
     # compute anchors over all pyramid levels
     all_anchors = np.zeros((0, 4))
     for idx, p in enumerate(pyramid_levels):
-        anchors         = generate_anchors(base_size=sizes[idx], ratios=ratios, scales=scales)
-        shifted_anchors = shift(image_shapes[idx], strides[idx], anchors)
+        anchors = generate_anchors(
+            base_size=anchor_params.sizes[idx],
+            ratios=anchor_params.ratios,
+            scales=anchor_params.scales
+        )
+        shifted_anchors = shift(image_shapes[idx], anchor_params.strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
     return all_anchors
@@ -227,6 +251,8 @@ def shift(shape, stride, anchors):
         stride : Stride to shift the anchors with over the shape.
         anchors: The anchors to apply at each location.
     """
+
+    # create a grid starting from half stride from the top left corner
     shift_x = (np.arange(0, shape[1]) + 0.5) * stride
     shift_y = (np.arange(0, shape[0]) + 0.5) * stride
 
@@ -256,10 +282,10 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
     """
 
     if ratios is None:
-        ratios = np.array([0.5, 1, 2])
+        ratios = AnchorParameters.default.ratios
 
     if scales is None:
-        scales = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)])
+        scales = AnchorParameters.default.scales
 
     num_anchors = len(ratios) * len(scales)
 

@@ -26,6 +26,7 @@ from ..utils.anchors import (
     anchors_for_shape,
     guess_shapes
 )
+from ..utils.config import parse_anchor_parameters
 from ..utils.image import (
     TransformParameters,
     adjust_transform_for_image,
@@ -52,6 +53,7 @@ class Generator(object):
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
+        config=None
     ):
         """ Initialize Generator object.
 
@@ -77,6 +79,7 @@ class Generator(object):
         self.compute_anchor_targets = compute_anchor_targets
         self.compute_shapes         = compute_shapes
         self.preprocess_image       = preprocess_image
+        self.config                 = config
 
         self.group_index = 0
         self.lock        = threading.Lock()
@@ -238,7 +241,10 @@ class Generator(object):
         return image_batch
 
     def generate_anchors(self, image_shape):
-        return anchors_for_shape(image_shape, shapes_callback=self.compute_shapes)
+        anchor_params = None
+        if self.config and 'anchor_parameters' in self.config:
+            anchor_params = parse_anchor_parameters(self.config)
+        return anchors_for_shape(image_shape, anchor_params=anchor_params, shapes_callback=self.compute_shapes)
 
     def compute_targets(self, image_group, annotations_group):
         """ Compute target outputs for the network using images and their annotations.

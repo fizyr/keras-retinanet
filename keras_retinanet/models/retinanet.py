@@ -17,8 +17,7 @@ limitations under the License.
 import keras
 from .. import initializers
 from .. import layers
-
-import numpy as np
+from ..utils.anchors import AnchorParameters
 
 
 def default_classification_model(
@@ -161,36 +160,6 @@ def __create_pyramid_features(C3, C4, C5, feature_size=256):
     return [P3, P4, P5, P6, P7]
 
 
-class AnchorParameters:
-    """ The parameteres that define how anchors are generated.
-
-    Args
-        sizes   : List of sizes to use. Each size corresponds to one feature level.
-        strides : List of strides to use. Each stride correspond to one feature level.
-        ratios  : List of ratios to use per location in a feature map.
-        scales  : List of scales to use per location in a feature map.
-    """
-    def __init__(self, sizes, strides, ratios, scales):
-        self.sizes   = sizes
-        self.strides = strides
-        self.ratios  = ratios
-        self.scales  = scales
-
-    def num_anchors(self):
-        return len(self.ratios) * len(self.scales)
-
-
-"""
-The default anchor parameters.
-"""
-AnchorParameters.default = AnchorParameters(
-    sizes   = [32, 64, 128, 256, 512],
-    strides = [8, 16, 32, 64, 128],
-    ratios  = np.array([0.5, 1, 2], keras.backend.floatx()),
-    scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
-)
-
-
 def default_submodels(num_classes, num_anchors):
     """ Create a list of default submodels used for object detection.
 
@@ -311,10 +280,10 @@ def retinanet(
 
 def retinanet_bbox(
     model                 = None,
-    anchor_parameters     = AnchorParameters.default,
     nms                   = True,
     class_specific_filter = True,
     name                  = 'retinanet-bbox',
+    anchor_params         = None,
     **kwargs
 ):
     """ Construct a RetinaNet model on top of a backbone and adds convenience functions to output boxes directly.
@@ -324,10 +293,10 @@ def retinanet_bbox(
 
     Args
         model                 : RetinaNet model to append bbox layers to. If None, it will create a RetinaNet model using **kwargs.
-        anchor_parameters     : Struct containing configuration for anchor generation (sizes, strides, ratios, scales).
         nms                   : Whether to use non-maximum suppression for the filtering step.
         class_specific_filter : Whether to use class specific filtering or filter for the best scoring class only.
         name                  : Name of the model.
+        anchor_params         : Struct containing anchor parameters. If None, default values are used.
         *kwargs               : Additional kwargs to pass to the minimal retinanet model.
 
     Returns
@@ -340,12 +309,18 @@ def retinanet_bbox(
         ]
         ```
     """
+
+    # if no anchor parameters are passed, use default values
+    if anchor_params is None:
+        anchor_params = AnchorParameters.default
+
+    # create RetinaNet model
     if model is None:
-        model = retinanet(num_anchors=anchor_parameters.num_anchors(), **kwargs)
+        model = retinanet(num_anchors=anchor_params.num_anchors(), **kwargs)
 
     # compute the anchors
     features = [model.get_layer(p_name).output for p_name in ['P3', 'P4', 'P5', 'P6', 'P7']]
-    anchors  = __build_anchors(anchor_parameters, features)
+    anchors  = __build_anchors(anchor_params, features)
 
     # we expect the anchors, regression and classification values as first output
     regression     = model.outputs[0]
