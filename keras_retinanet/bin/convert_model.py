@@ -20,6 +20,9 @@ import argparse
 import os
 import sys
 
+import keras
+import tensorflow as tf
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -29,6 +32,12 @@ if __name__ == "__main__" and __package__ is None:
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import models
 
+def get_session():
+    """ Construct a modified tf session.
+    """
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True
+    return tf.Session(config=config)
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description='Script for converting a training model to an inference model.')
@@ -36,6 +45,7 @@ def parse_args(args):
     parser.add_argument('model_in', help='The model to convert.')
     parser.add_argument('model_out', help='Path to save the converted model to.')
     parser.add_argument('--backbone', help='The backbone of the model to convert.', default='resnet50')
+    parser.add_argument('--gpu', help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--no-nms', help='Disables non maximum suppression.', dest='nms', action='store_false')
     parser.add_argument('--no-class-specific-filter', help='Disables class specific filtering.', dest='class_specific_filter', action='store_false')
 
@@ -47,6 +57,11 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
     args = parse_args(args)
+
+    # optionally choose specific GPU
+    if args.gpu:
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
+    keras.backend.tensorflow_backend.set_session(get_session())
 
     # load and convert model
     model = models.load_model(args.model_in, convert=True, backbone_name=args.backbone, nms=args.nms, class_specific_filter=args.class_specific_filter)
