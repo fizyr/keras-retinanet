@@ -32,12 +32,14 @@ if __name__ == "__main__" and __package__ is None:
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import models
 
+
 def get_session():
     """ Construct a modified tf session.
     """
     config = tf.ConfigProto()
     os.environ["CUDA_VISIBLE_DEVICES"] = ""
     return tf.Session(config=config)
+
 
 def parse_args(args):
     parser = argparse.ArgumentParser(description='Script for converting a training model to an inference model.')
