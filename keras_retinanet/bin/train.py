@@ -100,21 +100,25 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
 
     modifier = freeze_model if freeze_backbone else None
 
+    # load anchor parameters, or pass None (so that defaults will be used)
+    anchor_params = None
+    num_anchors   = None
+    if config and 'anchor_parameters' in config:
+        anchor_params = parse_anchor_parameters(config)
+        num_anchors   = anchor_params.num_anchors()
+
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         from keras.utils import multi_gpu_model
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
-        model          = model_with_weights(backbone_retinanet(num_classes, modifier=modifier), weights=weights, skip_mismatch=True)
+        model          = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = model
 
     # make prediction model
-    anchor_params = None
-    if config and 'anchor_parameters' in config:
-        anchor_params = parse_anchor_parameters(config)
     prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
 
     # compile model
