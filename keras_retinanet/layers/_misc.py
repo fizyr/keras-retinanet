@@ -31,8 +31,8 @@ class Anchors(keras.layers.Layer):
         Args
             size: The base size of the anchors to generate.
             stride: The stride of the anchors to generate.
-            ratios: The ratios of the anchors to generate (defaults to [0.5, 1, 2]).
-            scales: The scales of the anchors to generate (defaults to [2^0, 2^(1/3), 2^(2/3)]).
+            ratios: The ratios of the anchors to generate (defaults to AnchorParameters.default.ratios).
+            scales: The scales of the anchors to generate (defaults to AnchorParameters.default.scales).
         """
         self.size   = size
         self.stride = stride
@@ -40,11 +40,11 @@ class Anchors(keras.layers.Layer):
         self.scales = scales
 
         if ratios is None:
-            self.ratios  = np.array([0.5, 1, 2], keras.backend.floatx()),
+            self.ratios  = utils_anchors.AnchorParameters.default.ratios
         elif isinstance(ratios, list):
             self.ratios  = np.array(ratios)
         if scales is None:
-            self.scales  = np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
+            self.scales  = utils_anchors.AnchorParameters.default.scales
         elif isinstance(scales, list):
             self.scales  = np.array(scales)
 

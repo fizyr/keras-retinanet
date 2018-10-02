@@ -237,7 +237,7 @@ def retinanet(
     inputs,
     backbone_layers,
     num_classes,
-    num_anchors             = 9,
+    num_anchors             = None,
     create_pyramid_features = __create_pyramid_features,
     submodels               = None,
     name                    = 'retinanet'
@@ -264,6 +264,10 @@ def retinanet(
         ]
         ```
     """
+
+    if num_anchors is None:
+        num_anchors = AnchorParameters.default.num_anchors()
+
     if submodels is None:
         submodels = default_submodels(num_classes, num_anchors)
 
