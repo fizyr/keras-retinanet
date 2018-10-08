@@ -92,7 +92,6 @@ class Anchors(keras.layers.Layer):
 
         return config
 
-
 class UpsampleLike(keras.layers.Layer):
     """ Keras layer for upsampling a Tensor to be the same shape as another Tensor.
     """

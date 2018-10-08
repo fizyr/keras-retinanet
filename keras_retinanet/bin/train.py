@@ -40,6 +40,7 @@ from ..callbacks.eval import Evaluate
 from ..models.retinanet import retinanet_bbox
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
+from ..preprocessing.trassir_generator import TrassirGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
@@ -125,7 +126,8 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0, freeze_
     training_model.compile(
         loss={
             'regression'    : losses.smooth_l1(),
-            'classification': losses.focal()
+            'classification': losses.focal(),
+            'nms': losses.repulsion_loss
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
     )
@@ -312,10 +314,19 @@ def create_generators(args, preprocess_image):
             **common_args
         )
 
-        validation_generator = KittiGenerator(
-            args.kitti_path,
+    elif args.dataset_type == 'trassir':
+        train_generator = TrassirGenerator(
+            args.trassir_path,
+            subset='train',
+            labels=['person'],
+            batch_size=args.batch_size
+        )
+
+        validation_generator = TrassirGenerator(
+            args.trassir_path,
             subset='val',
-            **common_args
+            labels=['person'],
+            batch_size=args.batch_size
         )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
@@ -369,6 +380,9 @@ def parse_args(args):
 
     kitti_parser = subparsers.add_parser('kitti')
     kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
+
+    trassir_parser = subparsers.add_parser('trassir')
+    trassir_parser.add_argument('trassir_path', help='Path to annotations directory (ie. ./trassir_annotations.json).')
 
     def csv_list(string):
         return string.split(',')

@@ -250,6 +250,7 @@ class Generator(object):
         """ Compute target outputs for the network using images and their annotations.
         """
         # get the max image shape
+        max_box_count = 0
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
         anchors   = self.generate_anchors(max_shape)
 
