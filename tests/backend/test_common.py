@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import math
 import numpy as np
 import keras
 import keras_retinanet.backend
@@ -46,14 +45,14 @@ def test_bbox_transform_inv():
     deltas = keras.backend.variable(deltas)
 
     expected = np.array([[
-        [100         , 100         , 200         , 200         ],
-        [100         , 102         , 300         , 302         ],
-        [ 97         , 100         , 197         , 300         ],
-        [104         , 102         , 304         , 202         ],
-        [ 78.78791809, 120         , 201.21208191, 200         ],
-        [ 80         , 125.24119568, 300         , 294.75878906],
-        [ 77.55134583, 116.32702637, 202.44865417, 303.67297363],
-        [ 88.605896  , 118.26852417, 295.7940979 , 204.93148804]
+        [100  , 100  , 200   , 200  ],
+        [100  , 104  , 300   , 300  ],
+        [ 94  , 100  , 200   , 300  ],
+        [108  , 104  , 300   , 200  ],
+        [ 80  , 120  , 202.4 , 200  ],
+        [ 80  , 120  , 300   , 289.2],
+        [ 80  , 120  , 204.8 , 307.2],
+        [ 84.4, 123.2, 286.8 , 206.4]
     ]])
 
     result = keras_retinanet.backend.bbox_transform_inv(boxes, deltas)

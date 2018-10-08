@@ -20,12 +20,11 @@ import argparse
 import os
 import sys
 import cv2
-import numpy as np
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
-    import keras_retinanet.bin
+    import keras_retinanet.bin  # noqa: F401
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
@@ -36,9 +35,16 @@ from ..preprocessing.trassir_generator import TrassirGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes
+from ..utils.anchors import anchors_for_shape
+from ..utils.config import read_config_file, parse_anchor_parameters
 
 
 def create_generator(args):
+    """ Create the data generators.
+
+    Args:
+        args: parseargs arguments object.
+    """
     # create random transform generator for augmenting training data
     transform_generator = random_transform_generator(
         min_rotation=-0.1,
@@ -60,19 +66,28 @@ def create_generator(args):
         generator = CocoGenerator(
             args.coco_path,
             args.coco_set,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'pascal':
         generator = PascalVocGenerator(
             args.pascal_path,
             args.pascal_set,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'csv':
         generator = CSVGenerator(
             args.annotations,
             args.classes,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'oid':
         generator = OpenImagesGenerator(
@@ -80,15 +95,21 @@ def create_generator(args):
             subset=args.subset,
             version=args.version,
             labels_filter=args.labels_filter,
-            fixed_labels=args.fixed_labels,
+            parent_label=args.parent_label,
             annotation_cache_dir=args.annotation_cache_dir,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'kitti':
         generator = KittiGenerator(
             args.kitti_path,
             subset=args.subset,
-            transform_generator=transform_generator
+            transform_generator=transform_generator,
+            image_min_side=args.image_min_side,
+            image_max_side=args.image_max_side,
+            config=args.config
         )
     elif args.dataset_type == 'trassir':
         generator = TrassirGenerator(
@@ -103,6 +124,8 @@ def create_generator(args):
 
 
 def parse_args(args):
+    """ Parse the arguments.
+    """
     parser     = argparse.ArgumentParser(description='Debug script for a RetinaNet network.')
     subparsers = parser.add_subparsers(help='Arguments for specific dataset types.', dest='dataset_type')
     subparsers.required = True
@@ -128,10 +151,10 @@ def parse_args(args):
     oid_parser = subparsers.add_parser('oid')
     oid_parser.add_argument('main_dir', help='Path to dataset directory.')
     oid_parser.add_argument('subset', help='Argument for loading a subset from train/validation/test.')
-    oid_parser.add_argument('--version',  help='The current dataset version is V3.', default='2017_11')
+    oid_parser.add_argument('--version',  help='The current dataset version is v4.', default='v4')
     oid_parser.add_argument('--labels-filter',  help='A list of labels to filter.', type=csv_list, default=None)
     oid_parser.add_argument('--annotation-cache-dir', help='Path to store annotation cache.', default='.')
-    oid_parser.add_argument('--fixed-labels', help='Use the exact specified labels.', default=False)
+    oid_parser.add_argument('--parent-label', help='Use the hierarchy children of this label.', default=None)
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
@@ -142,11 +165,20 @@ def parse_args(args):
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
     parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
+    parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
+    parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
+    parser.add_argument('--config', help='Path to a configuration parameters .ini file.')
 
     return parser.parse_args(args)
 
 
-def run(generator, args):
+def run(generator, args, anchor_params):
+    """ Main loop.
+
+    Args
+        generator: The generator to debug.
+        args: parseargs args object.
+    """
     # display images, one at a time
     for i in range(generator.size()):
         # load the data
@@ -162,20 +194,23 @@ def run(generator, args):
             image, image_scale = generator.resize_image(image)
             annotations[:, :4] *= image_scale
 
+        anchors = anchors_for_shape(image.shape, anchor_params=anchor_params)
+
+        labels_batch, regression_batch, boxes_batch = generator.compute_anchor_targets(anchors, [image], [annotations], generator.num_classes())
+        anchor_states                               = labels_batch[0, :, -1]
+
         # draw anchors on the image
         if args.anchors:
-            labels, _, anchors = generator.anchor_targets(image.shape, annotations, generator.num_classes())
-            draw_boxes(image, anchors[np.max(labels, axis=1) == 1], (255, 255, 0), thickness=1)
+            draw_boxes(image, anchors[anchor_states == 1], (255, 255, 0), thickness=1)
 
         # draw annotations on the image
         if args.annotations:
             # draw annotations in red
-            draw_annotations(image, annotations, color=(0, 0, 255), generator=generator)
+            draw_annotations(image, annotations, color=(0, 0, 255), label_to_name=generator.label_to_name)
 
             # draw regressed anchors in green to override most red annotations
             # result is that annotations without anchors are red, with anchors are green
-            labels, boxes, _ = generator.anchor_targets(image.shape, annotations, generator.num_classes())
-            draw_boxes(image, boxes[np.max(labels, axis=1) == 1], (0, 255, 0))
+            draw_boxes(image, boxes_batch[0, anchor_states == 1, :], (0, 255, 0))
 
         cv2.imshow('Image', image)
         if cv2.waitKey() == ord('q'):
@@ -192,14 +227,24 @@ def main(args=None):
     # create the generator
     generator = create_generator(args)
 
+    # optionally load config parameters
+    if args.config:
+        args.config = read_config_file(args.config)
+
+    # optionally load anchor parameters
+    anchor_params = None
+    if args.config and 'anchor_parameters' in args.config:
+        anchor_params = parse_anchor_parameters(args.config)
+
     # create the display window
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
 
     if args.loop:
-        while run(generator, args):
+        while run(generator, args, anchor_params=anchor_params):
             pass
     else:
-        run(generator, args)
+        run(generator, args, anchor_params=anchor_params)
+
 
 if __name__ == '__main__':
     main()

@@ -17,9 +17,7 @@ limitations under the License.
 import keras
 import keras_retinanet.layers
 
-import math
 import numpy as np
-import pytest
 
 
 class TestAnchors(object):
@@ -82,100 +80,6 @@ class TestAnchors(object):
         np.testing.assert_array_equal(anchors, expected)
 
 
-class TestNonMaximumSuppression(object):
-    def test_simple(self):
-        # create simple NonMaximumSuppression layer
-        non_maximum_suppression_layer = keras_retinanet.layers.NonMaximumSuppression()
-
-        # create simple input
-        boxes = np.array([[
-            [0, 0, 10, 10],
-            [0, 0, 10, 10],
-        ]], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
-
-        classification = np.array([[
-            [0, 0.9],
-            [0, 1],
-        ]], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
-
-        other = np.array([[
-            [1, 2, 3],
-            [4, 5, 6],
-        ]], dtype=keras.backend.floatx())
-        other = keras.backend.variable(other)
-
-        # compute output
-        actual = non_maximum_suppression_layer.call([boxes, classification, other])
-        actual = keras.backend.eval(actual)
-
-        expected = np.array([[
-            [0, 0, 10, 10, 0, 0, 1, 2, 3],
-            [0, 0, 10, 10, 0, 1, 4, 5, 6],
-        ]], dtype=keras.backend.floatx())
-
-        np.testing.assert_array_equal(actual, expected)
-
-    # mark test to fail
-    @pytest.mark.xfail
-    def test_mini_batch(self):
-        # create simple NonMaximumSuppression layer
-        non_maximum_suppression_layer = keras_retinanet.layers.NonMaximumSuppression()
-
-        # create simple input
-        boxes = np.array([
-            [
-                [0, 0, 10, 10],
-                [0, 0, 10, 10],
-            ],
-            [
-                [100, 100, 150, 150],
-                [100, 100, 150, 150],
-            ],
-        ], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
-
-        classification = np.array([
-            [
-                [0, 0.9],
-                [0, 1],
-            ],
-            [
-                [0, 1],
-                [0, 0.9],
-            ],
-        ], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
-
-        other = np.array([
-            [
-                [1, 2, 3],
-                [4, 5, 6],
-            ],
-            [
-                [7, 8, 9],
-                [10, 11, 12],
-            ],
-        ], dtype=keras.backend.floatx())
-        other = keras.backend.variable(other)
-
-        # compute output
-        actual = non_maximum_suppression_layer.call([boxes, classification, other])
-        actual = keras.backend.eval(actual)
-
-        expected = np.array([
-            [
-                [0, 0, 10, 10, 0, 1, 4, 5, 6],
-            ],
-            [
-                [100, 100, 150, 150, 0, 1, 7, 8, 9],
-            ],
-        ], dtype=keras.backend.floatx())
-
-        np.testing.assert_array_equal(actual, expected)
-
-
 class TestUpsampleLike(object):
     def test_simple(self):
         # create simple UpsampleLike layer
@@ -216,7 +120,7 @@ class TestUpsampleLike(object):
 class TestRegressBoxes(object):
     def test_simple(self):
         mean = [0, 0, 0, 0]
-        std  = [0.1, 0.1, 0.2, 0.2]
+        std  = [0.2, 0.2, 0.2, 0.2]
 
         # create simple RegressBoxes layer
         regress_boxes_layer = keras_retinanet.layers.RegressBoxes(mean=mean, std=std)
@@ -242,9 +146,9 @@ class TestRegressBoxes(object):
 
         # compute expected output
         expected = np.array([[
-            [0 , 0 , 10 , 10 ],
-            [50 + (0.1 * std[0] + mean[0]) * 50, 50 + (0.1 * std[1] + mean[1]) * 50, 100 + (0.1 * std[0] + mean[0]) * 50, 100 + (0.1 * std[1] + mean[1]) * 50],
-            [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],
+            [0 , 0 , 10  , 10  ],
+            [51, 51, 100 , 100 ],
+            [20, 20, 40.4, 40.4],
         ]], dtype=keras.backend.floatx())
 
         np.testing.assert_array_almost_equal(actual, expected, decimal=2)
@@ -252,7 +156,7 @@ class TestRegressBoxes(object):
     # mark test to fail
     def test_mini_batch(self):
         mean = [0, 0, 0, 0]
-        std  = [0.1, 0.1, 0.2, 0.2]
+        std  = [0.2, 0.2, 0.2, 0.2]
 
         # create simple RegressBoxes layer
         regress_boxes_layer = keras_retinanet.layers.RegressBoxes(mean=mean, std=std)
@@ -293,14 +197,14 @@ class TestRegressBoxes(object):
         # compute expected output
         expected = np.array([
             [
-                [0 , 0 , 10 , 10 ],  # 1
-                [50.5, 50.5, 100.5, 100.5],  # 2
-                [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],  # 3
+                [0 , 0 , 10  , 10  ],  # 1
+                [51, 51, 100 , 100 ],  # 2
+                [20, 20, 40.4, 40.4],  # 3
             ],
             [
-                [30 - math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 - math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5, 30 + math.e ** (0.1 * std[2] + mean[2]) * 20 * 0.5, 30 + math.e ** (0.1 * std[3] + mean[3]) * 20 * 0.5],  # 3
-                [0 , 0 , 10 , 10 ],  # 1
-                [50.5, 50.5, 100.5, 100.5],  # 2
+                [20, 20, 40.4, 40.4],  # 3
+                [0 , 0 , 10  , 10  ],  # 1
+                [51, 51, 100 , 100 ],  # 2
             ],
         ], dtype=keras.backend.floatx())
 

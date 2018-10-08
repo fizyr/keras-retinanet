@@ -9,13 +9,30 @@ please create an issue or pull request at https://github.com/fizyr/keras-retinan
 * Maarten de Vries <maarten@de-vri.es>
 * Ashley Williamson
 * Yann Henon
+* Valeriu Lacatusu
+* András Vidosits
+* Cristian Gratie
+* jjiunlin
 * Sorin Panduru
+* Rodrigo Meira de Andrade
 * Enrico Liscio <e.liscio@fizyr.com>
 * Mihai Morariu
+* pedroconceicao
+* jjiun
 * Wudi Fang
-* yhenon
 * Mike Clark
-* Valeriu Lacatusu
+* hannesedvartsen
+* Max Van Sande
+* Pierre Dérian
+* ori
 * mxvs
 * mwilder
+* Muhammed Kocabas
+* Max Van Sande
+* Koen Vijverberg
+* iver56
 * hnsywangxin
+* Guillaume Erhard
+* Eduardo Ramos
+* DiegoAgher
+* Alexander Pacha

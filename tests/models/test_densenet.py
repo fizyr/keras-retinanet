@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 lvaleriu (https://github.com/lvaleriu/)
+Copyright 2018 vidosits (https://github.com/vidosits/)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,39 +19,33 @@ import pytest
 import numpy as np
 import keras
 from keras_retinanet import losses
-from keras_retinanet.models.mobilenet import MobileNetBackbone
+from keras_retinanet.models.densenet import DenseNetBackbone
 
-alphas = ['1.0']
-parameters = []
-
-for backbone in MobileNetBackbone.allowed_backbones:
-    for alpha in alphas:
-        parameters.append((backbone, alpha))
+parameters = ['densenet121']
 
 
-@pytest.mark.parametrize("backbone, alpha", parameters)
-def test_backbone(backbone, alpha):
+@pytest.mark.parametrize("backbone", parameters)
+def test_backbone(backbone):
     # ignore warnings in this test
     warnings.simplefilter('ignore')
 
     num_classes = 10
 
-    inputs = np.zeros((1, 1024, 363, 3), dtype=np.float32)
-    targets = [np.zeros((1, 68760, 5), dtype=np.float32), np.zeros((1, 68760, num_classes + 1))]
+    inputs = np.zeros((1, 200, 400, 3), dtype=np.float32)
+    targets = [np.zeros((1, 14814, 5), dtype=np.float32), np.zeros((1, 14814, num_classes + 1))]
 
     inp = keras.layers.Input(inputs[0].shape)
 
-    mobilenet_backbone = MobileNetBackbone(backbone='{}_{}'.format(backbone, format(alpha)))
-    training_model = mobilenet_backbone.retinanet(num_classes=num_classes, inputs=inp)
-    training_model.summary()
+    densenet_backbone = DenseNetBackbone(backbone)
+    model = densenet_backbone.retinanet(num_classes=num_classes, inputs=inp)
+    model.summary()
 
     # compile model
-    training_model.compile(
+    model.compile(
         loss={
             'regression': losses.smooth_l1(),
-            'classification': losses.focal(),
-            'nms': losses.repulsion_loss
+            'classification': losses.focal()
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 
-    training_model.fit(inputs, targets, batch_size=1)
+    model.fit(inputs, targets, batch_size=1)

@@ -16,34 +16,43 @@ limitations under the License.
 
 from __future__ import division
 import keras
-import time
 import numpy as np
-import scipy.ndimage as ndi
 import cv2
 from PIL import Image
 
-from .transform import change_transform_origin, transform_aabb
+from .transform import change_transform_origin
 
 
 def read_image_bgr(path):
+    """ Read an image in BGR format.
+
+    Args
+        path: Path to the image.
+    """
     image = np.asarray(Image.open(path).convert('RGB'))
     return image[:, :, ::-1].copy()
 
 
-def preprocess_image(x):
-    # mostly identical to "https://github.com/fchollet/keras/blob/master/keras/applications/imagenet_utils.py"
+def preprocess_image(x, mode='caffe'):
+    """ Preprocess an image by subtracting the ImageNet mean.
+
+    Args
+        x: np.array of shape (None, None, 3) or (3, None, None).
+        mode: One of "caffe" or "tf".
+            - caffe: will zero-center each color channel with
+                respect to the ImageNet dataset, without scaling.
+            - tf: will scale pixels between -1 and 1, sample-wise.
+
+    Returns
+        The input with the ImageNet mean subtracted.
+    """
+    # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
     # except for converting RGB -> BGR since we assume BGR already
     x = x.astype(keras.backend.floatx())
-    if keras.backend.image_data_format() == 'channels_first':
-        if x.ndim == 3:
-            x[0, :, :] -= 103.939
-            x[1, :, :] -= 116.779
-            x[2, :, :] -= 123.68
-        else:
-            x[:, 0, :, :] -= 103.939
-            x[:, 1, :, :] -= 116.779
-            x[:, 2, :, :] -= 123.68
-    else:
+    if mode == 'tf':
+        x /= 127.5
+        x -= 1.
+    elif mode == 'caffe':
         x[..., 0] -= 103.939
         x[..., 1] -= 116.779
         x[..., 2] -= 123.68
@@ -74,11 +83,10 @@ def adjust_transform_for_image(transform, image, relative_translation):
 class TransformParameters:
     """ Struct holding parameters determining how to apply a transformation to an image.
 
-    # Arguments
+    Args
         fill_mode:             One of: 'constant', 'nearest', 'reflect', 'wrap'
         interpolation:         One of: 'nearest', 'linear', 'cubic', 'area', 'lanczos4'
         cval:                  Fill value to use with fill_mode='constant'
-        data_format:           Same as for keras.preprocessing.image.apply_transform
         relative_translation:  If true (the default), interpret translation as a factor of the image size.
                                If false, interpret it as absolute pixels.
     """
@@ -87,24 +95,12 @@ class TransformParameters:
         fill_mode            = 'nearest',
         interpolation        = 'linear',
         cval                 = 0,
-        data_format          = None,
         relative_translation = True,
     ):
         self.fill_mode            = fill_mode
         self.cval                 = cval
         self.interpolation        = interpolation
         self.relative_translation = relative_translation
-
-        if data_format is None:
-            data_format = keras.backend.image_data_format()
-        self.data_format = data_format
-
-        if data_format == 'channels_first':
-            self.channel_axis = 0
-        elif data_format == 'channels_last':
-            self.channel_axis = 2
-        else:
-            raise ValueError("invalid data_format, expected 'channels_first' or 'channels_last', got '{}'".format(data_format))
 
     def cvBorderMode(self):
         if self.fill_mode == 'constant':
@@ -138,14 +134,11 @@ def apply_transform(matrix, image, params):
     The matrix is interpreted such that a point (x, y) on the original image is moved to transform * (x, y) in the generated image.
     Mathematically speaking, that means that the matrix is a transformation from the transformed image space to the original image space.
 
-    Parameters:
-      matrix: A homogenous 3 by 3 matrix holding representing the transformation to apply.
+    Args
+      matrix: A homogeneous 3 by 3 matrix holding representing the transformation to apply.
       image:  The image to transform.
       params: The transform parameters (see TransformParameters)
     """
-    if params.channel_axis != 2:
-        image = np.moveaxis(image, params.channel_axis, 2)
-
     output = cv2.warpAffine(
         image,
         matrix[:2, :],
@@ -154,13 +147,19 @@ def apply_transform(matrix, image, params):
         borderMode  = params.cvBorderMode(),
         borderValue = params.cval,
     )
-
-    if params.channel_axis != 2:
-        output = np.moveaxis(output, 2, params.channel_axis)
     return output
 
 
 def resize_image(img, min_side=800, max_side=1333):
+    """ Resize an image such that the size is constrained to min_side and max_side.
+
+    Args
+        min_side: The image's min side will be equal to min_side after resizing.
+        max_side: If after resizing the image's max side is above max_side, resize until the max side is equal to max_side.
+
+    Returns
+        A resized image.
+    """
     (rows, cols, _) = img.shape
 
     smallest_side = min(rows, cols)
@@ -168,7 +167,7 @@ def resize_image(img, min_side=800, max_side=1333):
     # rescale the image so the smallest side is min_side
     scale = min_side / smallest_side
 
-    # check if the largest side is now greater than max_side, wich can happen
+    # check if the largest side is now greater than max_side, which can happen
     # when images have a large aspect ratio
     largest_side = max(rows, cols)
     if largest_side * scale > max_side:

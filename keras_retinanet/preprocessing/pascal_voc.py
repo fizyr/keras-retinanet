@@ -51,7 +51,7 @@ voc_classes = {
 }
 
 
-def _findNode(parent, name, debug_name = None, parse = None):
+def _findNode(parent, name, debug_name=None, parse=None):
     if debug_name is None:
         debug_name = name
 
@@ -67,6 +67,11 @@ def _findNode(parent, name, debug_name = None, parse = None):
 
 
 class PascalVocGenerator(Generator):
+    """ Generate data for a Pascal VOC dataset.
+
+    See http://host.robots.ox.ac.uk/pascal/VOC/ for more information.
+    """
+
     def __init__(
         self,
         data_dir,
@@ -77,6 +82,12 @@ class PascalVocGenerator(Generator):
         skip_difficult=False,
         **kwargs
     ):
+        """ Initialize a Pascal VOC data generator.
+
+        Args
+            base_dir: Directory w.r.t. where the files are to be searched (defaults to the directory containing the csv_data_file).
+            csv_class_file: Path to the CSV classes file.
+        """
         self.data_dir             = data_dir
         self.set_name             = set_name
         self.classes              = classes
@@ -92,27 +103,41 @@ class PascalVocGenerator(Generator):
         super(PascalVocGenerator, self).__init__(**kwargs)
 
     def size(self):
+        """ Size of the dataset.
+        """
         return len(self.image_names)
 
     def num_classes(self):
+        """ Number of classes in the dataset.
+        """
         return len(self.classes)
 
     def name_to_label(self, name):
+        """ Map name to label.
+        """
         return self.classes[name]
 
     def label_to_name(self, label):
+        """ Map label to name.
+        """
         return self.labels[label]
 
     def image_aspect_ratio(self, image_index):
+        """ Compute the aspect ratio for an image with image_index.
+        """
         path  = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
         image = Image.open(path)
         return float(image.width) / float(image.height)
 
     def load_image(self, image_index):
+        """ Load an image at the image_index.
+        """
         path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
         return read_image_bgr(path)
 
     def __parse_annotation(self, element):
+        """ Parse an annotation given an XML element.
+        """
         truncated = _findNode(element, 'truncated', parse=int)
         difficult = _findNode(element, 'difficult', parse=int)
 
@@ -132,10 +157,8 @@ class PascalVocGenerator(Generator):
         return truncated, difficult, box
 
     def __parse_annotations(self, xml_root):
-        size_node = _findNode(xml_root, 'size')
-        width     = _findNode(size_node, 'width',  'size.width',  parse=float)
-        height    = _findNode(size_node, 'height', 'size.height', parse=float)
-
+        """ Parse all annotations under the xml_root.
+        """
         boxes = np.zeros((0, 5))
         for i, element in enumerate(xml_root.iter('object')):
             try:
@@ -152,6 +175,8 @@ class PascalVocGenerator(Generator):
         return boxes
 
     def load_annotations(self, image_index):
+        """ Load annotations for an image_index.
+        """
         filename = self.image_names[image_index] + '.xml'
         try:
             tree = ET.parse(os.path.join(self.data_dir, 'Annotations', filename))
