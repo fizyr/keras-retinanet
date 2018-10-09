@@ -261,14 +261,14 @@ class Generator(object):
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
         anchors   = self.generate_anchors(max_shape)
 
-        labels_batch, regression_batch = self.compute_anchor_targets(
+        batches = self.compute_anchor_targets(
             anchors,
             image_group,
             annotations_group,
             self.num_classes()
         )
 
-        return [regression_batch, labels_batch]
+        return list(batches)
 
     def compute_input_output(self, group):
         """ Compute inputs and target outputs for the network.
