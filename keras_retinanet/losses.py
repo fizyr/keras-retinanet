@@ -90,8 +90,8 @@ def smooth_l1(sigma=3.0):
         """
         # separate target and state
         regression        = y_pred
-        regression_target = y_true[:, :, :4]
-        anchor_state      = y_true[:, :, 4]
+        regression_target = y_true[:, :, :-1]
+        anchor_state      = y_true[:, :, -1]
 
         # filter out "ignore" anchors
         indices           = backend.where(keras.backend.equal(anchor_state, 1))

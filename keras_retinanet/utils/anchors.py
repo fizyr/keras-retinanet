@@ -107,7 +107,7 @@ def anchor_targets_bbox(
             anchors_centers = np.vstack([(anchors[:, 0] + anchors[:, 2]) / 2, (anchors[:, 1] + anchors[:, 3]) / 2]).T
             indices = np.logical_or(anchors_centers[:, 0] >= image.shape[1], anchors_centers[:, 1] >= image.shape[0])
 
-            labels_batch[index, indices, -1]     = - 1
+            labels_batch[index, indices, -1]     = -1
             regression_batch[index, indices, -1] = -1
 
     return labels_batch, regression_batch
