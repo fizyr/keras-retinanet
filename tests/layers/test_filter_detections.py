@@ -30,13 +30,13 @@ class TestFilterDetections(object):
             [0, 0, 10, 10],
             [0, 0, 10, 10],  # this will be suppressed
         ]], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
+        boxes = keras.backend.constant(boxes)
 
         classification = np.array([[
             [0, 0.9],  # this will be suppressed
             [0, 1],
         ]], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
+        classification = keras.backend.constant(classification)
 
         # compute output
         actual_boxes, actual_scores, actual_labels = filter_detections_layer.call([boxes, classification])
@@ -68,13 +68,13 @@ class TestFilterDetections(object):
             [0, 0, 10, 10],
             [0, 0, 10, 10],  # this will be suppressed
         ]], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
+        boxes = keras.backend.constant(boxes)
 
         classification = np.array([[
             [0, 0.9],  # this will be suppressed
             [0, 1],
         ]], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
+        classification = keras.backend.constant(classification)
 
         other = []
         other.append(np.array([[
@@ -85,7 +85,7 @@ class TestFilterDetections(object):
             5678,  # this will be suppressed
             1234,
         ]], dtype=keras.backend.floatx()))
-        other = [keras.backend.variable(o) for o in other]
+        other = [keras.backend.constant(o) for o in other]
 
         # compute output
         actual = filter_detections_layer.call([boxes, classification] + other)
@@ -133,7 +133,7 @@ class TestFilterDetections(object):
                 [100, 100, 150, 150],  # this will be suppressed
             ],
         ], dtype=keras.backend.floatx())
-        boxes = keras.backend.variable(boxes)
+        boxes = keras.backend.constant(boxes)
 
         classification = np.array([
             [
@@ -145,7 +145,7 @@ class TestFilterDetections(object):
                 [0.9, 0],  # this will be suppressed
             ],
         ], dtype=keras.backend.floatx())
-        classification = keras.backend.variable(classification)
+        classification = keras.backend.constant(classification)
 
         # compute output
         actual_boxes, actual_scores, actual_labels = filter_detections_layer.call([boxes, classification])

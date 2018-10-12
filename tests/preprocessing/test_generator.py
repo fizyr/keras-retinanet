@@ -21,10 +21,12 @@ import pytest
 
 
 class SimpleGenerator(Generator):
-    def __init__(self, annotations_group, num_classes=0, image=None):
-        self.annotations_group = annotations_group
-        self.num_classes_      = num_classes
-        self.image             = image
+    def __init__(self, bboxes, labels, num_classes=0, image=None):
+        assert(len(bboxes) == len(labels))
+        self.bboxes       = bboxes
+        self.labels       = labels
+        self.num_classes_ = num_classes
+        self.image        = image
         super(SimpleGenerator, self).__init__(group_method='none', shuffle_groups=False)
 
     def num_classes(self):
@@ -34,75 +36,113 @@ class SimpleGenerator(Generator):
         return self.image
 
     def size(self):
-        return len(self.annotations_group)
+        return len(self.bboxes)
 
     def load_annotations(self, image_index):
-        result = self.annotations_group[image_index]
-        return result
+        annotations = {'labels': self.labels[image_index], 'bboxes': self.bboxes[image_index]}
+        return annotations
 
 
 class TestLoadAnnotationsGroup(object):
     def test_simple(self):
-        input_annotations_group = [
+        input_bboxes_group = [
             np.array([
                 [  0,   0,  10,  10],
                 [150, 150, 350, 350]
             ]),
         ]
-        expected_annotations_group = input_annotations_group
+        input_labels_group = [
+            np.array([
+                1,
+                3
+            ]),
+        ]
+        expected_bboxes_group = input_bboxes_group
+        expected_labels_group = input_labels_group
 
-        simple_generator = SimpleGenerator(input_annotations_group)
-        annotations_group = simple_generator.load_annotations_group(simple_generator.groups[0])
+        simple_generator = SimpleGenerator(input_bboxes_group, input_labels_group)
+        annotations = simple_generator.load_annotations_group(simple_generator.groups[0])
 
-        np.testing.assert_equal(expected_annotations_group, annotations_group)
+        assert('bboxes' in annotations[0])
+        assert('labels' in annotations[0])
+        np.testing.assert_equal(expected_bboxes_group[0], annotations[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[0], annotations[0]['labels'])
 
     def test_multiple(self):
-        input_annotations_group = [
+        input_bboxes_group = [
             np.array([
                 [  0,   0,  10,  10],
                 [150, 150, 350, 350]
             ]),
             np.array([
-                [0, 0, 1, 1]
+                [0, 0, 50, 50],
+            ]),
+        ]
+        input_labels_group = [
+            np.array([
+                1,
+                0
+            ]),
+            np.array([
+                3
             ])
         ]
-        expected_annotations_group = input_annotations_group
+        expected_bboxes_group = input_bboxes_group
+        expected_labels_group = input_labels_group
 
-        simple_generator = SimpleGenerator(input_annotations_group)
+        simple_generator = SimpleGenerator(input_bboxes_group, input_labels_group)
         annotations_group_0 = simple_generator.load_annotations_group(simple_generator.groups[0])
         annotations_group_1 = simple_generator.load_annotations_group(simple_generator.groups[1])
 
-        np.testing.assert_equal([expected_annotations_group[0]], annotations_group_0)
-        np.testing.assert_equal([expected_annotations_group[1]], annotations_group_1)
+        assert('bboxes' in annotations_group_0[0])
+        assert('bboxes' in annotations_group_1[0])
+        assert('labels' in annotations_group_0[0])
+        assert('labels' in annotations_group_1[0])
+        np.testing.assert_equal(expected_bboxes_group[0], annotations_group_0[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[0], annotations_group_0[0]['labels'])
+        np.testing.assert_equal(expected_bboxes_group[1], annotations_group_1[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[1], annotations_group_1[0]['labels'])
 
 
 class TestFilterAnnotations(object):
     def test_simple_filter(self):
-        input_annotations_group = [
+        input_bboxes_group = [
             np.array([
                 [  0,   0, 10, 10],
                 [150, 150, 50, 50]
             ]),
         ]
+        input_labels_group = [
+            np.array([
+                3,
+                1
+            ]),
+        ]
 
         input_image = np.zeros((500, 500, 3))
 
-        expected_annotations_group = [
+        expected_bboxes_group = [
             np.array([
                 [0, 0, 10, 10],
             ]),
         ]
+        expected_labels_group = [
+            np.array([
+                3,
+            ]),
+        ]
 
-        simple_generator = SimpleGenerator(input_annotations_group)
-        annotations_group = simple_generator.load_annotations_group(simple_generator.groups[0])
+        simple_generator = SimpleGenerator(input_bboxes_group, input_labels_group)
+        annotations = simple_generator.load_annotations_group(simple_generator.groups[0])
         # expect a UserWarning
         with pytest.warns(UserWarning):
-            image_group, annotations_group = simple_generator.filter_annotations([input_image], annotations_group, simple_generator.groups[0])
+            image_group, annotations_group = simple_generator.filter_annotations([input_image], annotations, simple_generator.groups[0])
 
-        np.testing.assert_equal(expected_annotations_group, annotations_group)
+        np.testing.assert_equal(expected_bboxes_group[0], annotations_group[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[0], annotations_group[0]['labels'])
 
     def test_multiple_filter(self):
-        input_annotations_group = [
+        input_bboxes_group = [
             np.array([
                 [  0,   0,  10,  10],
                 [150, 150,  50,  50],
@@ -125,9 +165,32 @@ class TestFilterAnnotations(object):
             ]),
         ]
 
+        input_labels_group = [
+            np.array([
+                6,
+                5,
+                4,
+                3,
+                2,
+                1
+            ]),
+            np.array([
+                0
+            ]),
+            np.array([
+                10,
+                11,
+                12
+            ]),
+            np.array([
+                105,
+                107
+            ]),
+        ]
+
         input_image = np.zeros((500, 500, 3))
 
-        expected_annotations_group = [
+        expected_bboxes_group = [
             np.array([
                 [  0,   0,  10,  10],
                 [150, 150, 350, 350],
@@ -141,8 +204,22 @@ class TestFilterAnnotations(object):
                 [ 10,  10,  100,  100]
             ]),
         ]
+        expected_labels_group = [
+            np.array([
+                6,
+                4,
+                2
+            ]),
+            np.zeros((0,)),
+            np.array([
+                12
+            ]),
+            np.array([
+                105
+            ]),
+        ]
 
-        simple_generator = SimpleGenerator(input_annotations_group)
+        simple_generator = SimpleGenerator(input_bboxes_group, input_labels_group)
         # expect a UserWarning
         annotations_group_0 = simple_generator.load_annotations_group(simple_generator.groups[0])
         with pytest.warns(UserWarning):
@@ -156,25 +233,37 @@ class TestFilterAnnotations(object):
         with pytest.warns(UserWarning):
             image_group, annotations_group_2 = simple_generator.filter_annotations([input_image], annotations_group_2, simple_generator.groups[2])
 
-        np.testing.assert_equal([expected_annotations_group[0]], annotations_group_0)
-        np.testing.assert_equal([expected_annotations_group[1]], annotations_group_1)
-        np.testing.assert_equal([expected_annotations_group[2]], annotations_group_2)
+        np.testing.assert_equal(expected_bboxes_group[0], annotations_group_0[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[0], annotations_group_0[0]['labels'])
+
+        np.testing.assert_equal(expected_bboxes_group[1], annotations_group_1[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[1], annotations_group_1[0]['labels'])
+
+        np.testing.assert_equal(expected_bboxes_group[2], annotations_group_2[0]['bboxes'])
+        np.testing.assert_equal(expected_labels_group[2], annotations_group_2[0]['labels'])
 
     def test_complete(self):
-        input_annotations_group = [
+        input_bboxes_group = [
             np.array([
-                [  0,   0, 50, 50, 0],  # one object of class 0
-                [150, 150, 50, 50, 1],  # one object of class 1 with an invalid box
+                [  0,   0, 50, 50],
+                [150, 150, 50, 50],  # invalid bbox
+            ], dtype=float)
+        ]
+
+        input_labels_group = [
+            np.array([
+                5,  # one object of class 5
+                3,  # one object of class 3 with an invalid box
             ], dtype=float)
         ]
 
         input_image = np.zeros((500, 500, 3), dtype=np.uint8)
 
-        simple_generator = SimpleGenerator(input_annotations_group, image=input_image, num_classes=2)
+        simple_generator = SimpleGenerator(input_bboxes_group, input_labels_group, image=input_image, num_classes=6)
         # expect a UserWarning
         with pytest.warns(UserWarning):
             _, [_, labels_batch] = simple_generator.next()
 
-        # test that only object with class 0 is present in labels_batch
-        labels = np.unique(np.argmax(labels_batch == 1, axis=2))
+        # test that only object with class 5 is present in labels_batch
+        labels = np.unique(np.argmax(labels_batch == 5, axis=2))
         assert(len(labels) == 1 and labels[0] == 0), 'Expected only class 0 to be present, but got classes {}'.format(labels)
