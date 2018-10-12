@@ -107,7 +107,7 @@ def parse_args(args):
     parser.add_argument('--save-path',        help='Path for saving images with detections (doesn\'t work for COCO).')
     parser.add_argument('--image-min-side',   help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side',   help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
-    parser.add_argument('--config',           help='Path to a configuration parameters .ini file.')
+    parser.add_argument('--config',           help='Path to a configuration parameters .ini file (only used with --convert-model).')
     parser.add_argument('--weighted-average', help='Compute the mAP using the weighted average of precisions among classes.', action='store_true')
 
     return parser.parse_args(args)
@@ -145,7 +145,11 @@ def main(args=None):
 
     # load the model
     print('Loading model, this may take a second...')
-    model = models.load_model(args.model, backbone_name=args.backbone, convert=args.convert_model, anchor_params=anchor_params)
+    model = models.load_model(args.model, backbone_name=args.backbone)
+
+    # optionally convert the model
+    if args.convert_model:
+        model = models.convert_model(model, anchor_params=anchor_params)
 
     # print model summary
     # print(model.summary())
