@@ -168,7 +168,7 @@ class Generator(object):
         """ Randomly transforms image and annotation.
         """
         # randomly transform both image and annotations
-        if transform or self.transform_generator:
+        if transform is not None or self.transform_generator:
             if transform is None:
                 transform = adjust_transform_for_image(next(self.transform_generator), image, self.transform_parameters.relative_translation)
 
