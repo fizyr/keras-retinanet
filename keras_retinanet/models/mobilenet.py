@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import keras
-from keras.applications.mobilenet import mobilenet
+from keras.applications import mobilenet
 from keras.utils import get_file
 from ..utils.image import preprocess_image
 
@@ -58,7 +58,7 @@ class MobileNetBackbone(Backbone):
             alpha_text = '2_5'
 
         model_name = 'mobilenet_{}_{}_tf_no_top.h5'.format(alpha_text, rows)
-        weights_url = mobilenet.BASE_WEIGHT_PATH + model_name
+        weights_url = mobilenet.mobilenet.BASE_WEIGHT_PATH + model_name
         weights_path = get_file(model_name, weights_url, cache_subdir='models')
 
         return weights_path
