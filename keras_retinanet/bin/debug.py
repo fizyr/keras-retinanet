@@ -34,7 +34,7 @@ from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes
-from ..utils.anchors import anchors_for_shape
+from ..utils.anchors import anchors_for_shape, compute_gt_annotations
 from ..utils.config import read_config_file, parse_anchor_parameters
 
 
@@ -182,16 +182,14 @@ def run(generator, args, anchor_params):
         # resize the image and annotations
         if args.resize:
             image, image_scale = generator.resize_image(image)
-            annotations[:, :4] *= image_scale
+            annotations['bboxes'] *= image_scale
 
         anchors = anchors_for_shape(image.shape, anchor_params=anchor_params)
-
-        labels_batch, regression_batch, boxes_batch = generator.compute_anchor_targets(anchors, [image], [annotations], generator.num_classes())
-        anchor_states                               = labels_batch[0, :, -1]
+        positive_indices, _, max_indices = compute_gt_annotations(anchors, annotations['bboxes'])
 
         # draw anchors on the image
         if args.anchors:
-            draw_boxes(image, anchors[anchor_states == 1], (255, 255, 0), thickness=1)
+            draw_boxes(image, anchors[positive_indices], (255, 255, 0), thickness=1)
 
         # draw annotations on the image
         if args.annotations:
@@ -200,7 +198,7 @@ def run(generator, args, anchor_params):
 
             # draw regressed anchors in green to override most red annotations
             # result is that annotations without anchors are red, with anchors are green
-            draw_boxes(image, boxes_batch[0, anchor_states == 1, :], (0, 255, 0))
+            draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
         cv2.imshow('Image', image)
         if cv2.waitKey() == ord('q'):
