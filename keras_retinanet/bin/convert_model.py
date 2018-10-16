@@ -33,6 +33,7 @@ if __name__ == "__main__" and __package__ is None:
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
 
+
 def get_session():
     """ Construct a modified tf session.
     """
