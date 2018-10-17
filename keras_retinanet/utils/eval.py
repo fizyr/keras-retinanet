@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import print_function
-
 from .anchors import compute_overlap
 from .visualization import draw_detections, draw_annotations
 
@@ -24,6 +22,8 @@ import numpy as np
 import os
 
 import cv2
+import progressbar
+assert(callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
 
 
 def _compute_ap(recall, precision):
@@ -72,7 +72,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
     """
     all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
 
-    for i in range(generator.size()):
+    for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         raw_image    = generator.load_image(i)
         image        = generator.preprocess_image(raw_image.copy())
         image, scale = generator.resize_image(image)
@@ -114,8 +114,6 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
             all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
 
-        print('{}/{}'.format(i + 1, generator.size()), end='\r')
-
     return all_detections
 
 
@@ -132,7 +130,7 @@ def _get_annotations(generator):
     """
     all_annotations = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
 
-    for i in range(generator.size()):
+    for i in progressbar.progressbar(range(generator.size()), prefix='Parsing annotations: '):
         # load the annotations
         annotations = generator.load_annotations(i)
 
@@ -142,8 +140,6 @@ def _get_annotations(generator):
                 continue
 
             all_annotations[i][label] = annotations['bboxes'][annotations['labels'] == label, :].copy()
-
-        print('{}/{}'.format(i + 1, generator.size()), end='\r')
 
     return all_annotations
 
