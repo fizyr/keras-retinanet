@@ -255,3 +255,10 @@ Feel free to join the `#keras-retinanet` [Keras Slack](https://keras-slack-autoj
 * **I get a loss of `0`, what is going on?** This mostly happens when none of the anchors "fit" on your objects, because they are most likely too small or elongated. You can verify this using the [debug](https://github.com/fizyr/keras-retinanet#debugging) tool.
 * **I have an older model, can I use it after an update of keras-retinanet?** This depends on what has changed. If it is a change that doesn't affect the weights then you can "update" models by creating a new retinanet model, loading your old weights using `model.load_weights(weights_path, by_name=True)` and saving this model. If the change has been too significant, you should retrain your model (you can try to load in the weights from your old model when starting training, this might be a better starting position than ImageNet).
 * **I get the error `ModuleNotFoundError: No module named 'keras_retinanet.utils.compute_overlap'`, how do I fix this?** Most likely you are running the code from the cloned repository. This is fine, but you need to compile some extensions for this to work (`python setup.py build_ext --inplace`).
+* **How do I train on my own dataset?** The steps to train on your dataset are roughly as follows:
+* 1. Prepare your dataset in the CSV format (a training and validation split is advised).
+* 2. Check that your dataset is correct using `retinanet-debug`.
+* 3. Train retinanet, preferably using the pretrained COCO weights (this gives a **far** better starting point, making training much quicker and accurate). You can optionally perform evaluation of your validation set during training to keep track of how well it performs (advised).
+* 4. Convert your training model to an inference model.
+* 5. Evaluate your inference model on your test or validation set.
+* 6. Profit!
