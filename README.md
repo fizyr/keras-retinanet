@@ -238,7 +238,7 @@ Example output images using `keras-retinanet` are shown below.
 If you have a project based on `keras-retinanet` and would like to have it published here, shoot me a message on Slack.
 
 ### Notes
-* This repository requires Keras 2.2.0 or higher.
+* This repository requires Keras 2.2.4 or higher.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using OpenCV 3.4.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using Python 2.7 and 3.6.
 

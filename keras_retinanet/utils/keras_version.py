@@ -19,7 +19,7 @@ from __future__ import print_function
 import keras
 import sys
 
-minimum_keras_version = 2, 2, 0
+minimum_keras_version = 2, 2, 4
 
 
 def keras_version():
