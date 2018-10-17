@@ -169,6 +169,16 @@ class CSVGenerator(Generator):
         """
         return max(self.classes.values()) + 1
 
+    def has_label(self, label):
+        """ Return True if label is a known label.
+        """
+        return label in self.labels
+
+    def has_name(self, name):
+        """ Returns True if name is a known class.
+        """
+        return name in self.classes
+
     def name_to_label(self, name):
         """ Map name to label.
         """

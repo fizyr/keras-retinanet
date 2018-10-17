@@ -324,6 +324,16 @@ class OpenImagesGenerator(Generator):
     def num_classes(self):
         return len(self.id_to_labels)
 
+    def has_label(self, label):
+        """ Return True if label is a known label.
+        """
+        return label in self.id_to_labels
+
+    def has_name(self, name):
+        """ Returns True if name is a known class.
+        """
+        raise NotImplementedError()
+
     def name_to_label(self, name):
         raise NotImplementedError()
 
