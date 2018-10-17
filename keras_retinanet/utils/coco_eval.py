@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import print_function
-
 from pycocotools.cocoeval import COCOeval
 
 import keras
 import numpy as np
 import json
+
+import progressbar
+assert(callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
 
 
 def evaluate_coco(generator, model, threshold=0.05):
@@ -34,7 +35,7 @@ def evaluate_coco(generator, model, threshold=0.05):
     # start collecting results
     results = []
     image_ids = []
-    for index in range(generator.size()):
+    for index in progressbar.progressbar(range(generator.size()), prefix='COCO evaluation: '):
         image = generator.load_image(index)
         image = generator.preprocess_image(image)
         image, scale = generator.resize_image(image)
@@ -71,9 +72,6 @@ def evaluate_coco(generator, model, threshold=0.05):
 
         # append image to list of processed images
         image_ids.append(generator.image_ids[index])
-
-        # print progress
-        print('{}/{}'.format(index + 1, generator.size()), end='\r')
 
     if not len(results):
         return
