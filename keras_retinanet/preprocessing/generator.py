@@ -96,6 +96,16 @@ class Generator(object):
         """
         raise NotImplementedError('num_classes method not implemented')
 
+    def has_label(self, label):
+        """ Returns True if label is a known label.
+        """
+        raise NotImplementedError('has_label method not implemented')
+
+    def has_name(self, name):
+        """ Returns True if name is a known class.
+        """
+        raise NotImplementedError('has_name method not implemented')
+
     def name_to_label(self, name):
         """ Map name to label.
         """
