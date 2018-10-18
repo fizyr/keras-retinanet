@@ -370,6 +370,6 @@ class OpenImagesGenerator(Generator):
             annotations['bboxes'][idx, 1] = y1
             annotations['bboxes'][idx, 2] = x2
             annotations['bboxes'][idx, 3] = y2
-            annotations['labels'][idx, 4] = cls_id
+            annotations['labels'][idx] = cls_id
 
         return annotations
