@@ -207,6 +207,16 @@ cat,1
 bird,2
 ```
 
+
+### Convert annotation format to CSV
+Here is a sample workflow to prepare your own datase.
+
+1. Correct images for training
+2. Create annotations of images using [LabelImg](https://github.com/tzutalin/labelImg) with Pascal VOC xml format
+3. Convert annotation format from Pascal VOC xml format to CSV format using [akchan/conv_pascal_to_csv: Training data converter for fizyr/keras-retinanet](https://github.com/akchan/conv_pascal_to_csv)
+4. Start to train your model!
+
+
 ## Debugging
 Creating your own dataset does not always work out of the box. There is a [`debug.py`](https://github.com/fizyr/keras-retinanet/blob/master/keras_retinanet/bin/debug.py) tool to help find the most common mistakes.
 
