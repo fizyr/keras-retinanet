@@ -33,6 +33,7 @@ from ..utils.image import (
     apply_transform,
     preprocess_image,
     resize_image,
+    postprocess_image,
 )
 from ..utils.transform import transform_aabb
 
@@ -53,6 +54,7 @@ class Generator(object):
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
+        postprocess_image=postprocess_image,
         config=None
     ):
         """ Initialize Generator object.
@@ -68,6 +70,7 @@ class Generator(object):
             compute_anchor_targets : Function handler for computing the targets of anchors for an image and its annotations.
             compute_shapes         : Function handler for computing the shapes of the pyramid for a given input.
             preprocess_image       : Function handler for preprocessing an image (scaling / normalizing) for passing through a network.
+            postprocess_image      : Function handler for postprocessing an image (converting to floatx) for passing through a network.
         """
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
@@ -79,6 +82,7 @@ class Generator(object):
         self.compute_anchor_targets = compute_anchor_targets
         self.compute_shapes         = compute_shapes
         self.preprocess_image       = preprocess_image
+        self.postprocess_image      = postprocess_image
         self.config                 = config
 
         self.group_index = 0
@@ -220,6 +224,9 @@ class Generator(object):
 
         # apply resizing to annotations too
         annotations['bboxes'] *= image_scale
+
+        # convert to the wanted keras floatx
+        image = self.postprocess_image(image)
 
         return image, annotations
 

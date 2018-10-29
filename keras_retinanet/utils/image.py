@@ -48,7 +48,10 @@ def preprocess_image(x, mode='caffe'):
     """
     # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
     # except for converting RGB -> BGR since we assume BGR already
-    x = x.astype(keras.backend.floatx())
+
+    #covert always to float32 to keep compatibility with opencv
+    x = x.astype(np.float32)
+
     if mode == 'tf':
         x /= 127.5
         x -= 1.
@@ -59,6 +62,20 @@ def preprocess_image(x, mode='caffe'):
 
     return x
 
+def postprocess_image(x):
+    """ Convert an image to the actual keras floatx.
+
+    Args
+        x: np.array of shape (None, None, 3) or (3, None, None).
+
+    Returns
+        The input in the keras floatx representation.
+    """
+    # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
+    # except for converting RGB -> BGR since we assume BGR already
+    x = x.astype(keras.backend.floatx())
+
+    return x
 
 def adjust_transform_for_image(transform, image, relative_translation):
     """ Adjust a transformation for a specific image.
