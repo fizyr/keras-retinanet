@@ -192,6 +192,18 @@ class Generator(object):
 
         return image, annotations
 
+    def random_transform_group(self, image_group, annotations_group):
+        """ Randomly transforms each image and its annotations.
+        """
+
+        assert(len(image_group) == len(annotations_group))
+
+        for index in range(len(image_group)):
+            # transform a single group entry
+            image_group[index], annotations_group[index] = self.random_transform_group_entry(image_group[index], annotations_group[index])
+
+        return image_group, annotations_group
+
     def resize_image(self, image):
         """ Resize an image using image_min_side and image_max_side.
         """
@@ -202,9 +214,6 @@ class Generator(object):
         """
         # preprocess the image
         image = self.preprocess_image(image)
-
-        # randomly transform image and annotations
-        image, annotations = self.random_transform_group_entry(image, annotations)
 
         # resize image
         image, image_scale = self.resize_image(image)
@@ -217,13 +226,11 @@ class Generator(object):
     def preprocess_group(self, image_group, annotations_group):
         """ Preprocess each image and its annotations in its group.
         """
-        for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
-            # preprocess a single group entry
-            image, annotations = self.preprocess_group_entry(image, annotations)
+        assert(len(image_group) == len(annotations_group))
 
-            # copy processed data back to group
-            image_group[index]       = image
-            annotations_group[index] = annotations
+        for index in range(len(image_group)):
+            # preprocess a single group entry
+            image_group[index], annotations_group[index] = self.preprocess_group_entry(image_group[index], annotations_group[index])
 
         return image_group, annotations_group
 
@@ -289,6 +296,9 @@ class Generator(object):
 
         # check validity of annotations
         image_group, annotations_group = self.filter_annotations(image_group, annotations_group, group)
+
+        # randomly transform data
+        image_group, annotations_group = self.random_transform_group(image_group, annotations_group)
 
         # perform preprocessing steps
         image_group, annotations_group = self.preprocess_group(image_group, annotations_group)
