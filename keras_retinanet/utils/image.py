@@ -62,7 +62,7 @@ def preprocess_image(x, mode='caffe'):
 
     return x
 
-def postprocess_image(x):
+def cast_image_to_floatx(x):
     """ Convert an image to the actual keras floatx.
 
     Args
@@ -71,8 +71,6 @@ def postprocess_image(x):
     Returns
         The input in the keras floatx representation.
     """
-    # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
-    # except for converting RGB -> BGR since we assume BGR already
     x = x.astype(keras.backend.floatx())
 
     return x
