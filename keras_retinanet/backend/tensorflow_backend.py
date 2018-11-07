@@ -68,16 +68,10 @@ def resize_images(images, size, method='bilinear', align_corners=False):
     return tensorflow.image.resize_images(images, size, methods[method], align_corners)
 
 
-def non_max_suppression(boxes, scores, max_output_size, iou_threshold, **kwargs):
+def non_max_suppression(*args, **kwargs):
     """ See https://www.tensorflow.org/versions/master/api_docs/python/tf/image/non_max_suppression .
     """
-    return tensorflow.image.non_max_suppression(
-            boxes=tensorflow.cast(boxes, tensorflow.float32),
-            scores=tensorflow.cast(scores, tensorflow.float32),
-            max_output_size=max_output_size,
-            iou_threshold=iou_threshold,
-            **kwargs
-        )
+    return tensorflow.image.non_max_suppression(*args, **kwargs)
 
 
 def range(*args, **kwargs):

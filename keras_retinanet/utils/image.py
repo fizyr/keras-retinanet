@@ -49,7 +49,7 @@ def preprocess_image(x, mode='caffe'):
     # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
     # except for converting RGB -> BGR since we assume BGR already
 
-    #covert always to float32 to keep compatibility with opencv
+    # covert always to float32 to keep compatibility with opencv
     x = x.astype(np.float32)
 
     if mode == 'tf':
@@ -61,6 +61,7 @@ def preprocess_image(x, mode='caffe'):
         x[..., 2] -= 123.68
 
     return x
+
 
 def cast_image_to_floatx(x):
     """ Convert an image to the actual keras floatx.
@@ -74,6 +75,7 @@ def cast_image_to_floatx(x):
     x = x.astype(keras.backend.floatx())
 
     return x
+
 
 def adjust_transform_for_image(transform, image, relative_translation):
     """ Adjust a transformation for a specific image.
