@@ -72,7 +72,7 @@ def cast_image_to_floatx(x):
     Returns
         The input in the keras floatx representation.
     """
-    x = x.astype(keras.backend.floatx())
+    x = keras.backend.cast_to_floatx(x)
 
     return x
 
