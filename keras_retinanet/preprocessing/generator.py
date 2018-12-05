@@ -16,7 +16,6 @@ limitations under the License.
 
 import numpy as np
 import random
-import threading
 import warnings
 
 import keras
@@ -36,8 +35,7 @@ from ..utils.image import (
 )
 from ..utils.transform import transform_aabb
 
-
-class Generator(object):
+class Generator(keras.utils.Sequence):
     """ Abstract generator class.
     """
 
@@ -81,10 +79,15 @@ class Generator(object):
         self.preprocess_image       = preprocess_image
         self.config                 = config
 
-        self.group_index = 0
-        self.lock        = threading.Lock()
-
+        #Shuffle when initializing 
+        if self.shuffle_groups:
+            self.on_epoch_end()
+        
+        #Define groups
         self.group_images()
+        
+    def on_epoch_end(self):
+        random.shuffle(self.groups)
 
     def size(self):
         """ Size of the dataset.
@@ -311,16 +314,15 @@ class Generator(object):
 
         return inputs, targets
 
-    def __next__(self):
-        return self.next()
-
-    def next(self):
-        # advance the group index
-        with self.lock:
-            if self.group_index == 0 and self.shuffle_groups:
-                # shuffle groups at start of epoch
-                random.shuffle(self.groups)
-            group = self.groups[self.group_index]
-            self.group_index = (self.group_index + 1) % len(self.groups)
-
-        return self.compute_input_output(group)
+    #Keras Sequence methods
+    def __len__(self):
+        """Number of batches for generator"""
+        return len(self.groups)
+    
+    def __getitem__(self,index):
+        """
+        Keras sequence method for generating batches
+        """
+        group = self.groups[index]        
+        inputs,targets=self.compute_input_output(group)
+        return inputs,targets
