@@ -79,12 +79,12 @@ class Generator(keras.utils.Sequence):
         self.preprocess_image       = preprocess_image
         self.config                 = config
 
+        #Define groups
+        self.group_images()
+        
         #Shuffle when initializing 
         if self.shuffle_groups:
             self.on_epoch_end()
-        
-        #Define groups
-        self.group_images()
         
     def on_epoch_end(self):
         random.shuffle(self.groups)
