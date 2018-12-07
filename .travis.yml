@@ -5,7 +5,7 @@ python:
     - '2.7'
 install:
     - pip install 'cython'
-    - pip install 'git+https://github.com/broadinstitute/keras-resnet'
+    - pip install 'keras-resnet'
     - pip install 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI'
     - pip install 'h5py'
     - pip install 'keras'
