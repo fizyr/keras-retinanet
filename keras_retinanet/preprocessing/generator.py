@@ -221,6 +221,9 @@ class Generator(object):
         # apply resizing to annotations too
         annotations['bboxes'] *= image_scale
 
+        # convert to the wanted keras floatx
+        image = keras.backend.cast_to_floatx(image)
+
         return image, annotations
 
     def preprocess_group(self, image_group, annotations_group):

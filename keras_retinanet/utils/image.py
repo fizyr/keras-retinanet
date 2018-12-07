@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from __future__ import division
-import keras
 import numpy as np
 import cv2
 from PIL import Image
@@ -48,7 +47,10 @@ def preprocess_image(x, mode='caffe'):
     """
     # mostly identical to "https://github.com/keras-team/keras-applications/blob/master/keras_applications/imagenet_utils.py"
     # except for converting RGB -> BGR since we assume BGR already
-    x = x.astype(keras.backend.floatx())
+
+    # covert always to float32 to keep compatibility with opencv
+    x = x.astype(np.float32)
+
     if mode == 'tf':
         x /= 127.5
         x -= 1.
