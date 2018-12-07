@@ -33,7 +33,6 @@ from ..utils.image import (
     apply_transform,
     preprocess_image,
     resize_image,
-    cast_image_to_floatx,
 )
 from ..utils.transform import transform_aabb
 
@@ -223,7 +222,7 @@ class Generator(object):
         annotations['bboxes'] *= image_scale
 
         # convert to the wanted keras floatx
-        image = cast_image_to_floatx(image)
+        image = keras.backend.cast_to_floatx(image)
 
         return image, annotations
 

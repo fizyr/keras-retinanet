@@ -63,20 +63,6 @@ def preprocess_image(x, mode='caffe'):
     return x
 
 
-def cast_image_to_floatx(x):
-    """ Convert an image to the actual keras floatx.
-
-    Args
-        x: np.array of shape (None, None, 3) or (3, None, None).
-
-    Returns
-        The input in the keras floatx representation.
-    """
-    x = keras.backend.cast_to_floatx(x)
-
-    return x
-
-
 def adjust_transform_for_image(transform, image, relative_translation):
     """ Adjust a transformation for a specific image.
 
