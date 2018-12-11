@@ -35,6 +35,7 @@ from ..utils.image import (
 )
 from ..utils.transform import transform_aabb
 
+
 class Generator(keras.utils.Sequence):
     """ Abstract generator class.
     """
@@ -314,15 +315,18 @@ class Generator(keras.utils.Sequence):
 
         return inputs, targets
 
-    #Keras Sequence methods
     def __len__(self):
-        """Number of batches for generator"""
+        """
+        Number of batches for generator.
+        """
+        
         return len(self.groups)
     
     def __getitem__(self,index):
         """
-        Keras sequence method for generating batches
+        Keras sequence method for generating batches.
         """
         group = self.groups[index]        
         inputs,targets=self.compute_input_output(group)
+        
         return inputs,targets
