@@ -182,12 +182,12 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         checkpoint = keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
-                '{backbone}_{dataset_type}_{{epoch:02d}}.h5'.format(backbone=args.backbone, dataset_type=args.dataset_type)
+                '{backbone}_{dataset_type}.h5'.format(backbone=args.backbone, dataset_type=args.dataset_type)
             ),
             verbose=1,
-            # save_best_only=True,
-            # monitor="mAP",
-            # mode='max'
+            save_best_only=True,
+            monitor="mAP",
+            mode='max'
         )
         checkpoint = RedirectModel(checkpoint, model)
         callbacks.append(checkpoint)
