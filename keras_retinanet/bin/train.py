@@ -1,4 +1,4 @@
-—19#!/usr/bin/env python
+#!/usr/bin/env python
 
 """
 Copyright 2017-2018 Fizyr (https://fizyr.com)
