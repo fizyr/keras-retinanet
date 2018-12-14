@@ -412,7 +412,7 @@ def parse_args(args):
     # Fit generator arguments
     parser.add_argument('--workers', help='Number of multiprocessing workers. To disable multiprocessing, set workers to 0', default=1)
     parser.add_argument('--max-queue-size', help='Queue length for multiprocessing workers in fit generator.', default=10)
-    
+
     return check_args(parser.parse_args(args))
 
 
@@ -482,13 +482,13 @@ def main(args=None):
         validation_generator,
         args,
     )
-    
+
     # Use multiprocessing if workers > 0
     if args.workers > 0:
         use_multiprocessing = True
     else:
         use_multiprocessing = False
-        
+
     # start training
     training_model.fit_generator(
         generator=train_generator,

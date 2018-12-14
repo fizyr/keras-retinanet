@@ -82,11 +82,11 @@ class Generator(keras.utils.Sequence):
 
         # Define groups
         self.group_images()
-        
+
         # Shuffle when initializing
         if self.shuffle_groups:
             self.on_epoch_end()
-            
+
     def on_epoch_end(self):
         random.shuffle(self.groups)
 
@@ -319,14 +319,14 @@ class Generator(keras.utils.Sequence):
         """
         Number of batches for generator.
         """
-        
+
         return len(self.groups)
-    
-    def __getitem__(self,index):
+
+    def __getitem__(self, index):
         """
         Keras sequence method for generating batches.
         """
-        group = self.groups[index]        
-        inputs, targets=self.compute_input_output(group)
-        
+        group = self.groups[index]
+        inputs, targets = self.compute_input_output(group)
+
         return inputs, targets
