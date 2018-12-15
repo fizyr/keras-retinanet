@@ -262,7 +262,7 @@ class TestFilterAnnotations(object):
         simple_generator = SimpleGenerator(input_bboxes_group, input_labels_group, image=input_image, num_classes=6)
         # expect a UserWarning
         with pytest.warns(UserWarning):
-            _, [_, labels_batch] = simple_generator.next()
+            _, [_, labels_batch] = simple_generator[0]
 
         # test that only object with class 5 is present in labels_batch
         labels = np.unique(np.argmax(labels_batch == 5, axis=2))
