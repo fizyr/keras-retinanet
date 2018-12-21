@@ -223,10 +223,14 @@ def evaluate(
         # compute false positives and true positives
         false_positives = np.cumsum(false_positives)
         true_positives  = np.cumsum(true_positives)
+        print("TP: {}".format(true_positives[-1]))
+        print("FP: {}".format(false_positives[-1]))
 
         # compute recall and precision
         recall    = true_positives / num_annotations
         precision = true_positives / np.maximum(true_positives + false_positives, np.finfo(np.float64).eps)
+        print("Precision: {}".format(precision[-1]))
+        print("Recall: {}".format(recall[-1]))
 
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
