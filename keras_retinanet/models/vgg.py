@@ -84,9 +84,9 @@ def vgg_retinanet(num_classes, backbone='vgg16', inputs=None, modifier=None, **k
 
     # create the vgg backbone
     if backbone == 'vgg16':
-        vgg = keras.applications.VGG16(input_tensor=inputs, include_top=False)
+        vgg = keras.applications.VGG16(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'vgg19':
-        vgg = keras.applications.VGG19(input_tensor=inputs, include_top=False)
+        vgg = keras.applications.VGG19(input_tensor=inputs, include_top=False, weights=None)
     else:
         raise ValueError("Backbone '{}' not recognized.".format(backbone))
 
