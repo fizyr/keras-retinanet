@@ -88,7 +88,8 @@ class Generator(keras.utils.Sequence):
             self.on_epoch_end()
 
     def on_epoch_end(self):
-        random.shuffle(self.groups)
+        if self.shuffle_groups:
+            random.shuffle(self.groups)
 
     def size(self):
         """ Size of the dataset.
