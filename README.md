@@ -226,6 +226,7 @@ Example output images using `keras-retinanet` are shown below.
 </p>
 
 ### Projects using keras-retinanet
+* [Lunar Rockfall Detector Project](https://ieeexplore.ieee.org/document/8587120). The aim of this project is to map lunar rockfalls on a global scale using the available > 1.6 million satellite images.
 * [NATO Innovation Challenge](https://medium.com/data-from-the-trenches/object-detection-with-deep-learning-on-aerial-imagery-2465078db8a9). The winning team of the NATO Innovation Challenge used keras-retinanet to detect cars in aerial images ([COWC dataset](https://gdo152.llnl.gov/cowc/)).
 * [Microsoft Research for Horovod on Azure](https://blogs.technet.microsoft.com/machinelearning/2018/06/20/how-to-do-distributed-deep-learning-for-object-detection-using-horovod-on-azure/). A research project by Microsoft, using keras-retinanet to distribute training over multiple GPUs using Horovod on Azure.
 * [Anno-Mage](https://virajmavani.github.io/saiat/). A tool that helps you annotate images, using input from the keras-retinanet COCO model as suggestions.
