@@ -37,6 +37,7 @@ from .. import losses
 from .. import models
 from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
+from ..callbacks.sgdr import SGDRScheduler
 from ..models.retinanet import retinanet_bbox
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
@@ -192,15 +193,13 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         checkpoint = RedirectModel(checkpoint, model)
         callbacks.append(checkpoint)
 
-    callbacks.append(keras.callbacks.ReduceLROnPlateau(
-        monitor    = 'loss',
-        factor     = 0.1,
-        patience   = 2,
-        verbose    = 1,
-        mode       = 'auto',
-        min_delta  = 0.0001,
-        cooldown   = 0,
-        min_lr     = 0
+    callbacks.append(SGDRScheduler(
+        min_lr = 1e-10,
+        max_lr = 1e-1,
+        steps_per_epoch = args.steps,
+        lr_decay = 0.9,
+        cycle_length = 5,
+        mult_factor = 1.5
     ))
 
     return callbacks
