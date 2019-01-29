@@ -493,7 +493,7 @@ def main(args=None):
         use_multiprocessing = False
 
     # start training
-    training_model.fit_generator(
+    return training_model.fit_generator(
         generator=train_generator,
         steps_per_epoch=args.steps,
         epochs=args.epochs,
@@ -501,7 +501,8 @@ def main(args=None):
         callbacks=callbacks,
         workers=args.workers,
         use_multiprocessing=use_multiprocessing,
-        max_queue_size=args.max_queue_size
+        max_queue_size=args.max_queue_size,
+	validation_data=validation_generator
     )
 
 
