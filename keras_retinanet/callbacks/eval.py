@@ -60,7 +60,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions = evaluate(
+        average_precisions, recall, precision = evaluate(
             self.generator,
             self.model,
             iou_threshold=self.iou_threshold,
@@ -89,7 +89,17 @@ class Evaluate(keras.callbacks.Callback):
             summary_value = summary.value.add()
             summary_value.simple_value = self.mean_ap
             summary_value.tag = "mAP"
+
+            recall_value = summary.value.add()
+            recall_value.simple_value = recall
+            recall_value.tag = "Recall"
+
+            precision_value = summary.value.add()
+            precision_value.simple_value = precision
+            precision_value.tag = "Precision"
+
             self.tensorboard.writer.add_summary(summary, epoch)
+            
 
         logs['mAP'] = self.mean_ap
 
