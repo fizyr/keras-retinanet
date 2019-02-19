@@ -175,7 +175,7 @@ def run(generator, args, anchor_params):
         # load the data
         image       = generator.load_image(i)
         annotations = generator.load_annotations(i)
-        if annotation['labels'] :
+        if len(annotations['labels']) > 0 :
             # apply random transformations
             if args.random_transform:
                 image, annotations = generator.random_transform_group_entry(image, annotations)
