@@ -175,31 +175,31 @@ def run(generator, args, anchor_params):
         # load the data
         image       = generator.load_image(i)
         annotations = generator.load_annotations(i)
+        if len(annotations['labels']) > 0 :
+            # apply random transformations
+            if args.random_transform:
+                image, annotations = generator.random_transform_group_entry(image, annotations)
 
-        # apply random transformations
-        if args.random_transform:
-            image, annotations = generator.random_transform_group_entry(image, annotations)
+            # resize the image and annotations
+            if args.resize:
+                image, image_scale = generator.resize_image(image)
+                annotations['bboxes'] *= image_scale
 
-        # resize the image and annotations
-        if args.resize:
-            image, image_scale = generator.resize_image(image)
-            annotations['bboxes'] *= image_scale
+            anchors = anchors_for_shape(image.shape, anchor_params=anchor_params)
+            positive_indices, _, max_indices = compute_gt_annotations(anchors, annotations['bboxes'])
 
-        anchors = anchors_for_shape(image.shape, anchor_params=anchor_params)
-        positive_indices, _, max_indices = compute_gt_annotations(anchors, annotations['bboxes'])
+            # draw anchors on the image
+            if args.anchors:
+                draw_boxes(image, anchors[positive_indices], (255, 255, 0), thickness=1)
 
-        # draw anchors on the image
-        if args.anchors:
-            draw_boxes(image, anchors[positive_indices], (255, 255, 0), thickness=1)
+            # draw annotations on the image
+            if args.annotations:
+                # draw annotations in red
+                draw_annotations(image, annotations, color=(0, 0, 255), label_to_name=generator.label_to_name)
 
-        # draw annotations on the image
-        if args.annotations:
-            # draw annotations in red
-            draw_annotations(image, annotations, color=(0, 0, 255), label_to_name=generator.label_to_name)
-
-            # draw regressed anchors in green to override most red annotations
-            # result is that annotations without anchors are red, with anchors are green
-            draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
+                # draw regressed anchors in green to override most red annotations
+                # result is that annotations without anchors are red, with anchors are green
+                draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
         cv2.imshow('Image', image)
         if cv2.waitKey() == ord('q'):
