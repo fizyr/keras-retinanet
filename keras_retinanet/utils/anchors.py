@@ -184,14 +184,14 @@ def make_shapes_callback(model):
 
 
 def guess_shapes(image_shape, strides):
-    """Guess shapes based on pyramid levels.
+    """Guess shapes based on the strides.
 
     Args
          image_shape: The shape of the image.
-         pyramid_levels: A list of what pyramid levels are used.
+         pyramid_levels: A list of what strides are used.
 
     Returns
-        A list of image shapes at each pyramid level.
+        A list of image shapes at each pyramid level based on the stride size
     """
     image_shape = np.array(image_shape[:2])
     image_shapes = [(image_shape + stride - 1) // stride for stride in strides]
