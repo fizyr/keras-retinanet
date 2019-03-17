@@ -188,7 +188,7 @@ def guess_shapes(image_shape, strides):
 
     Args
          image_shape: The shape of the image.
-         pyramid_levels: A list of what strides are used.
+         strides: A list of what strides are used.
 
     Returns
         A list of image shapes at each pyramid level based on the stride size
