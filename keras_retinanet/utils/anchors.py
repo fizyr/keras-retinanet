@@ -183,7 +183,7 @@ def make_shapes_callback(model):
     return get_shapes
 
 
-def guess_shapes(image_shape, pyramid_levels):
+def guess_shapes(image_shape, strides):
     """Guess shapes based on pyramid levels.
 
     Args
@@ -194,7 +194,7 @@ def guess_shapes(image_shape, pyramid_levels):
         A list of image shapes at each pyramid level.
     """
     image_shape = np.array(image_shape[:2])
-    image_shapes = [(image_shape + 2 ** x - 1) // (2 ** x) for x in pyramid_levels]
+    image_shapes = [(image_shape + stride - 1) // stride for stride in strides]
     return image_shapes
 
 
@@ -224,7 +224,7 @@ def anchors_for_shape(
 
     if shapes_callback is None:
         shapes_callback = guess_shapes
-    image_shapes = shapes_callback(image_shape, pyramid_levels)
+    image_shapes = shapes_callback(image_shape, anchor_params.strides)
 
     # compute anchors over all pyramid levels
     all_anchors = np.zeros((0, 4))
