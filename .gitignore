@@ -4,3 +4,6 @@ __pycache__/
 *.so
 /.pytest_cache
 /.cache
+dataset/
+annotationCSV.csv
+build/temp.macosx-10.7-x86_64-3.6/keras_retinanet/utils/compute_overlap.o
