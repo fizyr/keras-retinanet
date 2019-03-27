@@ -43,39 +43,34 @@ model = models.load_model(model_path, backbone_name='resnet101')
 # load label to names mapping for visualization purposes
 labels_to_names = {0:'scratch'}
 
-# load image
-image = read_image_bgr('/Users/wolf_tungsten/Documents/划痕自动识别APP/testImage/P16.jpg')
-
-# copy to draw on
-draw = image.copy()
-draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)
-
-# preprocess image for network
-image = preprocess_image(image)
-image, scale = resize_image(image)
-
-# process image
-start = time.time()
-boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
-print("processing time: ", time.time() - start)
-
-# correct for image scale
-boxes /= scale
-
-# visualize detections
-for box, score, label in zip(boxes[0], scores[0], labels[0]):
-    # scores are sorted so we can break
-    print(box, score, label)
-    if score < 0.5:
-        break
-        
-    color = label_color(label)
+async def detect_image(image_path):
+    # load image
+    image = read_image_bgr(image_path)
+    # copy to draw on
+    draw = image.copy()
+    draw = cv2.cvtColor(draw, cv2.COLOR_BGR2RGB)
+    # preprocess image for network
+    image = preprocess_image(image)
+    image, scale = resize_image(image)
+    # process image
+    start = time.time()
+    boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+    print("processing time: ", time.time() - start)
+    # correct for image scale
+    boxes /= scale
+    # visualize detections
+    for box, score, label in zip(boxes[0], scores[0], labels[0]):
+        # scores are sorted so we can break
+        if score < 0.5:
+            break
+        color = label_color(label)
+        b = box.astype(int)
+        draw_box(draw, b, color=color)
+        caption = "{} {:.3f}".format(labels_to_names[label], score)
+        draw_caption(draw, b, caption)
+    marked_image = cv2.cvtColor(draw, cv2.COLOR_RGB2BGR)
+    marked_image_path = os.path.join(os.path.split(image_path)[0], 'marked-'+os.path.split(image_path)[1])
+    marked_image_name = os.path.split(marked_image_path)[1]
+    cv2.imwrite(marked_image_path, marked_image)
+    return marked_image_name
     
-    b = box.astype(int)
-    draw_box(draw, b, color=color)
-    
-    caption = "{} {:.3f}".format(labels_to_names[label], score)
-    draw_caption(draw, b, caption)
-
-draw = cv2.cvtColor(draw, cv2.COLOR_RGB2BGR)
-cv2.imwrite('output/test-16-27.png', draw)
