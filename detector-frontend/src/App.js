@@ -64,7 +64,7 @@ class App extends Component {
                 selectable={this.state.fileList < 1}
                 multiple={false}
                 length="1"
-                capture="true"
+                accept="image/*"
               />
               <WhiteSpace />
               <Button type="primary" onClick={this.onUpload} loading={this.state.loading} disabled={this.state.loading}>智能识别</Button>
