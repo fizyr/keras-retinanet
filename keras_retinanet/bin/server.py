@@ -11,11 +11,19 @@ import os
 SERVER_TMP = './server_tmp'
 
 class ScratchDetectorHandler(tornado.web.RequestHandler):
+    def set_default_header(self):
+    # 后面的*可以换成ip地址，意为允许访问的地址
+        self.set_header('Access-Control-Allow-Origin', '*') 
+        self.set_header('Access-Control-Allow-Headers', 'x-requested-with')
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE')
     #tornado.httputil.HTTPFile对象三个属性
     #1.filename文件名
     #2.body文件内部实际内容
     #3.type文件的类型
     def get(self, *args, **kwargs):
+        self.set_header('Access-Control-Allow-Origin', '*') 
+        self.set_header('Access-Control-Allow-Headers', 'x-requested-with')
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE')
         image_name = self.get_argument('image')
         ext = image_name.split('.')[-1]
         if ext == 'jpg':
@@ -28,6 +36,9 @@ class ScratchDetectorHandler(tornado.web.RequestHandler):
 
 
     async def post(self, *args, **kwargs):
+        self.set_header('Access-Control-Allow-Origin', '*') 
+        self.set_header('Access-Control-Allow-Headers', 'x-requested-with')
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE')
         #查看上传文件的完整格式，files以字典形式返回
         #print(self.request.files)
         #{'file1':
@@ -59,10 +70,16 @@ class ScratchDetectorHandler(tornado.web.RequestHandler):
         marked_path = await detect_image(file_path)
         self.write(marked_path)
 
+    def option(self):
+        self.set_header('Access-Control-Allow-Origin', '*') 
+        self.set_header('Access-Control-Allow-Headers', 'x-requested-with')
+        self.set_header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE')
+        
+
 if __name__ == '__main__':
     app=tornado.web.Application(
         [(r'/detect',ScratchDetectorHandler)])
     httpserver=tornado.httpserver.HTTPServer(app)
-    httpserver.bind(8123)
+    httpserver.bind(4000)
     httpserver.start()
     tornado.ioloop.IOLoop.instance().start()
