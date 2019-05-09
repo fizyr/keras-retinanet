@@ -24,7 +24,7 @@ from ..utils.anchors import AnchorParameters
 def read_config_file(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
-    
+
     assert os.path.isfile(config_path), "Could not find {}.".format(config_path)
 
     assert 'anchor_parameters' in config, \
