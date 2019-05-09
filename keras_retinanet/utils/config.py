@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import configparser
 import numpy as np
 import keras
@@ -23,6 +24,14 @@ from ..utils.anchors import AnchorParameters
 def read_config_file(config_path):
     config = configparser.ConfigParser()
     config.read(config_path)
+    
+    assert os.path.isfile(config_path), "Could not find {}.".format(config_path)
+
+    assert 'anchor_parameters' in config, \
+        "Malformed config file. Verify that it contains the anchor_parameters section."
+
+    assert {'sizes', 'strides', 'ratios', 'scales'} <= set(config['anchor_parameters']), \
+        "Malformed config file. Verify that it contains the following keys: sizes, strides, ratios and scales."
 
     return config
 
