@@ -253,6 +253,7 @@ def create_generators(args, preprocess_image):
         validation_generator = CocoGenerator(
             args.coco_path,
             'val2017',
+            shuffle_groups=False,
             **common_args
         )
     elif args.dataset_type == 'pascal':
@@ -266,6 +267,7 @@ def create_generators(args, preprocess_image):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
+            shuffle_groups=False,
             **common_args
         )
     elif args.dataset_type == 'csv':
@@ -280,6 +282,7 @@ def create_generators(args, preprocess_image):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
+                shuffle_groups=False,
                 **common_args
             )
         else:
@@ -303,6 +306,7 @@ def create_generators(args, preprocess_image):
             labels_filter=args.labels_filter,
             annotation_cache_dir=args.annotation_cache_dir,
             parent_label=args.parent_label,
+            shuffle_groups=False,
             **common_args
         )
     elif args.dataset_type == 'kitti':
@@ -316,6 +320,7 @@ def create_generators(args, preprocess_image):
         validation_generator = KittiGenerator(
             args.kitti_path,
             subset='val',
+            shuffle_groups=False,
             **common_args
         )
     else:
