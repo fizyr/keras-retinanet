@@ -205,13 +205,16 @@ def run(generator, args, anchor_params):
         while True:
             key = cv2.waitKey(1)
             cv2.imshow('Image', image)
-            if key == ord('n'): # press n for next image
+            # press n for next image
+            if key == ord('n'):
                 i += 1
                 break
-            if key == ord('b'): # press b for previous image
+            # press b for previous image    
+            if key == ord('b'):
                 i -= 1
                 break
-            if key == ord('q'): # press q to quit
+            # press q to quit    
+            if key == ord('q'): 
                 return False
     return True
 
