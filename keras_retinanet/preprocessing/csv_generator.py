@@ -25,6 +25,7 @@ from six import raise_from
 import csv
 import sys
 import os.path
+from collections import OrderedDict
 
 
 def _parse(value, function, fmt):
@@ -44,7 +45,7 @@ def _parse(value, function, fmt):
 def _read_classes(csv_reader):
     """ Parse the classes file given by csv_reader.
     """
-    result = {}
+    result = OrderedDict()
     for line, row in enumerate(csv_reader):
         line += 1
 
@@ -63,7 +64,7 @@ def _read_classes(csv_reader):
 def _read_annotations(csv_reader, classes):
     """ Read annotations from the csv_reader.
     """
-    result = {}
+    result = OrderedDict()
     for line, row in enumerate(csv_reader):
         line += 1
 
