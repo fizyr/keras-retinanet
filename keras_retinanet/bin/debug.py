@@ -209,12 +209,12 @@ def run(generator, args, anchor_params):
             if key == ord('n'):
                 i += 1
                 break
-            # press b for previous image    
+            # press b for previous image
             if key == ord('b'):
                 i -= 1
                 break
-            # press q to quit    
-            if key == ord('q'): 
+            # press q to quit
+            if key == ord('q'):
                 return False
     return True
 
