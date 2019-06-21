@@ -121,6 +121,7 @@ class CSVGenerator(Generator):
         csv_data_file,
         csv_class_file,
         base_dir=None,
+        cache=None,
         **kwargs
     ):
         """ Initialize a CSV data generator.
@@ -156,6 +157,7 @@ class CSVGenerator(Generator):
         except ValueError as e:
             raise_from(ValueError('invalid CSV annotations file: {}: {}'.format(csv_data_file, e)), None)
         self.image_names = list(self.image_data.keys())
+        self.cache = {} if cache is True else None
 
         super(CSVGenerator, self).__init__(**kwargs)
 
@@ -204,7 +206,12 @@ class CSVGenerator(Generator):
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
-        return read_image_bgr(self.image_path(image_index))
+        if self.cache is None:
+            return read_image_bgr(self.image_path(image_index))
+        else:
+            if image_index not in self.cache:
+                self.cache[image_index] = read_image_bgr(self.image_path(image_index))
+            return self.cache[image_index].copy()
 
     def load_annotations(self, image_index):
         """ Load annotations for an image_index.
