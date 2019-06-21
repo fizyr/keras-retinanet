@@ -52,7 +52,8 @@ class Generator(keras.utils.Sequence):
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
-        config=None
+        config=None,
+        brightness_range=(-0.3,0.2)
     ):
         """ Initialize Generator object.
 
@@ -67,6 +68,7 @@ class Generator(keras.utils.Sequence):
             compute_anchor_targets : Function handler for computing the targets of anchors for an image and its annotations.
             compute_shapes         : Function handler for computing the shapes of the pyramid for a given input.
             preprocess_image       : Function handler for preprocessing an image (scaling / normalizing) for passing through a network.
+            brightness_range       : Randomly change image intensity by a factor within the given range.
         """
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
@@ -79,6 +81,8 @@ class Generator(keras.utils.Sequence):
         self.compute_shapes         = compute_shapes
         self.preprocess_image       = preprocess_image
         self.config                 = config
+        self.brightness_range       = brightness_range
+        assert self.brightness_range is None or len(self.brightness_range) == 2
 
         # Define groups
         self.group_images()
@@ -209,6 +213,26 @@ class Generator(keras.utils.Sequence):
 
         return image_group, annotations_group
 
+    def random_brightness_group_entry(self, image, annotations):
+        """ Randomly change brightness image.
+        """
+        c = np.random.uniform(*self.brightness_range) * 255
+        return np.clip(image + c, 0, 255).astype(np.uint8), annotations
+
+    def random_brightness_group(self, image_group, annotations_group):
+        """ Randomly change brightness for each image.
+        """
+        if self.brightness_range is not None:
+
+            assert(len(image_group) == len(annotations_group))
+
+            for index in range(len(image_group)):
+                # transform a single group entry
+                image_group[index], annotations_group[index] = \
+                    self.random_brightness_group_entry(image_group[index],
+                                                       annotations_group[index])
+        return image_group, annotations_group
+
     def resize_image(self, image):
         """ Resize an image using image_min_side and image_max_side.
         """
@@ -304,6 +328,9 @@ class Generator(keras.utils.Sequence):
 
         # check validity of annotations
         image_group, annotations_group = self.filter_annotations(image_group, annotations_group, group)
+
+        # randomly change brightness
+        image_group, annotations_group = self.random_brightness_group(image_group, annotations_group)
 
         # randomly transform data
         image_group, annotations_group = self.random_transform_group(image_group, annotations_group)
