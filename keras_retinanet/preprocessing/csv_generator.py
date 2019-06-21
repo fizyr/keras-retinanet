@@ -130,6 +130,7 @@ class CSVGenerator(Generator):
             csv_data_file: Path to the CSV annotations file.
             csv_class_file: Path to the CSV classes file.
             base_dir: Directory w.r.t. where the files are to be searched (defaults to the directory containing the csv_data_file).
+            cache: If true images are cached after being loaded from the disk. Not suitable if images cannot fit into memory.
         """
         self.image_names = []
         self.image_data  = {}
