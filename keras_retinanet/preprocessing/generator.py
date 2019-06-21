@@ -53,7 +53,7 @@ class Generator(keras.utils.Sequence):
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
         config=None,
-        brightness_range=None#(-0.3,0.2)
+        brightness_range=None
     ):
         """ Initialize Generator object.
 
@@ -83,11 +83,8 @@ class Generator(keras.utils.Sequence):
         self.config                 = config
         self.brightness_range       = brightness_range
 
-        if brightness_range is not None:
-            if len(brightness_range) != 2 or \
-                brightness_range[0] >= brightness_range[1]:
-                raise ValueError('Invalid value for brightness_range. '
-                    'Expected a pair <lower,upper>.')
+        if brightness_range is not None and (if len(brightness_range) != 2 or brightness_range[0] >= brightness_range[1]):
+            raise ValueError('Invalid value for brightness_range. Expected a pair <lower,upper>.')
 
         # Define groups
         self.group_images()
