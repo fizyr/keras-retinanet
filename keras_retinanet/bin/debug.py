@@ -201,9 +201,18 @@ def run(generator, args, anchor_params):
                 # result is that annotations without anchors are red, with anchors are green
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
-        cv2.imshow('Image', image)
-        if cv2.waitKey() == ord('q'):
-            return False
+        key = cv2.waitKey(1)
+        while True:
+            key = cv2.waitKey(1)
+            cv2.imshow('Image', image)
+            if key == ord('n'): # press n for next image
+                i += 1
+                break
+            if key == ord('b'): # press b for previous image
+                i -= 1
+                break
+            if key == ord('q'): # press q to quit
+                return False
     return True
 
 
@@ -218,6 +227,9 @@ def main(args=None):
 
     # create the generator
     generator = create_generator(args)
+
+    # sorting list of images for cycling through dataset
+    generator.image_names = sorted(generator.image_names)
 
     # optionally load config parameters
     if args.config:
