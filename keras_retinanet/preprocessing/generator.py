@@ -83,7 +83,7 @@ class Generator(keras.utils.Sequence):
         self.config                 = config
         self.brightness_range       = brightness_range
 
-        if brightness_range is not None and (if len(brightness_range) != 2 or brightness_range[0] >= brightness_range[1]):
+        if brightness_range is not None and (len(brightness_range) != 2 or brightness_range[0] >= brightness_range[1]):
             raise ValueError('Invalid value for brightness_range. Expected a pair <lower,upper>.')
 
         # Define groups
