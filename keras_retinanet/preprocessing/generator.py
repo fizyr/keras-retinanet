@@ -53,7 +53,7 @@ class Generator(keras.utils.Sequence):
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
         config=None,
-        brightness_range=(-0.3,0.2)
+        brightness_range=None#(-0.3,0.2)
     ):
         """ Initialize Generator object.
 
@@ -68,7 +68,7 @@ class Generator(keras.utils.Sequence):
             compute_anchor_targets : Function handler for computing the targets of anchors for an image and its annotations.
             compute_shapes         : Function handler for computing the shapes of the pyramid for a given input.
             preprocess_image       : Function handler for preprocessing an image (scaling / normalizing) for passing through a network.
-            brightness_range       : Randomly change image intensity by a factor within the given range.
+            brightness_range       : Randomly change image intensity by a factor within the given range, e.g., (-0.2,0.2)
         """
         self.transform_generator    = transform_generator
         self.batch_size             = int(batch_size)
@@ -82,7 +82,12 @@ class Generator(keras.utils.Sequence):
         self.preprocess_image       = preprocess_image
         self.config                 = config
         self.brightness_range       = brightness_range
-        assert self.brightness_range is None or len(self.brightness_range) == 2
+
+        if brightness_range is not None:
+            if len(brightness_range) != 2 or \
+                brightness_range[0] >= brightness_range[1]:
+                raise ValueError('Invalid value for brightness_range. '
+                    'Expected a pair <lower,upper>.')
 
         # Define groups
         self.group_images()
@@ -227,7 +232,6 @@ class Generator(keras.utils.Sequence):
             assert(len(image_group) == len(annotations_group))
 
             for index in range(len(image_group)):
-                # transform a single group entry
                 image_group[index], annotations_group[index] = \
                     self.random_brightness_group_entry(image_group[index],
                                                        annotations_group[index])
