@@ -445,7 +445,6 @@ def main(args=None):
 
     # create the generators
     train_generator, validation_generator = create_generators(args, backbone.preprocess_image)
-    return
 
     # create the model
     if args.snapshot is not None:
