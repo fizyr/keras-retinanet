@@ -273,6 +273,7 @@ def create_generators(args, preprocess_image):
             args.annotations,
             args.classes,
             transform_generator=transform_generator,
+            cache=args.cache,
             **common_args
         )
 
@@ -280,6 +281,7 @@ def create_generators(args, preprocess_image):
             validation_generator = CSVGenerator(
                 args.val_annotations,
                 args.classes,
+                cache=args.cache,
                 **common_args
             )
         else:
@@ -385,6 +387,7 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
+    csv_parser.add_argument('--cache', help='Enable image caching (optional). Only use when the data can fit into memory.', action='store_true')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
@@ -442,6 +445,7 @@ def main(args=None):
 
     # create the generators
     train_generator, validation_generator = create_generators(args, backbone.preprocess_image)
+    return
 
     # create the model
     if args.snapshot is not None:
