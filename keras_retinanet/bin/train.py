@@ -414,7 +414,7 @@ def parse_args(args):
 
     # Fit generator arguments
     parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')
-    parser.add_argument('--workers',          help='Number of multiprocessing workers.', type=int, default=1)
+    parser.add_argument('--workers',          help='Number of generator workers.', type=int, default=1)
     parser.add_argument('--max-queue-size',   help='Queue length for multiprocessing workers in fit_generator.', type=int, default=10)
 
     return check_args(parser.parse_args(args))
