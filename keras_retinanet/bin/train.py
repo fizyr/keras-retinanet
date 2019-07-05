@@ -418,8 +418,9 @@ def parse_args(args):
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss', action='store_true')
 
     # Fit generator arguments
-    parser.add_argument('--workers', help='Number of multiprocessing workers. To disable multiprocessing, set workers to 0', type=int, default=1)
-    parser.add_argument('--max-queue-size', help='Queue length for multiprocessing workers in fit generator.', type=int, default=10)
+    parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')
+    parser.add_argument('--workers',          help='Number of generator workers.', type=int, default=1)
+    parser.add_argument('--max-queue-size',   help='Queue length for multiprocessing workers in fit_generator.', type=int, default=10)
 
     return check_args(parser.parse_args(args))
 
@@ -492,12 +493,6 @@ def main(args=None):
         args,
     )
 
-    # Use multiprocessing if workers > 0
-    if args.workers > 0:
-        use_multiprocessing = True
-    else:
-        use_multiprocessing = False
-
     if not args.compute_val_loss:
         validation_generator = None
 
@@ -509,7 +504,7 @@ def main(args=None):
         verbose=1,
         callbacks=callbacks,
         workers=args.workers,
-        use_multiprocessing=use_multiprocessing,
+        use_multiprocessing=args.multiprocessing,
         max_queue_size=args.max_queue_size,
         validation_data=validation_generator
     )
