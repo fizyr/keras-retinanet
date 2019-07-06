@@ -185,7 +185,7 @@ class Generator(keras.utils.Sequence):
     def random_visual_effect_group_entry(self, image, annotations):
         """ Randomly transforms image and annotation.
         """
-        # randomly transform image 
+        # randomly transform image
         visual_effect = next(self.visual_effect_generator)
         image = apply_visual_effect(visual_effect, image)
         return image, annotations
@@ -195,7 +195,7 @@ class Generator(keras.utils.Sequence):
         """
         assert(len(image_group) == len(annotations_group))
 
-        if self.visual_effect is None:
+        if self.visual_effect_generator is None:
             # do nothing
             return image_group, annotations_group
 

@@ -196,6 +196,7 @@ def resize_image(img, min_side=800, max_side=1333):
 
     return img, scale
 
+
 def _uniform(val_range):
     """
     Uniformly sample from the given range
@@ -203,7 +204,8 @@ def _uniform(val_range):
     Args
         val_range: A pair of lower and upper bound
     """
-    return np.random.uniform(val_range[0],val_range[1])
+    return np.random.uniform(val_range[0], val_range[1])
+
 
 def _check_range(val_range, min_val=None, max_val=None):
     """
@@ -221,6 +223,7 @@ def _check_range(val_range, min_val=None, max_val=None):
     if max_val is not None and val_range[1] > max_val:
         raise ValueError('invalid interval upper bound')
 
+
 def _clip(image):
     """
     Clip and convert an image to np.uint8
@@ -229,6 +232,7 @@ def _clip(image):
         image: Image to clip
     """
     return np.clip(image, 0, 255).astype(np.uint8)
+
 
 class VisualEffect:
     """ Struct holding parameters for applying a visual effect.
@@ -252,11 +256,12 @@ class VisualEffect:
         self.hue_delta = hue_delta
         self.saturation_factor = saturation_factor
 
+
 def random_visual_effect_generator(
-    contrast_range=(0.5,2.),
-    brightness_range=(-.25,.25),
-    hue_range=(-0.1,0.1),
-    saturation_range=(0.8,1.2),
+    contrast_range=(.9, 1.1),
+    brightness_range=(-.15, .15),
+    hue_range=(-0.1, 0.1),
+    saturation_range=(0.9, 1.1),
 ):
     """
     Generate visual effect parameters sampled from the given intervals.
@@ -272,6 +277,7 @@ def random_visual_effect_generator(
     _check_range(hue_range, -1, 1)
     _check_range(saturation_range, 0)
 
+
     def _generate():
         while True:
             yield VisualEffect(
@@ -280,7 +286,9 @@ def random_visual_effect_generator(
                 hue_delta=_uniform(hue_range),
                 saturation_factor=_uniform(saturation_range),
             )
+
     return _generate()
+
 
 def adjust_contrast(image, factor):
     """
@@ -293,15 +301,17 @@ def adjust_contrast(image, factor):
     mean = image.mean(axis=0).mean(axis=0)
     return _clip((image - mean) * factor + mean)
 
+
 def adjust_brightness(image, delta):
     """
     Adjust brightness of an image
 
     Args
         image: image to adjust
-        delta: brightness offset in range [-1,1]
+        delta: brightness offset in range [-1, 1]
     """
     return _clip(image + delta * 255)
+
 
 def adjust_hue(image, delta):
     """
@@ -309,10 +319,11 @@ def adjust_hue(image, delta):
 
     Args
         image: image to adjust
-        delta: hue offset in range [-1,1]
+        delta: hue offset in range [-1, 1]
     """
-    image[...,0] = np.mod(image[...,0] + delta * 180, 180)
+    image[..., 0] = np.mod(image[..., 0] + delta * 180, 180)
     return image
+
 
 def adjust_saturation(image, factor):
     """
@@ -322,8 +333,9 @@ def adjust_saturation(image, factor):
         image: image to adjust
         factor: saturation factor
     """
-    image[...,1] = np.clip(image[...,1] * factor, 0 , 255)
+    image[..., 1] = np.clip(image[..., 1] * factor, 0 , 255)
     return image
+
 
 def apply_visual_effect(effect, image):
     """
