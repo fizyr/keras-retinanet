@@ -195,3 +195,159 @@ def resize_image(img, min_side=800, max_side=1333):
     img = cv2.resize(img, None, fx=scale, fy=scale)
 
     return img, scale
+
+def _uniform(val_range):
+    """
+    Uniformly sample from the given range
+
+    Args
+        val_range: A pair of lower and upper bound
+    """
+    return np.random.uniform(val_range[0],val_range[1])
+
+def _check_range(val_range, min_val=None, max_val=None):
+    """
+    Check whether the range is a valid range
+
+    Args
+        val_range: A pair of lower and upper bound
+        min_val: minimal lower bound
+        max_val: maximum upper bound
+    """
+    if val_range[0] > val_range[1]:
+        raise ValueError('interval lower bound > upper bound')
+    if min_val is not None and val_range[0] < min_val:
+        raise ValueError('invalid interval lower bound')
+    if max_val is not None and val_range[1] > max_val:
+        raise ValueError('invalid interval upper bound')
+
+def _clip(image):
+    """
+    Clip and convert an image to np.uint8
+
+    Args
+        image: Image to clip
+    """
+    return np.clip(image, 0, 255).astype(np.uint8)
+
+class VisualEffect:
+    """ Struct holding parameters for applying a visual effect.
+
+    Args
+        contrast_factor:   contrast factor between 0 and 3
+        brightness_delta:  brightness offset between -1 and 1
+        hue_delta:         hue offset -1 and 1
+        saturation_factor: nonnegative saturation factor
+    """
+
+    def __init__(
+        self,
+        contrast_factor,
+        brightness_delta,
+        hue_delta,
+        saturation_factor,
+    ):
+        self.contrast_factor = contrast_factor
+        self.brightness_delta = brightness_delta
+        self.hue_delta = hue_delta
+        self.saturation_factor = saturation_factor
+
+def random_visual_effect_generator(
+    contrast_range=(0.5,2.),
+    brightness_range=(-.25,.25),
+    hue_range=(-0.1,0.1),
+    saturation_range=(0.8,1.2),
+):
+    """
+    Generate visual effect parameters sampled from the given intervals.
+
+    Args
+        contrast_factor:   interval between 0 and 3
+        brightness_delta:  interval between -1 and 1
+        hue_delta:         interval between -1 and 1
+        saturation_factor: interval with the lower bound 0
+    """
+    _check_range(contrast_range, 0)
+    _check_range(brightness_range, -1, 1)
+    _check_range(hue_range, -1, 1)
+    _check_range(saturation_range, 0)
+
+    def _generate():
+        while True:
+            yield VisualEffect(
+                contrast_factor=_uniform(contrast_range),
+                brightness_delta=_uniform(brightness_range),
+                hue_delta=_uniform(hue_range),
+                saturation_factor=_uniform(saturation_range),
+            )
+    return _generate()
+
+def adjust_contrast(image, factor):
+    """
+    Adjust contrast of an image
+
+    Args
+        image: image to adjust
+        factor: contrast factor
+    """
+    mean = image.mean(axis=0).mean(axis=0)
+    return _clip((image - mean) * factor + mean)
+
+def adjust_brightness(image, delta):
+    """
+    Adjust brightness of an image
+
+    Args
+        image: image to adjust
+        delta: brightness offset in range [-1,1]
+    """
+    return _clip(image + delta * 255)
+
+def adjust_hue(image, delta):
+    """
+    Adjust hue of an image
+
+    Args
+        image: image to adjust
+        delta: hue offset in range [-1,1]
+    """
+    image[...,0] = np.mod(image[...,0] + delta * 180, 180)
+    return image
+
+def adjust_saturation(image, factor):
+    """
+    Adjust saturation of an image
+
+    Args
+        image: image to adjust
+        factor: saturation factor
+    """
+    image[...,1] = np.clip(image[...,1] * factor, 0 , 255)
+    return image
+
+def apply_visual_effect(effect, image):
+    """
+    Apply a visual effect on the image
+
+    Args
+        effect: visual effect parameters
+        image: Image to adjust
+    """
+
+    if effect.contrast_factor:
+        image = adjust_contrast(image, effect.contrast_factor)
+    if effect.brightness_delta:
+        image = adjust_brightness(image, effect.brightness_delta)
+
+    if effect.hue_delta or effect.saturation_factor:
+
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        if effect.hue_delta:
+            image = adjust_hue(image, effect.hue_delta)
+        if effect.saturation_factor:
+            image = adjust_saturation(image, effect.saturation_factor)
+
+        image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+
+    return image
