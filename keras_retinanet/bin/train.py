@@ -47,7 +47,7 @@ from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
-
+from ..utils.image import random_visual_effect_generator
 
 def makedirs(path):
     # Intended behavior: try to create the directory,
@@ -236,8 +236,15 @@ def create_generators(args, preprocess_image):
             flip_x_chance=0.5,
             flip_y_chance=0.5,
         )
+        visual_effect_generator = random_visual_effect_generator(
+            contrast_range=(0.9, 1.1),
+            brightness_range=(-.1, .1),
+            hue_range=(-0.1, 0.1),
+            saturation_range=(0.9, 1.1)
+        )
     else:
         transform_generator = random_transform_generator(flip_x_chance=0.5)
+        visual_effect_generator = None
 
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
@@ -247,6 +254,7 @@ def create_generators(args, preprocess_image):
             args.coco_path,
             'train2017',
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             **common_args
         )
 
@@ -261,6 +269,7 @@ def create_generators(args, preprocess_image):
             args.pascal_path,
             'trainval',
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             **common_args
         )
 
@@ -275,6 +284,7 @@ def create_generators(args, preprocess_image):
             args.annotations,
             args.classes,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             **common_args
         )
 
@@ -296,6 +306,7 @@ def create_generators(args, preprocess_image):
             annotation_cache_dir=args.annotation_cache_dir,
             parent_label=args.parent_label,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             **common_args
         )
 
@@ -314,6 +325,7 @@ def create_generators(args, preprocess_image):
             args.kitti_path,
             subset='train',
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             **common_args
         )
 
