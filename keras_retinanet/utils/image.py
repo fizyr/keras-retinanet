@@ -277,7 +277,6 @@ def random_visual_effect_generator(
     _check_range(hue_range, -1, 1)
     _check_range(saturation_range, 0)
 
-
     def _generate():
         while True:
             yield VisualEffect(
