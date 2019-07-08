@@ -202,20 +202,17 @@ def run(generator, args, anchor_params):
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
         key = cv2.waitKey(1)
-        while True:
-            key = cv2.waitKey(1)
-            cv2.imshow('Image', image)
-            # press n for next image
-            if key == ord('n'):
-                i += 1
-                break
-            # press b for previous image
-            if key == ord('b'):
-                i -= 1
-                break
-            # press q to quit
-            if key == ord('q'):
-                return False
+        cv2.imshow('Image', image)
+        # note that the right and left keybindings are probably different for windows
+        # press right for next image
+        if key == 83:
+            i += 1
+        # press left for previous image
+        if key == 81:
+            i -= 1
+        # press q to quit
+        if key == ord('q'):
+            return False
     return True
 
 
@@ -230,9 +227,6 @@ def main(args=None):
 
     # create the generator
     generator = create_generator(args)
-
-    # sorting list of images for cycling through dataset
-    generator.image_names = sorted(generator.image_names)
 
     # optionally load config parameters
     if args.config:
