@@ -201,8 +201,8 @@ def run(generator, args, anchor_params):
                 # result is that annotations without anchors are red, with anchors are green
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
-        key = cv2.waitKey(1)
         cv2.imshow('Image', image)
+        key = cv2.waitKey()
         # note that the right and left keybindings are probably different for windows
         # press right for next image
         if key == 83:
