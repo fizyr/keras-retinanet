@@ -202,7 +202,16 @@ def run(generator, args, anchor_params):
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
         cv2.imshow('Image', image)
-        if cv2.waitKey() == ord('q'):
+        key = cv2.waitKey()
+        # note that the right and left keybindings are probably different for windows
+        # press right for next image
+        if key == 83:
+            i += 1
+        # press left for previous image
+        if key == 81:
+            i -= 1
+        # press q to quit
+        if key == ord('q'):
             return False
     return True
 
