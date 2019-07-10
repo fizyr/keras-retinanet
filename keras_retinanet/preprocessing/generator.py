@@ -32,7 +32,6 @@ from ..utils.image import (
     apply_transform,
     preprocess_image,
     resize_image,
-    apply_visual_effect,
 )
 from ..utils.transform import transform_aabb
 
@@ -185,9 +184,9 @@ class Generator(keras.utils.Sequence):
     def random_visual_effect_group_entry(self, image, annotations):
         """ Randomly transforms image and annotation.
         """
-        # randomly transform image
         visual_effect = next(self.visual_effect_generator)
-        image = apply_visual_effect(visual_effect, image)
+        # apply visual effect
+        image = visual_effect(image)
         return image, annotations
 
     def random_visual_effect_group(self, image_group, annotations_group):

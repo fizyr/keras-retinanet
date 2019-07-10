@@ -240,8 +240,8 @@ def create_generators(args, preprocess_image):
         visual_effect_generator = random_visual_effect_generator(
             contrast_range=(0.9, 1.1),
             brightness_range=(-.1, .1),
-            hue_range=(-0.1, 0.1),
-            saturation_range=(0.9, 1.1)
+            hue_range=(-0.05, 0.05),
+            saturation_range=(0.95, 1.05)
         )
     else:
         transform_generator = random_transform_generator(flip_x_chance=0.5)

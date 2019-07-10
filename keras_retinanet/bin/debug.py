@@ -63,8 +63,8 @@ def create_generator(args):
     visual_effect_generator = random_visual_effect_generator(
         contrast_range=(0.9, 1.1),
         brightness_range=(-.1, .1),
-        hue_range=(-0.1, 0.1),
-        saturation_range=(0.9, 1.1)
+        hue_range=(-0.05, 0.05),
+        saturation_range=(0.95, 1.05)
     )
 
     if args.dataset_type == 'coco':
