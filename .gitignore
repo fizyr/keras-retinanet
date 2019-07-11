@@ -4,3 +4,4 @@ __pycache__/
 *.so
 /.pytest_cache
 /.cache
+/data
