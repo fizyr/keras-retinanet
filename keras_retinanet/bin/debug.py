@@ -201,11 +201,11 @@ def run(generator, args, anchor_params):
                 # draw regressed anchors in green to override most red annotations
                 # result is that annotations without anchors are red, with anchors are green
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
-	
-            # display name on the image	
-            if args.display_name:	
+
+            # display name on the image
+            if args.display_name:
                 draw_caption(image, [0, image.shape[0]], os.path.basename(generator.image_path(i)))
-                
+
         cv2.imshow('Image', image)
         key = cv2.waitKey()
 
@@ -217,7 +217,9 @@ def run(generator, args, anchor_params):
             i = (i + 1) % generator.size()
         if key == 81:
             i -= 1
-            if i < 0: i = generator.size() - 1
+            if i < 0:
+                i = generator.size() - 1
+        
         # press q or Esc to quit
         if (key == ord('q')) or (key == 27):
             return False
