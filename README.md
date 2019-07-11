@@ -241,6 +241,7 @@ Example output images using `keras-retinanet` are shown below.
 * [comet.ml](https://towardsdatascience.com/how-i-monitor-and-track-my-machine-learning-experiments-from-anywhere-described-in-13-tweets-ec3d0870af99). Using keras-retinanet in combination with [comet.ml](https://comet.ml) to interactively inspect and compare experiments.
 * [Weights and Biases](https://app.wandb.ai/syllogismos/keras-retinanet/reports?view=carey%2FObject%20Detection%20with%20RetinaNet). Trained keras-retinanet on coco dataset from beginning on resnet50 and resnet101 backends.
 * [Google Open Images Challenge 2018 15th place solution](https://github.com/ZFTurbo/Keras-RetinaNet-for-Open-Images-Challenge-2018). Pretrained weights for keras-retinanet based on ResNet50, ResNet101 and ResNet152 trained on open images dataset. 
+* [poke.AI](https://github.com/Raghav-B/poke.AI). An experimental AI that attempts to master the 3rd Generation Pokemon games. Using keras-retinanet for in-game mapping and localization.
 
 If you have a project based on `keras-retinanet` and would like to have it published here, shoot me a message on Slack.
 
