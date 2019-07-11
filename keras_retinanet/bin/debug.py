@@ -17,7 +17,6 @@ limitations under the License.
 """
 
 import argparse
-import ntpath
 import os
 import sys
 import cv2
@@ -152,10 +151,9 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
-    parser.add_argument('-l', '--loop', help='Loop forever, even if the dataset is exhausted.', action='store_true')
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
-    parser.add_argument('--display-name', help='Display image name on the bottom left corner.', dest='name', action='store_true')
+    parser.add_argument('--display-name', help='Display image name on the bottom left corner.', action='store_true')
     parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
@@ -173,7 +171,7 @@ def run(generator, args, anchor_params):
         args: parseargs args object.
     """
     # display images, one at a time
-    i=0
+    i = 0
     while True:
         # load the data
         image       = generator.load_image(i)
@@ -205,26 +203,23 @@ def run(generator, args, anchor_params):
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 	
             # display name on the image	
-            if args.name:	
-                draw_caption(image, [0, image.shape[0]], ntpath.basename(generator.image_path(i)))
+            if args.display_name:	
+                draw_caption(image, [0, image.shape[0]], os.path.basename(generator.image_path(i)))
                 
         cv2.imshow('Image', image)
         key = cv2.waitKey()
 
-        ## note that the right and left keybindings are probably different for windows
-        ## press right for next image and left for previous (linux)
-        ## macOS: previous = 'n' | next = 'm'
+        # note that the right and left keybindings are probably different for windows
+        # press right for next image and left for previous (linux)
+        # if you run macOS, it might be convenient using "n" and "m" key (key == 110 and key == 109)
 
         if key == 109:
-            i += 1
-            if i == (generator.size() - 1): # Terminate after last image.
-                return False
+            i = (i + 1) % generator.size()
         if key == 110:
             i -= 1
-            if i < 0:                # Don't let i be less than "0".
-                i = 0
-        ## press q to quit
-        if key == ord('q'):
+            if i < 0: i = generator.size() - 1
+        # press q or Esc to quit
+        if (key == ord('q')) or (key == 27):
             return False
 
     return True
@@ -254,11 +249,7 @@ def main(args=None):
     # create the display window
     cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
 
-    if args.loop:
-        while run(generator, args, anchor_params=anchor_params):
-            pass
-    else:
-        run(generator, args, anchor_params=anchor_params)
+    run(generator, args, anchor_params=anchor_params)
 
 
 if __name__ == '__main__':
