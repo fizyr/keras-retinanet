@@ -186,7 +186,6 @@ def run(generator, args, anchor_params):
             # resize the image and annotations
             if args.resize:
                 image, image_scale = generator.resize_image(image)
-                print(image_scale)
                 annotations['bboxes'] *= image_scale
 
             anchors = anchors_for_shape(image.shape, anchor_params=anchor_params)
