@@ -219,7 +219,7 @@ def run(generator, args, anchor_params):
             i -= 1
             if i < 0:
                 i = generator.size() - 1
-        
+
         # press q or Esc to quit
         if (key == ord('q')) or (key == 27):
             return False
