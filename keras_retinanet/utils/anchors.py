@@ -234,24 +234,29 @@ def anchors_for_shape(
             ratios=anchor_params.ratios,
             scales=anchor_params.scales
         )
-        shifted_anchors = shift(image_shapes[idx], anchor_params.strides[idx], anchors)
+        shifted_anchors = shift(image_shape, image_shapes[idx], anchor_params.strides[idx], anchors)
         all_anchors     = np.append(all_anchors, shifted_anchors, axis=0)
 
     return all_anchors
 
 
-def shift(shape, stride, anchors):
-    """ Produce shifted anchors based on shape of the map and stride size.
+def shift(image_shape, features_shape, stride, anchors):
+    """ Produce shifted anchors based on shape of the image, shape of the feature map and stride.
 
     Args
-        shape  : Shape to shift the anchors over.
-        stride : Stride to shift the anchors with over the shape.
-        anchors: The anchors to apply at each location.
+        image_shape    : Shape of the input image.
+        features_shape : Shape of the feature map.
+        stride         : Stride to shift the anchors with over the image.
+        anchors        : The anchors to apply at each location.
     """
+    # compute the offset of the anchors based on the image shape and the feature map shape
+    # see https://github.com/fizyr/keras-retinanet/issues/1073 for more information
+    offset_x = (image_shape[1] - (features_shape[1] - 1) * stride) / 2.0
+    offset_y = (image_shape[0] - (features_shape[0] - 1) * stride) / 2.0
 
     # create a grid starting from half stride from the top left corner
-    shift_x = (np.arange(0, shape[1]) + 0.5) * stride
-    shift_y = (np.arange(0, shape[0]) + 0.5) * stride
+    shift_x = np.arange(0, features_shape[1]) * stride + offset_x
+    shift_y = np.arange(0, features_shape[0]) * stride + offset_y
 
     shift_x, shift_y = np.meshgrid(shift_x, shift_y)
 

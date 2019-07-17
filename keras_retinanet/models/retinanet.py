@@ -207,11 +207,12 @@ def __build_pyramid(models, features):
     return [__build_model_pyramid(n, m, features) for n, m in models]
 
 
-def __build_anchors(anchor_parameters, features):
+def __build_anchors(anchor_parameters, image, features):
     """ Builds anchors for the shape of the features from FPN.
 
     Args
         anchor_parameters : Parameteres that determine how anchors are generated.
+        image             : The image input tensor.
         features          : The FPN features.
 
     Returns
@@ -229,7 +230,7 @@ def __build_anchors(anchor_parameters, features):
             ratios=anchor_parameters.ratios,
             scales=anchor_parameters.scales,
             name='anchors_{}'.format(i)
-        )(f) for i, f in enumerate(features)
+        )([image, f]) for i, f in enumerate(features)
     ]
 
     return keras.layers.Concatenate(axis=1, name='anchors')(anchors)
@@ -328,7 +329,7 @@ def retinanet_bbox(
 
     # compute the anchors
     features = [model.get_layer(p_name).output for p_name in ['P3', 'P4', 'P5', 'P6', 'P7']]
-    anchors  = __build_anchors(anchor_params, features)
+    anchors  = __build_anchors(anchor_params, model.inputs[0], features)
 
     # we expect the anchors, regression and classification values as first output
     regression     = model.outputs[0]

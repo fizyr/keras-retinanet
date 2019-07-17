@@ -30,12 +30,16 @@ class TestAnchors(object):
             scales=np.array([1], keras.backend.floatx()),
         )
 
+        # create fake image input (only shape is used anyway)
+        image = np.zeros((1, 16, 16, 3), dtype=keras.backend.floatx())
+        image = keras.backend.variable(image)
+
         # create fake features input (only shape is used anyway)
         features = np.zeros((1, 2, 2, 1024), dtype=keras.backend.floatx())
         features = keras.backend.variable(features)
 
         # call the Anchors layer
-        anchors = anchors_layer.call(features)
+        anchors = anchors_layer.call([image, features])
         anchors = keras.backend.eval(anchors)
 
         # expected anchor values
@@ -59,12 +63,16 @@ class TestAnchors(object):
             scales=np.array([1], dtype=keras.backend.floatx()),
         )
 
+        # create fake image input (only shape is used anyway)
+        image = np.zeros((2, 16, 16, 3), dtype=keras.backend.floatx())
+        image = keras.backend.variable(image)
+
         # create fake features input with batch_size=2
         features = np.zeros((2, 2, 2, 1024), dtype=keras.backend.floatx())
         features = keras.backend.variable(features)
 
         # call the Anchors layer
-        anchors = anchors_layer.call(features)
+        anchors = anchors_layer.call([image, features])
         anchors = keras.backend.eval(anchors)
 
         # expected anchor values

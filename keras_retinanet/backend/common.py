@@ -52,16 +52,22 @@ def bbox_transform_inv(boxes, deltas, mean=None, std=None):
     return pred_boxes
 
 
-def shift(shape, stride, anchors):
+def shift(image_shape, features_shape, stride, anchors):
     """ Produce shifted anchors based on shape of the map and stride size.
 
     Args
-        shape  : Shape to shift the anchors over.
-        stride : Stride to shift the anchors with over the shape.
-        anchors: The anchors to apply at each location.
+        image_shape    : Shape of the input image.
+        features_shape : Shape of the feature map.
+        stride         : Stride to shift the anchors with over the image.
+        anchors        : The anchors to apply at each location.
     """
-    shift_x = (keras.backend.arange(0, shape[1], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
-    shift_y = (keras.backend.arange(0, shape[0], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
+    # compute the offset of the anchors based on the image shape and the feature map shape
+    # see https://github.com/fizyr/keras-retinanet/issues/1073 for more information
+    offset_x = keras.backend.cast((image_shape[1] - (features_shape[1] - 1) * stride), keras.backend.floatx()) / 2.0
+    offset_y = keras.backend.cast((image_shape[0] - (features_shape[0] - 1) * stride), keras.backend.floatx()) / 2.0
+
+    shift_x = keras.backend.arange(0, features_shape[1], dtype=keras.backend.floatx()) * stride + offset_x
+    shift_y = keras.backend.arange(0, features_shape[0], dtype=keras.backend.floatx()) * stride + offset_y
 
     shift_x, shift_y = meshgrid(shift_x, shift_y)
     shift_x = keras.backend.reshape(shift_x, [-1])

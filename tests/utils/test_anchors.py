@@ -167,3 +167,29 @@ def test_anchors_for_shape_values():
         strides[0] * 3 / 2 + (sizes[0] * scales[1] / np.sqrt(ratios[1])) / 2,
         strides[0] * 3 / 2 + (sizes[0] * scales[1] * np.sqrt(ratios[1])) / 2,
     ], decimal=6)
+
+
+def test_anchors_for_shape_odd_input():
+    pyramid_levels = [3]
+    image_shape    = (20, 20)  # this shape causes rounding errors when downsampling using convolutions
+    sizes          = [32]
+    strides        = [8]
+    ratios         = np.array([1], keras.backend.floatx())
+    scales         = np.array([1], keras.backend.floatx())
+    anchor_params  = AnchorParameters(sizes, strides, ratios, scales)
+
+    anchors = anchors_for_shape(image_shape, pyramid_levels = pyramid_levels, anchor_params = anchor_params)
+
+    expected_anchors = np.array([
+        [-14, -14, 18, 18],
+        [-6 , -14, 26, 18],
+        [2  , -14, 34, 18],
+        [-14, -6 , 18, 26],
+        [-6 , -6 , 26, 26],
+        [2  , -6 , 34, 26],
+        [-14,  2 , 18, 34],
+        [-6 ,  2 , 26, 34],
+        [2  ,  2 , 34, 34],
+    ])
+
+    np.testing.assert_equal(anchors, expected_anchors)

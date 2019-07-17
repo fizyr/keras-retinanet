@@ -58,28 +58,29 @@ class Anchors(keras.layers.Layer):
         super(Anchors, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
-        features = inputs
-        features_shape = keras.backend.shape(features)
+        image, features = inputs
+        features_shape  = keras.backend.shape(features)
+        image_shape     = keras.backend.shape(image)
 
         # generate proposals from bbox deltas and shifted anchors
         if keras.backend.image_data_format() == 'channels_first':
-            anchors = backend.shift(features_shape[2:4], self.stride, self.anchors)
+            anchors = backend.shift(image_shape[2:4], features_shape[2:4], self.stride, self.anchors)
         else:
-            anchors = backend.shift(features_shape[1:3], self.stride, self.anchors)
+            anchors = backend.shift(image_shape[1:3], features_shape[1:3], self.stride, self.anchors)
         anchors = keras.backend.tile(keras.backend.expand_dims(anchors, axis=0), (features_shape[0], 1, 1))
 
         return anchors
 
     def compute_output_shape(self, input_shape):
-        if None not in input_shape[1:]:
+        if None not in input_shape[1][1:]:
             if keras.backend.image_data_format() == 'channels_first':
-                total = np.prod(input_shape[2:4]) * self.num_anchors
+                total = np.prod(input_shape[1][2:4]) * self.num_anchors
             else:
-                total = np.prod(input_shape[1:3]) * self.num_anchors
+                total = np.prod(input_shape[1][1:3]) * self.num_anchors
 
-            return (input_shape[0], total, 4)
+            return (input_shape[1][0], total, 4)
         else:
-            return (input_shape[0], None, 4)
+            return (input_shape[1][0], None, 4)
 
     def get_config(self):
         config = super(Anchors, self).get_config()
