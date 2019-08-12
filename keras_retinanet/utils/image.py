@@ -18,6 +18,7 @@ from __future__ import division
 import numpy as np
 import cv2
 from PIL import Image
+from pydicom import dcmread
 
 from .transform import change_transform_origin
 
@@ -29,8 +30,13 @@ def read_image_bgr(path):
         path: Path to the image.
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
-    image = np.asarray(Image.open(path).convert('RGB'))
-    return image[:, :, ::-1].copy()
+    if path.split('.')[-1] == "dcm":
+        image = dcmread(path).pixel_array
+        if len(image.shape) == 2:
+            image = skimage.color.gray2rgb(image)
+    else:
+        image = np.asarray(Image.open(path).convert('RGB'))[:,:,::-1]
+    return image.copy()
 
 
 def preprocess_image(x, mode='caffe'):
