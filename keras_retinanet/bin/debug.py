@@ -20,6 +20,16 @@ import argparse
 import os
 import sys
 import cv2
+import platform
+
+# Determine platform and set keys
+
+if platform.system() == 'Darwin':  # use 'm' and 'n' on Mac
+    leftkey = 110
+    rightkey = 109
+else:  # for Linux use left and right
+    leftkey = 81
+    rightkey = 83
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -225,11 +235,11 @@ def run(generator, args, anchor_params):
 
         # note that the right and left keybindings are probably different for windows
         # press right for next image and left for previous (linux)
-        # if you run macOS, it might be convenient using "n" and "m" key (key == 110 and key == 109)
+        # if you run macOS, press "n" or "m" 
 
-        if key == 83:
+        if key == rightkey:
             i = (i + 1) % generator.size()
-        if key == 81:
+        if key == leftkey:
             i -= 1
             if i < 0:
                 i = generator.size() - 1
