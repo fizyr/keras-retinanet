@@ -2,5 +2,6 @@ check-manifest
 # pytest
 pytest-xdist
 pytest-cov
-flake8
+pytest-flake8
+# flake8
 coverage
