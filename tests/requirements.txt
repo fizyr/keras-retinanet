@@ -5,3 +5,4 @@ pytest-cov
 pytest-flake8
 # flake8
 coverage
+codecov

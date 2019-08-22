@@ -15,3 +15,4 @@ script:
     # - flake8 . --max-line-length=100 --ignore=E201,E202,E203,E221,E241,E251,E402,E501,W504
 after_success:
     - coverage report
+    - codecov
