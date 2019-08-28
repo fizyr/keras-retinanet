@@ -22,12 +22,13 @@ import sys
 import cv2
 
 # Set keycodes for changing images
-# 81, 83 are left and right arrows on linux
-# 110, 109 are 'n' and 'm' on mac
+# 81, 83 are left and right arrows on linux in Ascii code (probably not needed)
+# 65361, 65363 are left and right arrows in linux
+# 2424832, 2555904 are left and right arrows on Windows
+# 110, 109 are 'n' and 'm' on mac, windows, linux
 # (unfortunately arrow keys not picked up on mac)
-# may need to add to this list for Windows
-leftkeys = (81, 110)
-rightkeys = (83, 109)
+leftkeys = (81, 110, 65361, 2424832)
+rightkeys = (83, 109, 65363, 2555904)
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -242,9 +243,8 @@ def run(generator, args, anchor_params):
         cv2.imshow('Image', image)
         key = cv2.waitKey()
 
-        # note that the right and left keybindings are probably different for windows
-        # press right for next image and left for previous (linux)
-        # if you run macOS, press "n" or "m
+        # press right for next image and left for previous (linux or windows, doesn't work for macOS)
+        # if you run macOS, press "n" or "m" (will also work on linux and windows)
 
         if key in rightkeys:
             i = (i + 1) % generator.size()
