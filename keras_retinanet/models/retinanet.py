@@ -198,7 +198,7 @@ def __build_pyramid(models, features):
     """ Applies all submodels to each FPN level.
 
     Args
-        models   : List of sumodels to run on each pyramid level (by default only regression, classifcation).
+        models   : List of submodels to run on each pyramid level (by default only regression, classifcation).
         features : The FPN features.
 
     Returns
