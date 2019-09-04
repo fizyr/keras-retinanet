@@ -5,20 +5,19 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
-develop-eggs/
-dist/
-eggs/
+/build/
+/dist/
+/eggs/
+/*-eggs/
 .eggs/
-sdist/
-wheels/
-*.egg-info/
+/sdist/
+/wheels/
+/*.egg-info/
 .installed.cfg
 *.egg
 
 # Unit test / coverage reports
 .coverage
 .coverage.*
-.cache
 coverage.xml
 *.cover
