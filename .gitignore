@@ -3,64 +3,22 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
-*.so
-
-# Temporary
-temp/
-temporary/
-
 # Distribution / packaging
 .Python
-env/
 build/
 develop-eggs/
 dist/
-downloads/
 eggs/
 .eggs/
 sdist/
-var/
 wheels/
 *.egg-info/
 .installed.cfg
 *.egg
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
 # Unit test / coverage reports
-htmlcov/
-.tox/
 .coverage
 .coverage.*
 .cache
-nosetests.xml
 coverage.xml
 *.cover
-.hypothesis/
-
-# Sphinx documentation
-docs/_build/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pyenv
-.python-version
-# dotenv
-.env
-# virtualenv
-.venv
-venv/
-ENV/
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-
-# PyCharm IDE
-.idea/

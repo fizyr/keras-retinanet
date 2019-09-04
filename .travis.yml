@@ -1,18 +1,23 @@
 language: python
+
 sudo: required
+
 python:
     - '2.7'
     - '3.6'
+
 install:
     - pip install -r requirements.txt
     - pip install -r tests/requirements.txt
+
 cache: pip
+
 script:
     - python setup.py check -m -s
     - python setup.py build_ext --inplace
     - coverage run --source keras_retinanet -m py.test keras_retinanet tests --doctest-modules --forked --flake8
-    # ignore all actual PEP8 issues
-    # - flake8 . --max-line-length=100 --ignore=E201,E202,E203,E221,E241,E251,E402,E501,W504
+
 after_success:
+    - coverage xml
     - coverage report
     - codecov
