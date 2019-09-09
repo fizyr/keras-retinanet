@@ -1,6 +1,23 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.c
-*.so
-/.pytest_cache
-/.cache
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+.Python
+/build/
+/dist/
+/eggs/
+/*-eggs/
+.eggs/
+/sdist/
+/wheels/
+/*.egg-info/
+.installed.cfg
+*.egg
+
+# Unit test / coverage reports
+.coverage
+.coverage.*
+coverage.xml
+*.cover

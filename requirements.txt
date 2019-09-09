@@ -1,0 +1,11 @@
+cython
+keras-resnet==0.1.0
+git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
+h5py
+keras
+matplotlib
+numpy>=1.14
+opencv-python>=3.3.0
+pillow
+progressbar2
+tensorflow
