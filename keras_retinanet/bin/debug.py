@@ -181,7 +181,8 @@ def parse_args(args):
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
     parser.add_argument('--config', help='Path to a configuration parameters .ini file.')
-    parser.add_argument('--no-gui', help='Do not open gui window.  Save images to current directory', action='store_true')
+    parser.add_argument('--no-gui', help='Do not open gui window.  Save images to directory specified with --output-dir .', action='store_true')
+    parser.add_argument('--output-dir', help='if --no-gui seleceted, specify directory base for saving images. (default: . ).', default='.')
 
     return parser.parse_args(args)
 
@@ -193,6 +194,11 @@ def run(generator, args, anchor_params):
         generator: The generator to debug.
         args: parseargs args object.
     """
+    # if --no-gui, calculate commonpath, needed for writing output files
+    if args.no_gui:
+        paths = [os.path.abspath(generator.image_path(i)) for i in range(0, generator.size())]
+        commonpath = os.path.commonpath(paths)
+
     # display images, one at a time
     i = 0
     while True:
@@ -241,7 +247,7 @@ def run(generator, args, anchor_params):
 
         # if we are using the GUI, then show an image
         cv2.imshow('Image', image)
-        key = cv2.waitKey()
+        key = cv2.waitKeyEx()
 
         # press right for next image and left for previous (linux or windows, doesn't work for macOS)
         # if you run macOS, press "n" or "m" (will also work on linux and windows)
