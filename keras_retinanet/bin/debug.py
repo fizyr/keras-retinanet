@@ -240,12 +240,13 @@ def run(generator, args, anchor_params):
         if args.no_gui:
             outpath = os.path.join(
                 args.output_dir, # prepend output directory
-                os.path.relpath(generator.image_path(i), start=commonpath), #strip common path
+                os.path.relpath(generator.image_path(i), start=commonpath) # strip common path
             )
             outpath = os.path.join(
                 os.path.dirname(outpath),
                 os.path.splitext(os.path.basename(outpath))[0] + "_debug.png"
             )
+            os.makedirs(os.path.dirname(outpath), mode=0o777, exist_ok=True)
             cv2.imwrite(outpath, image)
             i += 1
             if i == generator.size():  # have written all images
