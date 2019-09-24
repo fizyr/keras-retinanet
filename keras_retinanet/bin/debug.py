@@ -238,7 +238,15 @@ def run(generator, args, anchor_params):
 
         # write to file and advance if no-gui selected
         if args.no_gui:
-            cv2.imwrite(os.path.splitext(os.path.basename(generator.image_path(i)))[0] + "_debug.png", image)
+            outpath = os.path.join(
+                args.output_dir, # prepend output directory
+                os.path.relpath(generator.image_path(i), start=commonpath), #strip common path
+            )
+            outpath = os.path.join(
+                os.path.dirname(outpath),
+                os.path.splitext(os.path.basename(outpath))[0] + "_debug.png"
+            )
+            cv2.imwrite(outpath, image)
             i += 1
             if i == generator.size():  # have written all images
                 break
