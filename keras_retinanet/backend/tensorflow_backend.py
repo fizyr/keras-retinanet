@@ -102,3 +102,9 @@ def where(*args, **kwargs):
     """ See https://www.tensorflow.org/versions/master/api_docs/python/tf/where .
     """
     return tensorflow.where(*args, **kwargs)
+
+
+def unstack(*args, **kwargs):
+    """ See https://www.tensorflow.org/api_docs/python/tf/unstack .
+    """
+    return tensorflow.unstack(*args, **kwargs)
