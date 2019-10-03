@@ -34,14 +34,7 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.eval import evaluate
 from ..utils.keras_version import check_keras_version
-
-
-def get_session():
-    """ Construct a modified tf session.
-    """
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
+from ..utils.gpu import setup_gpu
 
 
 def create_generator(args):
@@ -126,8 +119,7 @@ def main(args=None):
 
     # optionally choose specific GPU
     if args.gpu:
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    keras.backend.tensorflow_backend.set_session(get_session())
+        setup_gpu(args.gpu)
 
     # make save path if it doesn't exist
     if args.save_path is not None and not os.path.exists(args.save_path):

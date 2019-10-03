@@ -1,5 +1,5 @@
 """
-Copyright 2017-2018 Fizyr (https://fizyr.com)
+Copyright 2017-2019 Fizyr (https://fizyr.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,40 +16,39 @@ limitations under the License.
 
 from __future__ import print_function
 
-import keras
+import tensorflow as tf
 import sys
 
-minimum_keras_version = 2, 3, 0
+MINIMUM_TF_VERSION = 1, 12, 0
 
 
-def keras_version():
-    """ Get the Keras version.
-
-    Returns
-        tuple of (major, minor, patch).
+def tf_version():
+    """ Get the Tensorflow version.
+        Returns
+            tuple of (major, minor, patch).
     """
-    return tuple(map(int, keras.__version__.split('.')))
+    return tuple(map(int, tf.version.VERSION.split('-')[0].split('.')))
 
 
-def keras_version_ok():
-    """ Check if the current Keras version is higher than the minimum version.
+def tf_version_ok(minimum_tf_version=MINIMUM_TF_VERSION):
+    """ Check if the current Tensorflow version is higher than the minimum version.
     """
-    return keras_version() >= minimum_keras_version
+    return tf_version() >= minimum_tf_version
 
 
-def assert_keras_version():
+def assert_tf_version(minimum_tf_version=MINIMUM_TF_VERSION):
     """ Assert that the Keras version is up to date.
     """
-    detected = keras.__version__
-    required = '.'.join(map(str, minimum_keras_version))
-    assert(keras_version() >= minimum_keras_version), 'You are using keras version {}. The minimum required version is {}.'.format(detected, required)
+    detected = tf.version.VERSION
+    required = '.'.join(map(str, minimum_tf_version))
+    assert(tf_version() >= minimum_tf_version), 'You are using tf version {}. The minimum required version is {}.'.format(detected, required)
 
 
-def check_keras_version():
+def check_tf_version():
     """ Check that the Keras version is up to date. If it isn't, print an error message and exit the script.
     """
     try:
-        assert_keras_version()
+        assert_tf_version()
     except AssertionError as e:
         print(e, file=sys.stderr)
         sys.exit(1)

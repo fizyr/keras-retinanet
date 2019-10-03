@@ -14,6 +14,7 @@ from keras_retinanet import models
 from keras_retinanet.utils.image import read_image_bgr, preprocess_image, resize_image
 from keras_retinanet.utils.visualization import draw_box, draw_caption
 from keras_retinanet.utils.colors import label_color
+from keras_retinanet.utils.gpu import setup_gpu
 
 # import miscellaneous modules
 import matplotlib.pyplot as plt
@@ -25,16 +26,11 @@ import time
 # set tf backend to allow memory to grow, instead of claiming everything
 import tensorflow as tf
 
-def get_session():
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
-
-# use this environment flag to change which GPU to use
-#os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# use this to change which GPU to use
+gpu = 0
 
 # set the modified tf session as backend in keras
-keras.backend.tensorflow_backend.set_session(get_session())
+setup_gpu(gpu)
 
 
 # ## Load RetinaNet model

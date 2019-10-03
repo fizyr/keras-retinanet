@@ -48,6 +48,7 @@ from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
 from ..utils.image import random_visual_effect_generator
+from ..utils.gpu import setup_gpu
 
 
 def makedirs(path):
@@ -59,14 +60,6 @@ def makedirs(path):
     except OSError:
         if not os.path.isdir(path):
             raise
-
-
-def get_session():
-    """ Construct a modified tf session.
-    """
-    config = tf.ConfigProto()
-    config.gpu_options.allow_growth = True
-    return tf.Session(config=config)
 
 
 def model_with_weights(model, weights, skip_mismatch):
@@ -452,8 +445,7 @@ def main(args=None):
 
     # optionally choose specific GPU
     if args.gpu:
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-    keras.backend.tensorflow_backend.set_session(get_session())
+        setup_gpu(args.gpu)
 
     # optionally load config parameters
     if args.config:

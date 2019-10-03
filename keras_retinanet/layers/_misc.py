@@ -102,11 +102,11 @@ class UpsampleLike(keras.layers.Layer):
         target_shape = keras.backend.shape(target)
         if keras.backend.image_data_format() == 'channels_first':
             source = backend.transpose(source, (0, 2, 3, 1))
-            output = backend.resize_images(source, (target_shape[2], target_shape[3]), method='nearest')
+            output = backend.resize(source, (target_shape[2], target_shape[3]), method='nearest')
             output = backend.transpose(output, (0, 3, 1, 2))
             return output
         else:
-            return backend.resize_images(source, (target_shape[1], target_shape[2]), method='nearest')
+            return backend.resize(source, (target_shape[1], target_shape[2]), method='nearest')
 
     def compute_output_shape(self, input_shape):
         if keras.backend.image_data_format() == 'channels_first':
