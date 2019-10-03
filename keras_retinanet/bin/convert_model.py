@@ -32,14 +32,7 @@ if __name__ == "__main__" and __package__ is None:
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
-
-
-def get_session():
-    """ Construct a modified tf session.
-    """
-    config = tf.ConfigProto()
-    os.environ["CUDA_VISIBLE_DEVICES"] = ""
-    return tf.Session(config=config)
+from ..utils.gpu import setup_gpu
 
 
 def parse_args(args):
@@ -62,7 +55,7 @@ def main(args=None):
     args = parse_args(args)
 
     # Set modified tf session to avoid using the GPUs
-    keras.backend.tensorflow_backend.set_session(get_session())
+    setup_gpu('cpu')
 
     # optionally load config parameters
     anchor_parameters = None
