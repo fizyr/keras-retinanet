@@ -51,17 +51,12 @@ class CocoEval(keras.callbacks.Callback):
                     'AR @[ IoU=0.50:0.95 | area=medium | maxDets=100 ]',
                     'AR @[ IoU=0.50:0.95 | area= large | maxDets=100 ]']
         coco_eval_stats = evaluate_coco(self.generator, self.model, self.threshold)
-
-        if coco_eval_stats is not None:
+        if coco_eval_stats is not None and self.tensorboard is not None and self.tensorboard.writer is not None:
+            import tensorflow as tf
+            summary = tf.Summary()
             for index, result in enumerate(coco_eval_stats):
+                summary_value = summary.value.add()
+                summary_value.simple_value = result
+                summary_value.tag = '{}. {}'.format(index + 1, coco_tag[index])
+                self.tensorboard.writer.add_summary(summary, epoch)
                 logs[coco_tag[index]] = result
-
-            if self.tensorboard:
-                import tensorflow as tf
-                if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:
-                    summary = tf.Summary()
-                    for index, result in enumerate(coco_eval_stats):
-                        summary_value = summary.value.add()
-                        summary_value.simple_value = result
-                        summary_value.tag = '{}. {}'.format(index + 1, coco_tag[index])
-                        self.tensorboard.writer.add_summary(summary, epoch)
