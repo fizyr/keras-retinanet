@@ -157,7 +157,6 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             embeddings_layer_names = None,
             embeddings_metadata    = None
         )
-        
 
     if args.evaluation and validation_generator:
         if args.dataset_type == 'coco':
@@ -197,7 +196,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         cooldown   = 0,
         min_lr     = 0
     ))
-   
+
     if args.tensorboard_dir:
         callbacks.append(tensorboard_callback)
 

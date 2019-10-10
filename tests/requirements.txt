@@ -1,6 +1,5 @@
 check-manifest
 # pytest
-pytest-xdist
 pytest-cov
 pytest-flake8
 # flake8
