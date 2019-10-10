@@ -20,9 +20,6 @@ import argparse
 import os
 import sys
 
-import keras
-import tensorflow as tf
-
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -54,7 +51,7 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # Set modified tf session to avoid using the GPUs
+    # set modified tf session to avoid using the GPUs
     setup_gpu('cpu')
 
     # optionally load config parameters
