@@ -166,22 +166,22 @@ Images with multiple bounding boxes should use one row per bounding box.
 Note that indexing for pixel values starts at 0.
 The expected format of each line is:
 ```
-path/to/image.jpg,x1,y1,x2,y2,class_name
+image_name.jpg,x1,y1,x2,y2,class_name
 ```
 
 Some images may not contain any labeled objects.
 To add these images to the dataset as negative examples,
 add an annotation where `x1`, `y1`, `x2`, `y2` and `class_name` are all empty:
 ```
-path/to/image.jpg,,,,,
+image_name.jpg,,,,,
 ```
 
 A full example:
 ```
-/data/imgs/img_001.jpg,837,346,981,456,cow
-/data/imgs/img_002.jpg,215,312,279,391,cat
-/data/imgs/img_002.jpg,22,5,89,84,bird
-/data/imgs/img_003.jpg,,,,,
+image_name.jpg,837,346,981,456,cow
+image_name.jpg,215,312,279,391,cat
+image_name.jpg,22,5,89,84,bird
+image_name.jpg,,,,,
 ```
 
 This defines a dataset with 3 images.
@@ -189,6 +189,7 @@ This defines a dataset with 3 images.
 `img_002.jpg` contains a cat and a bird.
 `img_003.jpg` contains no interesting objects/animals.
 
+By default the csv generator will search for images in the same directory as the annotations.csv
 
 ### Class mapping format
 The class name to ID mapping file should contain one mapping per line.
