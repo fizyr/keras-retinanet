@@ -48,4 +48,4 @@ def test_backbone(backbone):
         },
         optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
 
-    model.fit(inputs, targets, batch_size=1)
+    model.fit(inputs, targets, batch_size=1, epochs=1)
