@@ -21,9 +21,11 @@ import os
 import sys
 import warnings
 
+import random
 import keras
 import keras.preprocessing.image
 import tensorflow as tf
+import numpy as np
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
@@ -218,6 +220,11 @@ def create_generators(args, preprocess_image):
         'preprocess_image' : preprocess_image,
     }
 
+    prng = None
+
+    if args.seed:
+        prng = np.random.RandomState(args.seed)
+
     # create random transform generator for augmenting training data
     if args.random_transform:
         transform_generator = random_transform_generator(
@@ -231,6 +238,7 @@ def create_generators(args, preprocess_image):
             max_scaling=(1.1, 1.1),
             flip_x_chance=0.5,
             flip_y_chance=0.5,
+            prng=prng
         )
         visual_effect_generator = random_visual_effect_generator(
             contrast_range=(0.9, 1.1),
@@ -239,7 +247,7 @@ def create_generators(args, preprocess_image):
             saturation_range=(0.95, 1.05)
         )
     else:
-        transform_generator = random_transform_generator(flip_x_chance=0.5)
+        transform_generator = random_transform_generator(flip_x_chance=0.5, prng=prng)
         visual_effect_generator = None
 
     if args.dataset_type == 'coco':
@@ -424,6 +432,7 @@ def parse_args(args):
     parser.add_argument('--config',           help='Path to a configuration parameters .ini file.')
     parser.add_argument('--weighted-average', help='Compute the mAP using the weighted average of precisions among classes.', action='store_true')
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss', action='store_true')
+    parser.add_argument('--seed',             help='Seed value to use for training.')
 
     # Fit generator arguments
     parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')
@@ -438,6 +447,11 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
     args = parse_args(args)
+
+    if args.seed:
+        np.random.seed(args.seed)
+        tf.set_random_seed(args.seed)
+        random.seed(args.seed)
 
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
