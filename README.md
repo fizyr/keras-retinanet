@@ -168,6 +168,7 @@ The expected format of each line is:
 ```
 path/to/image.jpg,x1,y1,x2,y2,class_name
 ```
+By default the CSV generator will look for images relative to the directory of the annotations file.
 
 Some images may not contain any labeled objects.
 To add these images to the dataset as negative examples,
