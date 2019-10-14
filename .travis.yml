@@ -10,17 +10,18 @@ python:
     - '3.6'
     - '3.7'
 
+cache: pip
+
 install:
+    - pip install "tensorflow<2.0"  # https://github.com/fizyr/keras-retinanet/issues/1123#issuecomment-541566486
     - pip install -r requirements.txt
     - pip install -r tests/requirements.txt
-
-cache: pip
 
 script:
     - python setup.py check -m -s
     - python setup.py build_ext --inplace
     - python setup.py install --dry-run
-    - coverage run --source keras_retinanet -m py.test keras_retinanet tests --doctest-modules --forked --flake8 --ignore=tests/models/test_densenet.py --ignore=tests/models/test_mobilenet.py
+    - coverage run --source keras_retinanet -m py.test keras_retinanet tests --doctest-modules --forked --flake8
 
 after_success:
     - coverage xml
