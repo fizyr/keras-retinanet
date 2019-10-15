@@ -40,6 +40,8 @@ class CocoGenerator(Generator):
         self.set_name  = set_name
         self.coco      = COCO(os.path.join(data_dir, 'annotations', 'instances_' + set_name + '.json'))
         self.image_ids = self.coco.getImgIds()
+        self.images    = self.coco.loadImgs(self.image_ids)
+        self.image_names = [image['file_name'] for image in self.images] 
 
         self.load_classes()
 
@@ -110,6 +112,11 @@ class CocoGenerator(Generator):
         """ Map label as used by the network to labels as used by COCO.
         """
         return self.coco_labels[label]
+        
+    def image_path(self, image_index):
+        """ Returns the image path for image_index.
+        """
+        return os.path.join(self.data_dir, self.image_names[image_index])
 
     def image_aspect_ratio(self, image_index):
         """ Compute the aspect ratio for an image with image_index.
