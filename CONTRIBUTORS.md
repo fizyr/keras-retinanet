@@ -7,6 +7,7 @@ please create an issue or pull request at https://github.com/fizyr/keras-retinan
 
 * Hans Gaiser <h.gaiser@fizyr.com>
 * Maarten de Vries <maarten@de-vri.es>
+* Valerio Carpani
 * Ashley Williamson
 * Yann Henon
 * Valeriu Lacatusu
@@ -28,7 +29,6 @@ please create an issue or pull request at https://github.com/fizyr/keras-retinan
 * mxvs
 * mwilder
 * Muhammed Kocabas
-* Max Van Sande
 * Koen Vijverberg
 * iver56
 * hnsywangxin
@@ -37,3 +37,37 @@ please create an issue or pull request at https://github.com/fizyr/keras-retinan
 * DiegoAgher
 * Alexander Pacha
 * Agastya Kalra
+* Jiri BOROVEC
+* ntsagko
+* charlie / tianqi
+* jsemric
+* Martin Zlocha
+* Raghav Bhardwaj
+* bw4sz
+* Morten Back Nielsen
+* dshahrokhian
+* Alex / adreo00
+* simone.merello
+* Matt Wilder
+* Jinwoo Baek
+* Etienne Meunier
+* Denis Dowling
+* cclauss
+* Andrew Grigorev
+* ZFTurbo
+* UgoLouche
+* Richard Higgins
+* Rajat /  rajat.goel
+* philipp.marquardt
+* peacherwu
+* Paul / pauldesigaud
+* Martin Genet
+* Leo / leonardvandriel
+* Laurens Hagendoorn
+* Julius / juliussimonelli
+* HolyGuacamole
+* Fausto Morales
+* borakrc
+* Ben Weinstein
+* Anil Karaka
+* Andrea Panizza
