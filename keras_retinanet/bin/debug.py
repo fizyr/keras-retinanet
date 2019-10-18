@@ -182,8 +182,8 @@ def parse_args(args):
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
     parser.add_argument('--config', help='Path to a configuration parameters .ini file.')
     parser.add_argument('--no-gui', help='Do not open a GUI window. Save images to an output directory instead.', action='store_true')
-    parser.add_argument('--output-dir', help='if --no-gui seleceted, specify directory base for saving images.', default='.')
-    parser.add_argument('--flatten-output', help='if --no-gui seleceted, flatten the folder structure of saved output images into a single folder.', action='store_true')
+    parser.add_argument('--output-dir', help='The output directory to save images to if --no-gui is specified.', default='.')
+    parser.add_argument('--flatten-output', help='Flatten the folder structure of saved output images into a single folder.', action='store_true')
 
     return parser.parse_args(args)
 
