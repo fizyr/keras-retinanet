@@ -265,14 +265,24 @@ def run(generator, args, anchor_params):
 
 
 def make_output_path(output_dir, image_path, flatten = False):
+    """ Compute the output path for a debug image. """
+
+    # If the output hierarchy is flattened to a single folder, throw away all leading folders.
     if flatten:
         path = os.path.basename(image_path)
+
+    # Otherwise, make sure absolute paths are taken relative to the filesystem root.
     else:
+        # Make sure to drop drive letters on Windows, otherwise relpath wil fail.
         _, path = os.path.splitdrive(image_path)
         if os.path.isabs(path)
           path = path.relpath(path, '/')
+
+    # In all cases, append "_debug" to the filename, before the extension.
     base, extension = os.path.splitext(path)
     path = base + "_debug" + extension
+
+    # Finally, join the whole thing to the output directory.
     return os.path.join(output_dir, path)
 
 
