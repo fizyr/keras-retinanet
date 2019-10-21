@@ -14,12 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import keras_retinanet.backend
 import keras_retinanet.bin.train
 import keras.backend
 
 import warnings
 
 import pytest
+
+
+# Disable Tensorflow 2 behavior as we experience issues with it.
+keras_retinanet.backend.disable_tensorflow_v2_behavior()
 
 
 @pytest.fixture(autouse=True)

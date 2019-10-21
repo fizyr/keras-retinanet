@@ -28,6 +28,7 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
+from .. import backend
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
@@ -38,6 +39,10 @@ from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
 from ..utils.anchors import anchors_for_shape, compute_gt_annotations
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.image import random_visual_effect_generator
+
+
+# Disable Tensorflow 2 behavior as we experience issues with it.
+backend.disable_tensorflow_v2_behavior()
 
 
 def create_generator(args):

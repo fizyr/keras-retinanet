@@ -32,6 +32,7 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
+from .. import backend
 from .. import layers  # noqa: F401
 from .. import losses
 from .. import models
@@ -49,6 +50,10 @@ from ..utils.model import freeze as freeze_model
 from ..utils.transform import random_transform_generator
 from ..utils.image import random_visual_effect_generator
 from ..utils.gpu import setup_gpu
+
+
+# Disable Tensorflow 2 behavior as we experience issues with it.
+backend.disable_tensorflow_v2_behavior()
 
 
 def makedirs(path):

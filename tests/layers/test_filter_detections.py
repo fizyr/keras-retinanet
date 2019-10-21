@@ -15,9 +15,14 @@ limitations under the License.
 """
 
 import keras
+import keras_retinanet.backend
 import keras_retinanet.layers
 
 import numpy as np
+
+
+# Disable Tensorflow 2 behavior as we experience issues with it.
+keras_retinanet.backend.disable_tensorflow_v2_behavior()
 
 
 class TestFilterDetections(object):
