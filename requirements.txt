@@ -5,7 +5,7 @@ h5py
 keras
 matplotlib
 numpy>=1.14
-opencv-python>=3.3.0
+opencv-python-headless>=3.3.0
 pillow
 progressbar2
 tensorflow
