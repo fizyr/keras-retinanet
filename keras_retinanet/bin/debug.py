@@ -276,7 +276,7 @@ def make_output_path(output_dir, image_path, flatten = False):
         # Make sure to drop drive letters on Windows, otherwise relpath wil fail.
         _, path = os.path.splitdrive(image_path)
         if os.path.isabs(path):
-            path = path.relpath(path, '/')
+            path = os.path.relpath(path, '/')
 
     # In all cases, append "_debug" to the filename, before the extension.
     base, extension = os.path.splitext(path)
