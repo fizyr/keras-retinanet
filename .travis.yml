@@ -4,17 +4,32 @@ language: python
 
 sudo: required
 
-python:
-    - '2.7'
-    - '3.5'
-    - '3.6'
-    - '3.7'
+matrix:
+  include:
+    #- python: 2.7
+    #  dist: xenial  # Ubuntu 16.04
+    #  env: TOXENV=py27
+    - python: 3.5
+      dist: xenial  # Ubuntu 16.04
+      env: TF_VERSION="tensorflow<2.0"
+    - python: 3.6
+      dist: bionic  # Ubuntu 18.04
+      env: TF_VERSION="tensorflow<2.0"
+    - python: 3.7
+      dist: bionic  # Ubuntu 18.04
+      env: TF_VERSION="tensorflow<2.0"
+    - python: 3.6
+      dist: bionic  # Ubuntu 18.04
+      env: TF_VERSION="tensorflow>=2.0"
+    - python: 3.7
+      dist: bionic  # Ubuntu 18.04
+      env: TF_VERSION="tensorflow>=2.0"
 
 cache: pip
 
 install:
     # see: https://github.com/fizyr/keras-retinanet/issues/1123#issuecomment-541566486
-    # - pip install "tensorflow<2.0"
+    - pip install $TF_VERSION
     - pip install -r requirements.txt
     - pip install -r tests/requirements.txt
 
