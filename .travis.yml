@@ -13,7 +13,8 @@ python:
 cache: pip
 
 install:
-    - pip install "tensorflow<2.0"  # https://github.com/fizyr/keras-retinanet/issues/1123#issuecomment-541566486
+    # see: https://github.com/fizyr/keras-retinanet/issues/1123#issuecomment-541566486
+    # - pip install "tensorflow<2.0"
     - pip install -r requirements.txt
     - pip install -r tests/requirements.txt
 
