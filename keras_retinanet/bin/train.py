@@ -44,11 +44,12 @@ from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.gpu import setup_gpu
+from ..utils.image import random_visual_effect_generator
 from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
+from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
-from ..utils.image import random_visual_effect_generator
-from ..utils.gpu import setup_gpu
 
 
 def makedirs(path):
@@ -444,8 +445,9 @@ def main(args=None):
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
 
-    # make sure keras is the minimum required version
+    # make sure keras and tensorflow are the minimum required version
     check_keras_version()
+    check_tf_version()
 
     # optionally choose specific GPU
     if args.gpu:
