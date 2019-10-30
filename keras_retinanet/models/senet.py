@@ -117,5 +117,33 @@ def senet_retinanet(num_classes, backbone='seresnext50', inputs=None, modifier=N
     return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=model.outputs, **kwargs)
 
 
+def seresnet18_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='seresnet18', inputs=inputs, **kwargs)
+
+
+def seresnet34_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='seresnet34', inputs=inputs, **kwargs)
+
+
+def seresnet50_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='seresnet50', inputs=inputs, **kwargs)
+
+
+def seresnet101_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='seresnet101', inputs=inputs, **kwargs)
+
+
+def seresnet152_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='seresnet152', inputs=inputs, **kwargs)
+
+
 def seresnext50_retinanet(num_classes, inputs=None, **kwargs):
     return senet_retinanet(num_classes=num_classes, backbone='seresnext50', inputs=inputs, **kwargs)
+
+
+def seresnext101_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='seresnext101', inputs=inputs, **kwargs)
+
+
+def senet154_retinanet(num_classes, inputs=None, **kwargs):
+    return senet_retinanet(num_classes=num_classes, backbone='senet154', inputs=inputs, **kwargs)
