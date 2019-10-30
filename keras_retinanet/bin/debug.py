@@ -41,12 +41,13 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
-from ..utils.keras_version import check_keras_version
-from ..utils.transform import random_transform_generator
-from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
 from ..utils.anchors import anchors_for_shape, compute_gt_annotations
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.image import random_visual_effect_generator
+from ..utils.keras_version import check_keras_version
+from ..utils.tf_version import check_tf_version
+from ..utils.transform import random_transform_generator
+from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
 
 
 def create_generator(args):
@@ -292,8 +293,9 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # make sure keras is the minimum required version
+    # make sure keras and tensorflow are the minimum required version
     check_keras_version()
+    check_tf_version()
 
     # create the generator
     generator = create_generator(args)
