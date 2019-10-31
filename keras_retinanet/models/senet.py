@@ -42,7 +42,18 @@ class SeBackbone(Backbone):
     def download_imagenet(self):
         """ Downloads ImageNet weights and returns path to weights file.
         """
-        return
+        from classification_models.weights import WEIGHTS_COLLECTION
+
+        weights_path = None
+        for el in WEIGHTS_COLLECTION:
+            if el['model'] == self.backbone and el['include_top'] == False:
+                weights_path = get_file(el['name'], el['url'], cache_subdir='models', file_hash=el['md5'])
+
+        if weights_path is None:
+            raise ValueError('Unable to find imagenet weights for backbone {}!'.format(self.backbone))
+
+        # print('Image net weights loaded: {}'.format(weights_path))
+        return weights_path
 
     def validate(self):
         """ Checks whether the backbone string is correct.
@@ -81,7 +92,7 @@ def senet_retinanet(num_classes, backbone='seresnext50', inputs=None, modifier=N
             inputs = keras.layers.Input(shape=(None, None, 3))
 
     classifier, _ = Classifiers.get(backbone)
-    model = classifier(input_tensor=inputs, include_top=False, weights='imagenet')
+    model = classifier(input_tensor=inputs, include_top=False, weights=None)
 
     # get last conv layer from the end of each block [28x28, 14x14, 7x7]
     if backbone == 'seresnet18' or backbone == 'seresnet34':

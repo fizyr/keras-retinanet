@@ -41,7 +41,15 @@ class EfficientNetBackbone(Backbone):
     def download_imagenet(self):
         """ Downloads ImageNet weights and returns path to weights file.
         """
-        return
+        from efficientnet.model import BASE_WEIGHTS_PATH
+        from efficientnet.model import WEIGHTS_HASHES
+
+        model_name = 'efficientnet-b' + self.backbone[-1]
+        file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'
+        file_hash = WEIGHTS_HASHES[model_name][1]
+        weights_path = get_file(file_name, BASE_WEIGHTS_PATH + file_name, cache_subdir='models', file_hash=file_hash)
+        # print('Image net weights loaded: {}'.format(weights_path))
+        return weights_path
 
     def validate(self):
         """ Checks whether the backbone string is correct.
@@ -81,21 +89,21 @@ def effnet_retinanet(num_classes, backbone='EfficientNetB0', inputs=None, modifi
 
     # get last conv layer from the end of each block [28x28, 14x14, 7x7]
     if backbone == 'EfficientNetB0':
-        model = efn.EfficientNetB0(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB0(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB1':
-        model = efn.EfficientNetB1(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB1(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB2':
-        model = efn.EfficientNetB2(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB2(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB3':
-        model = efn.EfficientNetB3(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB3(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB4':
-        model = efn.EfficientNetB4(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB4(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB5':
-        model = efn.EfficientNetB5(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB5(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB6':
-        model = efn.EfficientNetB6(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB6(input_tensor=inputs, include_top=False, weights=None)
     elif backbone == 'EfficientNetB7':
-        model = efn.EfficientNetB7(input_tensor=inputs, include_top=False, weights='imagenet')
+        model = efn.EfficientNetB7(input_tensor=inputs, include_top=False, weights=None)
     else:
         raise ValueError('Backbone (\'{}\') is invalid.'.format(backbone))
 
