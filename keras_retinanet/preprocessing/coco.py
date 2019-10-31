@@ -110,7 +110,7 @@ class CocoGenerator(Generator):
         """ Map label as used by the network to labels as used by COCO.
         """
         return self.coco_labels[label]
-        
+
     def image_path(self, image_index):
         """ Returns the image path for image_index.
         """
