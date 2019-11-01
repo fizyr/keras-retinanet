@@ -52,7 +52,6 @@ class SeBackbone(Backbone):
         if weights_path is None:
             raise ValueError('Unable to find imagenet weights for backbone {}!'.format(self.backbone))
 
-        # print('Image net weights loaded: {}'.format(weights_path))
         return weights_path
 
     def validate(self):
