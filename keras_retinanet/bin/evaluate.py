@@ -150,7 +150,7 @@ def main(args=None):
         from ..utils.coco_eval import evaluate_coco
         evaluate_coco(generator, model, args.score_threshold)
     else:
-        average_precisions = evaluate(
+        average_precisions, f1_scores = evaluate(
             generator,
             model,
             iou_threshold=args.iou_threshold,
@@ -162,11 +162,19 @@ def main(args=None):
         # print evaluation
         total_instances = []
         precisions = []
+        scores = []
+
         for label, (average_precision, num_annotations) in average_precisions.items():
             print('{:.0f} instances of class'.format(num_annotations),
                   generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
             total_instances.append(num_annotations)
             precisions.append(average_precision)
+            
+        for label, (f1_score, num_annotations) in f1_scores.items():
+            print('{:.0f} instances of class'.format(num_annotations),
+                  generator.label_to_name(label), 'with F1 score: {:.4f}'.format(f1_score))
+            # total_instances.append(num_annotations)
+            scores.append(f1_score)
 
         if sum(total_instances) == 0:
             print('No test instances found.')
@@ -174,6 +182,10 @@ def main(args=None):
 
         print('mAP using the weighted average of precisions among classes: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)))
         print('mAP: {:.4f}'.format(sum(precisions) / sum(x > 0 for x in total_instances)))
+        
+        print('mF1 using the weighted F1 scores among classes: {:.4f}'.format(sum([a * b for a, b in zip(total_instances, scores)]) / sum(total_instances)))
+        print('mF1: {:.4f}'.format(sum(scores) / sum(x > 0 for x in total_instances)))
+
 
 
 if __name__ == '__main__':
