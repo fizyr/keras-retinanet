@@ -100,7 +100,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         scores_sort = np.argsort(-scores)[:max_detections]
 
         # select detections
-        image_boxes      =  boxes[0, indices[scores_sort], :]
+        image_boxes      = boxes[0, indices[scores_sort], :]
         image_scores     = scores[scores_sort]
         image_labels     = labels[0, indices[scores_sort]]
         image_detections = np.concatenate([image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
@@ -171,7 +171,7 @@ def evaluate(
         A dict mapping class names to mAP scores.
     """
     # gather all detections and annotations
-    all_detections, all_inferences     = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
+    all_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_annotations    = _get_annotations(generator)
     average_precisions = {}
 
@@ -238,6 +238,6 @@ def evaluate(
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
 
-        inference_time = np.sum(all_inferences)/generator.size()
+        inference_time = np.sum(all_inferences) / generator.size()
 
     return average_precisions, inference_time
