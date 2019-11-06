@@ -16,8 +16,6 @@ limitations under the License.
 
 import keras
 from keras.utils import get_file
-import keras_resnet
-import keras_resnet.models
 
 from . import retinanet
 from . import Backbone
@@ -30,7 +28,6 @@ class EfficientNetBackbone(Backbone):
 
     def __init__(self, backbone):
         super(EfficientNetBackbone, self).__init__(backbone)
-        self.custom_objects.update(keras_resnet.custom_objects)
         self.preprocess_image_func = None
 
     def retinanet(self, *args, **kwargs):

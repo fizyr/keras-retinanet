@@ -16,8 +16,6 @@ limitations under the License.
 
 import keras
 from keras.utils import get_file
-import keras_resnet
-import keras_resnet.models
 
 from . import retinanet
 from . import Backbone
@@ -30,13 +28,11 @@ class SeBackbone(Backbone):
 
     def __init__(self, backbone):
         super(SeBackbone, self).__init__(backbone)
-        self.custom_objects.update(keras_resnet.custom_objects)
-        self.preprocess_image_func = None
+        _, self.preprocess_image_func = Classifiers.get(self.backbone)
 
     def retinanet(self, *args, **kwargs):
         """ Returns a retinanet model using the correct backbone.
         """
-        _, self.preprocess_image_func = Classifiers.get(self.backbone)
         return senet_retinanet(*args, backbone=self.backbone, **kwargs)
 
     def download_imagenet(self):
