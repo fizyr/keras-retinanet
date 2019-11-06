@@ -29,7 +29,7 @@ def default_classification_model(
     classification_feature_size=256,
     name='classification_submodel'
 ):
-    """ Creates the default regression submodel.
+    """ Creates the default classification submodel.
 
     Args
         num_classes                 : Number of classes to predict a score for at each feature level.
@@ -198,7 +198,7 @@ def __build_pyramid(models, features):
     """ Applies all submodels to each FPN level.
 
     Args
-        models   : List of sumodels to run on each pyramid level (by default only regression, classifcation).
+        models   : List of submodels to run on each pyramid level (by default only regression, classifcation).
         features : The FPN features.
 
     Returns

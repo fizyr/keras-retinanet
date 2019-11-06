@@ -21,6 +21,15 @@ import os
 import sys
 import cv2
 
+# Set keycodes for changing images
+# 81, 83 are left and right arrows on linux in Ascii code (probably not needed)
+# 65361, 65363 are left and right arrows in linux
+# 2424832, 2555904 are left and right arrows on Windows
+# 110, 109 are 'n' and 'm' on mac, windows, linux
+# (unfortunately arrow keys not picked up on mac)
+leftkeys = (81, 110, 65361, 2424832)
+rightkeys = (83, 109, 65363, 2555904)
+
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -32,11 +41,13 @@ from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
-from ..utils.keras_version import check_keras_version
-from ..utils.transform import random_transform_generator
-from ..utils.visualization import draw_annotations, draw_boxes
 from ..utils.anchors import anchors_for_shape, compute_gt_annotations
 from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.image import random_visual_effect_generator
+from ..utils.keras_version import check_keras_version
+from ..utils.tf_version import check_tf_version
+from ..utils.transform import random_transform_generator
+from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
 
 
 def create_generator(args):
@@ -59,6 +70,13 @@ def create_generator(args):
         flip_y_chance=0.5,
     )
 
+    visual_effect_generator = random_visual_effect_generator(
+        contrast_range=(0.9, 1.1),
+        brightness_range=(-.1, .1),
+        hue_range=(-0.05, 0.05),
+        saturation_range=(0.95, 1.05)
+    )
+
     if args.dataset_type == 'coco':
         # import here to prevent unnecessary dependency on cocoapi
         from ..preprocessing.coco import CocoGenerator
@@ -67,6 +85,7 @@ def create_generator(args):
             args.coco_path,
             args.coco_set,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config
@@ -76,6 +95,7 @@ def create_generator(args):
             args.pascal_path,
             args.pascal_set,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config
@@ -85,6 +105,7 @@ def create_generator(args):
             args.annotations,
             args.classes,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config
@@ -98,6 +119,7 @@ def create_generator(args):
             parent_label=args.parent_label,
             annotation_cache_dir=args.annotation_cache_dir,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config
@@ -107,6 +129,7 @@ def create_generator(args):
             args.kitti_path,
             subset=args.subset,
             transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config
@@ -151,14 +174,17 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes',     help='Path to a CSV file containing class label mapping.')
 
-    parser.add_argument('-l', '--loop', help='Loop forever, even if the dataset is exhausted.', action='store_true')
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
+    parser.add_argument('--display-name', help='Display image name on the bottom left corner.', action='store_true')
     parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
     parser.add_argument('--config', help='Path to a configuration parameters .ini file.')
+    parser.add_argument('--no-gui', help='Do not open a GUI window. Save images to an output directory instead.', action='store_true')
+    parser.add_argument('--output-dir', help='The output directory to save images to if --no-gui is specified.', default='.')
+    parser.add_argument('--flatten-output', help='Flatten the folder structure of saved output images into a single folder.', action='store_true')
 
     return parser.parse_args(args)
 
@@ -171,7 +197,8 @@ def run(generator, args, anchor_params):
         args: parseargs args object.
     """
     # display images, one at a time
-    for i in range(generator.size()):
+    i = 0
+    while True:
         # load the data
         image       = generator.load_image(i)
         annotations = generator.load_annotations(i)
@@ -179,6 +206,7 @@ def run(generator, args, anchor_params):
             # apply random transformations
             if args.random_transform:
                 image, annotations = generator.random_transform_group_entry(image, annotations)
+                image, annotations = generator.random_visual_effect_group_entry(image, annotations)
 
             # resize the image and annotations
             if args.resize:
@@ -201,10 +229,62 @@ def run(generator, args, anchor_params):
                 # result is that annotations without anchors are red, with anchors are green
                 draw_boxes(image, annotations['bboxes'][max_indices[positive_indices], :], (0, 255, 0))
 
+            # display name on the image
+            if args.display_name:
+                draw_caption(image, [0, image.shape[0]], os.path.basename(generator.image_path(i)))
+
+        # write to file and advance if no-gui selected
+        if args.no_gui:
+            output_path = make_output_path(args.output_dir, generator.image_path(i), flatten=args.flatten_output)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            cv2.imwrite(output_path, image)
+            i += 1
+            if i == generator.size():  # have written all images
+                break
+            else:
+                continue
+
+        # if we are using the GUI, then show an image
         cv2.imshow('Image', image)
-        if cv2.waitKey() == ord('q'):
+        key = cv2.waitKeyEx()
+
+        # press right for next image and left for previous (linux or windows, doesn't work for macOS)
+        # if you run macOS, press "n" or "m" (will also work on linux and windows)
+
+        if key in rightkeys:
+            i = (i + 1) % generator.size()
+        if key in leftkeys:
+            i -= 1
+            if i < 0:
+                i = generator.size() - 1
+
+        # press q or Esc to quit
+        if (key == ord('q')) or (key == 27):
             return False
+
     return True
+
+
+def make_output_path(output_dir, image_path, flatten = False):
+    """ Compute the output path for a debug image. """
+
+    # If the output hierarchy is flattened to a single folder, throw away all leading folders.
+    if flatten:
+        path = os.path.basename(image_path)
+
+    # Otherwise, make sure absolute paths are taken relative to the filesystem root.
+    else:
+        # Make sure to drop drive letters on Windows, otherwise relpath wil fail.
+        _, path = os.path.splitdrive(image_path)
+        if os.path.isabs(path):
+            path = os.path.relpath(path, '/')
+
+    # In all cases, append "_debug" to the filename, before the extension.
+    base, extension = os.path.splitext(path)
+    path = base + "_debug" + extension
+
+    # Finally, join the whole thing to the output directory.
+    return os.path.join(output_dir, path)
 
 
 def main(args=None):
@@ -213,8 +293,9 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # make sure keras is the minimum required version
+    # make sure keras and tensorflow are the minimum required version
     check_keras_version()
+    check_tf_version()
 
     # create the generator
     generator = create_generator(args)
@@ -228,14 +309,11 @@ def main(args=None):
     if args.config and 'anchor_parameters' in args.config:
         anchor_params = parse_anchor_parameters(args.config)
 
-    # create the display window
-    cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
+    # create the display window if necessary
+    if not args.no_gui:
+        cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
 
-    if args.loop:
-        while run(generator, args, anchor_params=anchor_params):
-            pass
-    else:
-        run(generator, args, anchor_params=anchor_params)
+    run(generator, args, anchor_params=anchor_params)
 
 
 if __name__ == '__main__':
