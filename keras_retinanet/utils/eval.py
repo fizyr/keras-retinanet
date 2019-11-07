@@ -20,6 +20,7 @@ from .visualization import draw_detections, draw_annotations
 import keras
 import numpy as np
 import os
+import time
 
 import cv2
 import progressbar
@@ -71,6 +72,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         A list of lists containing the detections for each image in the generator.
     """
     all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in range(generator.size())]
+    all_inferences = [None for i in range(generator.size())]
 
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         raw_image    = generator.load_image(i)
@@ -81,7 +83,9 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
             image = image.transpose((2, 0, 1))
 
         # run network
+        start = time.time()
         boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+        inference_time = time.time() - start
 
         # correct boxes for image scale
         boxes /= scale
@@ -113,8 +117,10 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
                 continue
 
             all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
-
-    return all_detections
+            
+        all_inferences[i] =  inference_time
+    
+    return all_detections, all_inferences
 
 
 def _get_annotations(generator):
@@ -165,7 +171,7 @@ def evaluate(
         A dict mapping class names to mAP scores.
     """
     # gather all detections and annotations
-    all_detections     = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
+    all_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_annotations    = _get_annotations(generator)
     average_precisions = {}
 
@@ -232,4 +238,6 @@ def evaluate(
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
 
-    return average_precisions
+        inference_time = np.sum(all_inferences) / generator.size()
+
+    return average_precisions, inference_time
