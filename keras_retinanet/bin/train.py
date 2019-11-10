@@ -412,6 +412,7 @@ def parse_args(args):
     parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu',        help='Number of GPUs to use for parallel processing.', type=int, default=0)
     parser.add_argument('--multi-gpu-force',  help='Extra flag needed to enable (experimental) multi-gpu support.', action='store_true')
+    parser.add_argument('--initial-epoch',    help='Epoch from which to begin the train, useful if resuming with weights.', type=int, default=0)
     parser.add_argument('--epochs',           help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',            help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--lr',               help='Learning rate.', type=float, default=1e-5)
@@ -517,7 +518,8 @@ def main(args=None):
         workers=args.workers,
         use_multiprocessing=args.multiprocessing,
         max_queue_size=args.max_queue_size,
-        validation_data=validation_generator
+        validation_data=validation_generator,
+        initial_epoch=args.initial_epoch
     )
 
 
