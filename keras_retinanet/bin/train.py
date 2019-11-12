@@ -147,6 +147,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     tensorboard_callback = None
 
     if args.tensorboard_dir:
+        makedirs(args.tensorboard_dir)
         tensorboard_callback = keras.callbacks.TensorBoard(
             log_dir                = args.tensorboard_dir,
             histogram_freq         = 0,
@@ -406,13 +407,12 @@ def parse_args(args):
     group.add_argument('--imagenet-weights',  help='Initialize the model with pretrained imagenet weights. This is the default behaviour.', action='store_const', const=True, default=True)
     group.add_argument('--weights',           help='Initialize the model with weights from a file.')
     group.add_argument('--no-weights',        help='Don\'t initialize the model with any weights.', dest='imagenet_weights', action='store_const', const=False)
-
     parser.add_argument('--backbone',         help='Backbone model used by retinanet.', default='resnet50', type=str)
     parser.add_argument('--batch-size',       help='Size of the batches.', default=1, type=int)
     parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).')
     parser.add_argument('--multi-gpu',        help='Number of GPUs to use for parallel processing.', type=int, default=0)
     parser.add_argument('--multi-gpu-force',  help='Extra flag needed to enable (experimental) multi-gpu support.', action='store_true')
-    parser.add_argument('--initial-epoch',    help='Epoch from which to begin the train, useful if resuming with weights.', type=int, default=0)
+    parser.add_argument('--initial-epoch',    help='Epoch from which to begin the train, use if resuming from snapshot.', type=int, default=0)
     parser.add_argument('--epochs',           help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',            help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--lr',               help='Learning rate.', type=float, default=1e-5)
