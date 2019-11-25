@@ -174,10 +174,10 @@ class ClipBoxes(keras.layers.Layer):
             _, height, width, _ = backend.unstack(shape, axis=0)
 
         x1, y1, x2, y2 = backend.unstack(boxes, axis=-1)
-        x1 = backend.clip_by_value(x1, 0, width)
-        y1 = backend.clip_by_value(y1, 0, height)
-        x2 = backend.clip_by_value(x2, 0, width)
-        y2 = backend.clip_by_value(y2, 0, height)
+        x1 = backend.clip_by_value(x1, 0, width  - 1)
+        y1 = backend.clip_by_value(y1, 0, height - 1)
+        x2 = backend.clip_by_value(x2, 0, width  - 1)
+        y2 = backend.clip_by_value(y2, 0, height - 1)
 
         return keras.backend.stack([x1, y1, x2, y2], axis=2)
 
