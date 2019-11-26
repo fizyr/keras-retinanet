@@ -139,11 +139,15 @@ class PascalVocGenerator(Generator):
         image = Image.open(path)
         return float(image.width) / float(image.height)
 
+    def image_path(self, image_index):
+        """ Get the path to an image.
+        """
+        return os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
+
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
-        path = os.path.join(self.data_dir, 'JPEGImages', self.image_names[image_index] + self.image_extension)
-        return read_image_bgr(path)
+        return read_image_bgr(self.image_path(image_index))
 
     def __parse_annotation(self, element):
         """ Parse an annotation given an XML element.

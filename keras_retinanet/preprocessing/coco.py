@@ -111,6 +111,13 @@ class CocoGenerator(Generator):
         """
         return self.coco_labels[label]
 
+    def image_path(self, image_index):
+        """ Returns the image path for image_index.
+        """
+        image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
+        path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
+        return path
+
     def image_aspect_ratio(self, image_index):
         """ Compute the aspect ratio for an image with image_index.
         """
@@ -120,8 +127,7 @@ class CocoGenerator(Generator):
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
-        image_info = self.coco.loadImgs(self.image_ids[image_index])[0]
-        path       = os.path.join(self.data_dir, 'images', self.set_name, image_info['file_name'])
+        path  = self.image_path(image_index)
         return read_image_bgr(path)
 
     def load_annotations(self, image_index):
