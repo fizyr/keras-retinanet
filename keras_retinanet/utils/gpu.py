@@ -34,7 +34,7 @@ def setup_gpu(gpu_id):
                     tf.config.experimental.set_memory_growth(gpu, True)
 
                 # Use only the selcted gpu.
-                tf.config.experimental.set_visible_devices(gpus[gpu_id], 'GPU')
+                tf.config.experimental.set_visible_devices(gpus[int(gpu_id)], 'GPU')
             except RuntimeError as e:
                 # Visible devices must be set before GPUs have been initialized.
                 print(e)
