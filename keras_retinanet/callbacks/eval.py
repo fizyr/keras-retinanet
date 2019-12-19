@@ -45,14 +45,14 @@ class Evaluate(keras.callbacks.Callback):
             weighted_average : Compute the mAP using the weighted average of precisions among classes.
             verbose          : Set the verbosity level, by default this is set to 1.
         """
-        self.generator = generator
-        self.iou_threshold = iou_threshold
+        self.generator       = generator
+        self.iou_threshold   = iou_threshold
         self.score_threshold = score_threshold
-        self.max_detections = max_detections
-        self.save_path = save_path
-        self.tensorboard = tensorboard
+        self.max_detections  = max_detections
+        self.save_path       = save_path
+        self.tensorboard     = tensorboard
         self.weighted_average = weighted_average
-        self.verbose = verbose
+        self.verbose         = verbose
 
         super(Evaluate, self).__init__()
 
@@ -60,7 +60,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions, _, f1_scores = evaluate(
+        average_precisions, _ = evaluate(
             self.generator,
             self.model,
             iou_threshold=self.iou_threshold,
@@ -72,8 +72,6 @@ class Evaluate(keras.callbacks.Callback):
         # compute per class average precision
         total_instances = []
         precisions = []
-        scores = []
-
         for label, (average_precision, num_annotations) in average_precisions.items():
             if self.verbose == 1:
                 print('{:.0f} instances of class'.format(num_annotations),
@@ -81,42 +79,20 @@ class Evaluate(keras.callbacks.Callback):
             total_instances.append(num_annotations)
             precisions.append(average_precision)
         if self.weighted_average:
-            self.mean_ap = sum(
-                [a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
+            self.mean_ap = sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
         else:
-            self.mean_ap = sum(precisions) / \
-                sum(x > 0 for x in total_instances)
-
-        # compute per class F1 score
-        for label, (f1_score, num_annotations) in f1_scores.items():
-            if self.verbose == 1:
-                print('{:.0f} instances of class'.format(num_annotations),
-                      self.generator.label_to_name(label), ' with F1 score: {:.4f}'.format(f1_score))
-            total_instances.append(num_annotations)
-            scores.append(f1_score)
-
-        if self.weighted_average:
-            self.mean_f1_score = sum(
-                [a * b for a, b in zip(total_instances, scores)]) / sum(total_instances)
-        else:
-            self.mean_f1_score = sum(scores) / \
-                sum(x > 0 for x in total_instances)
+            self.mean_ap = sum(precisions) / sum(x > 0 for x in total_instances)
 
         if self.tensorboard:
             import tensorflow as tf
             if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:
                 summary = tf.Summary()
-                summary_value_map = summary.value.add()
-                summary_value_map.simple_value = self.mean_ap
-                summary_value_map.tag = "mAP"
-                summary_value_f1 = summary.value.add()
-                summary_value_f1.simple_value = self.mean_f1_score
-                summary_value_f1.tag = "mF1"
+                summary_value = summary.value.add()
+                summary_value.simple_value = self.mean_ap
+                summary_value.tag = "mAP"
                 self.tensorboard.writer.add_summary(summary, epoch)
 
         logs['mAP'] = self.mean_ap
-        logs['mF1'] = self.mean_f1_score
 
         if self.verbose == 1:
-            print('mAP: {:.4f}\nmF1: {:.4f}'.format(
-                self.mean_ap, self.mean_f1_score))
+            print('mAP: {:.4f}'.format(self.mean_ap))
