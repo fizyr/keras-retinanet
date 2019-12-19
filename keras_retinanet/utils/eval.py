@@ -117,9 +117,9 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
                 continue
 
             all_detections[i][label] = image_detections[image_detections[:, -1] == label, :-1]
-            
-        all_inferences[i] =  inference_time
-    
+
+        all_inferences[i] = inference_time
+
     return all_detections, all_inferences
 
 

@@ -42,7 +42,7 @@ class SeBackbone(Backbone):
 
         weights_path = None
         for el in WEIGHTS_COLLECTION:
-            if el['model'] == self.backbone and el['include_top'] == False:
+            if el['model'] == self.backbone and not el['include_top']:
                 weights_path = get_file(el['name'], el['url'], cache_subdir='models', file_hash=el['md5'])
 
         if weights_path is None:
