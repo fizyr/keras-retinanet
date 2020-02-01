@@ -60,7 +60,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions = evaluate(
+        average_precisions, _ = evaluate(
             self.generator,
             self.model,
             iou_threshold=self.iou_threshold,
@@ -72,7 +72,7 @@ class Evaluate(keras.callbacks.Callback):
         # compute per class average precision
         total_instances = []
         precisions = []
-        for label, (average_precision, num_annotations ) in average_precisions.items():
+        for label, (average_precision, num_annotations) in average_precisions.items():
             if self.verbose == 1:
                 print('{:.0f} instances of class'.format(num_annotations),
                       self.generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))

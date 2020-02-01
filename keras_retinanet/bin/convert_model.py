@@ -30,6 +30,8 @@ if __name__ == "__main__" and __package__ is None:
 from .. import models
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.gpu import setup_gpu
+from ..utils.keras_version import check_keras_version
+from ..utils.tf_version import check_tf_version
 
 
 def parse_args(args):
@@ -50,6 +52,10 @@ def main(args=None):
     if args is None:
         args = sys.argv[1:]
     args = parse_args(args)
+
+    # make sure keras and tensorflow are the minimum required version
+    check_keras_version()
+    check_tf_version()
 
     # set modified tf session to avoid using the GPUs
     setup_gpu('cpu')

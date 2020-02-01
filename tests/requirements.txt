@@ -1,4 +1,6 @@
 check-manifest
+image-classifiers
+efficientnet
 # pytest
 pytest-xdist
 pytest-cov

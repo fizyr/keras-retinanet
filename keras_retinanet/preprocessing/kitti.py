@@ -142,10 +142,15 @@ class KittiGenerator(Generator):
         image = Image.open(self.images[image_index])
         return float(image.width) / float(image.height)
 
+    def image_path(self, image_index):
+        """ Get the path to an image.
+        """
+        return self.images[image_index]
+
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
-        return read_image_bgr(self.images[image_index])
+        return read_image_bgr(self.image_path(image_index))
 
     def load_annotations(self, image_index):
         """ Load annotations for an image_index.

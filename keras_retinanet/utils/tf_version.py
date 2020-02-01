@@ -19,7 +19,7 @@ from __future__ import print_function
 import tensorflow as tf
 import sys
 
-MINIMUM_TF_VERSION = 1, 12, 0
+MINIMUM_TF_VERSION = 1, 14, 0
 
 
 def tf_version():
@@ -37,15 +37,15 @@ def tf_version_ok(minimum_tf_version=MINIMUM_TF_VERSION):
 
 
 def assert_tf_version(minimum_tf_version=MINIMUM_TF_VERSION):
-    """ Assert that the Keras version is up to date.
+    """ Assert that the Tensorflow version is up to date.
     """
     detected = tf.version.VERSION
     required = '.'.join(map(str, minimum_tf_version))
-    assert(tf_version() >= minimum_tf_version), 'You are using tf version {}. The minimum required version is {}.'.format(detected, required)
+    assert(tf_version() >= minimum_tf_version), 'You are using tensorflow version {}. The minimum required version is {}.'.format(detected, required)
 
 
 def check_tf_version():
-    """ Check that the Keras version is up to date. If it isn't, print an error message and exit the script.
+    """ Check that the Tensorflow version is up to date. If it isn't, print an error message and exit the script.
     """
     try:
         assert_tf_version()

@@ -131,6 +131,11 @@ class Generator(keras.utils.Sequence):
         """
         raise NotImplementedError('image_aspect_ratio method not implemented')
 
+    def image_path(self, image_index):
+        """ Get the path to an image.
+        """
+        raise NotImplementedError('image_path method not implemented')
+
     def load_image(self, image_index):
         """ Load an image at the image_index.
         """
@@ -169,14 +174,14 @@ class Generator(keras.utils.Sequence):
 
             # delete invalid indices
             if len(invalid_indices):
-                warnings.warn('Image with id {} (shape {}) contains the following invalid boxes: {}.'.format(
+                warnings.warn('Image {} with id {} (shape {}) contains the following invalid boxes: {}.'.format(
+                    self.image_path(group[index]),
                     group[index],
                     image.shape,
                     annotations['bboxes'][invalid_indices, :]
                 ))
                 for k in annotations_group[index].keys():
                     annotations_group[index][k] = np.delete(annotations[k], invalid_indices, axis=0)
-
         return image_group, annotations_group
 
     def load_image_group(self, group):

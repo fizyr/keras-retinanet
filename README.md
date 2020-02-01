@@ -3,6 +3,10 @@
 Keras implementation of RetinaNet object detection as described in [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002)
 by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
+## Warning
+
+This repository is migrating to (tf-retinanet)[https://github.com/fizyr/tf-retinanet], a `tf.keras` porting of `keras-retinanet`.
+
 ## Installation
 
 1) Clone this repository.
@@ -79,23 +83,6 @@ keras_retinanet/bin/train.py coco /path/to/MS/COCO
 retinanet-train coco /path/to/MS/COCO
 ```
 
-The pretrained MS COCO model can be downloaded [here](https://github.com/fizyr/keras-retinanet/releases). Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.357).
-
-```
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.350
- Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.537
- Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.374
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.191
- Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.383
- Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.472
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.306
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.491
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.533
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.345
- Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.577
- Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.681
-```
-
 For training on Open Images Dataset [OID](https://storage.googleapis.com/openimages/web/index.html)
 or taking place to the [OID challenges](https://storage.googleapis.com/openimages/web/challenge.html), run:
 ```shell
@@ -155,6 +142,40 @@ model.compile(
 ```
 2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.pascal_voc.PascalVocGenerator`](https://github.com/fizyr/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)).
 3) Use `model.fit_generator` to start training.
+
+## Pretrained models
+
+All models can be downloaded from the [releases page](https://github.com/fizyr/keras-retinanet/releases).
+
+### MS COCO
+
+Results using the `cocoapi` are shown below (note: according to the paper, this configuration should achieve a mAP of 0.357).
+
+```
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.350
+ Average Precision  (AP) @[ IoU=0.50      | area=   all | maxDets=100 ] = 0.537
+ Average Precision  (AP) @[ IoU=0.75      | area=   all | maxDets=100 ] = 0.374
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.191
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.383
+ Average Precision  (AP) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.472
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=  1 ] = 0.306
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets= 10 ] = 0.491
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=   all | maxDets=100 ] = 0.533
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= small | maxDets=100 ] = 0.345
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area=medium | maxDets=100 ] = 0.577
+ Average Recall     (AR) @[ IoU=0.50:0.95 | area= large | maxDets=100 ] = 0.681
+```
+
+### Open Images Dataset
+There are 3 RetinaNet models based on ResNet50, ResNet101 and ResNet152 trained on all [500 classes](https://github.com/ZFTurbo/Keras-RetinaNet-for-Open-Images-Challenge-2018/blob/master/a00_utils_and_constants.py#L130) of the Open Images Dataset (thanks to @ZFTurbo).
+
+| Backbone  | Image Size (px) | Small validation mAP | LB (Public) |
+| --------- | --------------- | -------------------- | ----------- |
+| ResNet50  | 768 - 1024      | 0.4594               | 0.4223      |
+| ResNet101 | 768 - 1024      | 0.4986               | 0.4520      |
+| ResNet152 | 600 - 800       | 0.4991               | 0.4651      |
+
+For more information, check [@ZFTurbo's](https://github.com/ZFTurbo/Keras-RetinaNet-for-Open-Images-Challenge-2018) repository.
 
 ## CSV datasets
 The `CSVGenerator` provides an easy way to define your own datasets.
@@ -231,6 +252,7 @@ Example output images using `keras-retinanet` are shown below.
 </p>
 
 ### Projects using keras-retinanet
+* [Improving Apple Detection and Counting Using RetinaNet](https://github.com/nikostsagk/Apple-detection). This work aims to investigate the apple detection problem through the deployment of the Keras RetinaNet.
 * [Improving RetinaNet for CT Lesion Detection with Dense Masks from Weak RECIST Labels](https://arxiv.org/abs/1906.02283). Research project for detecting lesions in CT using keras-retinanet.
 * [NudeNet](https://github.com/bedapudi6788/NudeNet). Project that focuses on detecting and censoring of nudity.
 * [Individual tree-crown detection in RGB imagery using self-supervised deep learning neural networks](https://www.biorxiv.org/content/10.1101/532952v1). Research project focused on improving the performance of remotely sensed tree surveys.
@@ -247,7 +269,8 @@ Example output images using `keras-retinanet` are shown below.
 * [Weights and Biases](https://app.wandb.ai/syllogismos/keras-retinanet/reports?view=carey%2FObject%20Detection%20with%20RetinaNet). Trained keras-retinanet on coco dataset from beginning on resnet50 and resnet101 backends.
 * [Google Open Images Challenge 2018 15th place solution](https://github.com/ZFTurbo/Keras-RetinaNet-for-Open-Images-Challenge-2018). Pretrained weights for keras-retinanet based on ResNet50, ResNet101 and ResNet152 trained on open images dataset. 
 * [poke.AI](https://github.com/Raghav-B/poke.AI). An experimental AI that attempts to master the 3rd Generation Pokemon games. Using keras-retinanet for in-game mapping and localization.
-* [retinanetjs](https://github.com/faustomorales/retinanetjs) A wrapper to run RetinaNet inference in the browser / Node.js. You can also take a look at the [example app](https://faustomorales.github.io/retinanetjs-example-app/).
+* [retinanetjs](https://github.com/faustomorales/retinanetjs). A wrapper to run RetinaNet inference in the browser / Node.js. You can also take a look at the [example app](https://faustomorales.github.io/retinanetjs-example-app/).
+* [CRFNet](https://github.com/TUMFTM/CameraRadarFusionNet). This network fuses radar and camera data to perform object detection for autonomous driving applications.
 
 If you have a project based on `keras-retinanet` and would like to have it published here, shoot me a message on Slack.
 
