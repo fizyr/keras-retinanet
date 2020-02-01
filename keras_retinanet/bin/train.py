@@ -267,6 +267,7 @@ def create_generators(args, preprocess_image):
         train_generator = PascalVocGenerator(
             args.pascal_path,
             'trainval',
+            args.image_extension,
             transform_generator=transform_generator,
             visual_effect_generator=visual_effect_generator,
             **common_args
@@ -275,6 +276,7 @@ def create_generators(args, preprocess_image):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
+            args.image_extension,
             shuffle_groups=False,
             **common_args
         )
@@ -403,6 +405,7 @@ def parse_args(args):
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
 
     group = parser.add_mutually_exclusive_group()
+    group.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
     group.add_argument('--imagenet-weights',  help='Initialize the model with pretrained imagenet weights. This is the default behaviour.', action='store_const', const=True, default=True)
     group.add_argument('--weights',           help='Initialize the model with weights from a file.')
