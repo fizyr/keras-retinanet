@@ -68,7 +68,7 @@ def _compute_f1(recall, precision):
     # to calculate area under PR curve, look for points
     # where X axis (recall) and Y axis(precision) have
     # higher and identical values
-    i = np.where(precision==precision.max() and recall==recall.max() and recall==precision)[0]
+    i = np.where(precision==precision.max() & recall==recall.max() & recall==precision)[0]
 
     # and multiply precision and recall, sum precision 
     # and recall, divide each other and multiply for two
