@@ -18,8 +18,14 @@ import warnings
 import pytest
 import numpy as np
 import keras
+from keras_retinanet import backend
 from keras_retinanet import losses
 from keras_retinanet.models.mobilenet import MobileNetBackbone
+
+
+# Disable Tensorflow 2 behavior as we experience issues with it.
+backend.disable_tensorflow_v2_behavior()
+
 
 alphas = ['1.0']
 parameters = []

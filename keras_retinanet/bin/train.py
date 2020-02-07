@@ -32,6 +32,7 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
+from .. import backend
 from .. import layers  # noqa: F401
 from .. import losses
 from .. import models
@@ -50,6 +51,10 @@ from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
+
+
+# Disable Tensorflow 2 behavior as we experience issues with it.
+backend.disable_tensorflow_v2_behavior()
 
 
 def makedirs(path):
@@ -409,7 +414,7 @@ def parse_args(args):
     group.add_argument('--no-weights',        help='Don\'t initialize the model with any weights.', dest='imagenet_weights', action='store_const', const=False)
     parser.add_argument('--backbone',         help='Backbone model used by retinanet.', default='resnet50', type=str)
     parser.add_argument('--batch-size',       help='Size of the batches.', default=1, type=int)
-    parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).')
+    parser.add_argument('--gpu',              help='Id of the GPU to use (as reported by nvidia-smi).', type=int)
     parser.add_argument('--multi-gpu',        help='Number of GPUs to use for parallel processing.', type=int, default=0)
     parser.add_argument('--multi-gpu-force',  help='Extra flag needed to enable (experimental) multi-gpu support.', action='store_true')
     parser.add_argument('--initial-epoch',    help='Epoch from which to begin the train, useful if resuming from snapshot.', type=int, default=0)

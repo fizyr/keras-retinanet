@@ -17,6 +17,12 @@ limitations under the License.
 import tensorflow
 
 
+def disable_tensorflow_v2_behavior():
+    """ See https://www.tensorflow.org/api_docs/python/tf/compat/v1/disable_tensorflow_v2_behavior .
+    """
+    tensorflow.compat.v1.disable_v2_behavior()
+
+
 def ones(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/ones .
     """
