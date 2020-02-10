@@ -99,6 +99,7 @@ def create_generator(args):
         generator = PascalVocGenerator(
             args.pascal_path,
             args.pascal_set,
+            image_extension=args.image_extension,
             transform_generator=transform_generator,
             visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
@@ -159,6 +160,7 @@ def parse_args(args):
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
     pascal_parser.add_argument('--pascal-set',  help='Name of the set to show (defaults to test).', default='test')
+    pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
 
     kitti_parser = subparsers.add_parser('kitti')
     kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')

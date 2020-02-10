@@ -271,7 +271,8 @@ def create_generators(args, preprocess_image):
     elif args.dataset_type == 'pascal':
         train_generator = PascalVocGenerator(
             args.pascal_path,
-            'trainval',
+            'train',
+            image_extension=args.image_extension,
             transform_generator=transform_generator,
             visual_effect_generator=visual_effect_generator,
             **common_args
@@ -279,7 +280,8 @@ def create_generators(args, preprocess_image):
 
         validation_generator = PascalVocGenerator(
             args.pascal_path,
-            'test',
+            'val',
+            image_extension=args.image_extension,
             shuffle_groups=False,
             **common_args
         )
@@ -388,6 +390,7 @@ def parse_args(args):
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+    pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
 
     kitti_parser = subparsers.add_parser('kitti')
     kitti_parser.add_argument('kitti_path', help='Path to dataset directory (ie. /tmp/kitti).')
