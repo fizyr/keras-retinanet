@@ -16,7 +16,7 @@ cache: pip
 script:
     - python setup.py check -m -s
     - python setup.py build_ext --inplace
-    - travis_wait coverage run --source keras_retinanet -m py.test keras_retinanet tests --doctest-modules --forked --flake8
+    - coverage run --source keras_retinanet -m py.test keras_retinanet tests --doctest-modules --forked --flake8
 
 after_success:
     - coverage xml
