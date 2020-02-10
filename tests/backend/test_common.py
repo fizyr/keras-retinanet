@@ -19,10 +19,6 @@ import keras
 import keras_retinanet.backend
 
 
-# Disable Tensorflow 2 behavior as we experience issues with it.
-keras_retinanet.backend.disable_tensorflow_v2_behavior()
-
-
 def test_bbox_transform_inv():
     boxes = np.array([[
         [100, 100, 200, 200],

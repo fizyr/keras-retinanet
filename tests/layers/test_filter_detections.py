@@ -21,10 +21,6 @@ import keras_retinanet.layers
 import numpy as np
 
 
-# Disable Tensorflow 2 behavior as we experience issues with it.
-keras_retinanet.backend.disable_tensorflow_v2_behavior()
-
-
 class TestFilterDetections(object):
     def test_simple(self):
         # create simple FilterDetections layer

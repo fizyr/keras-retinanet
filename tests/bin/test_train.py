@@ -23,10 +23,6 @@ import warnings
 import pytest
 
 
-# Disable Tensorflow 2 behavior as we experience issues with it.
-keras_retinanet.backend.disable_tensorflow_v2_behavior()
-
-
 @pytest.fixture(autouse=True)
 def clear_session():
     # run before test (do nothing)
