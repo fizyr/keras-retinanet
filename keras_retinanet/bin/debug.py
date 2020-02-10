@@ -94,7 +94,7 @@ def create_generator(args):
         generator = PascalVocGenerator(
             args.pascal_path,
             args.pascal_set,
-            args.image_extension,
+            image_extension=args.image_extension,
             transform_generator=transform_generator,
             visual_effect_generator=visual_effect_generator,
             image_min_side=args.image_min_side,
