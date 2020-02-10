@@ -54,6 +54,7 @@ def create_generator(args):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
+            image_extension=args.image_extension,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config,
@@ -86,6 +87,7 @@ def parse_args(args):
 
     pascal_parser = subparsers.add_parser('pascal')
     pascal_parser.add_argument('pascal_path', help='Path to dataset directory (ie. /tmp/VOCdevkit).')
+    pascal_parser.add_argument('--image-extension',   help='Declares the dataset images\' extension.', default='.jpg')
 
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
