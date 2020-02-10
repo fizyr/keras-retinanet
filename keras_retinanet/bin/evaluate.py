@@ -54,7 +54,7 @@ def create_generator(args):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'test',
-            args.image_extension,
+            image_extension=args.image_extension,
             image_min_side=args.image_min_side,
             image_max_side=args.image_max_side,
             config=args.config,

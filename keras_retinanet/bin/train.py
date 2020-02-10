@@ -267,7 +267,7 @@ def create_generators(args, preprocess_image):
         train_generator = PascalVocGenerator(
             args.pascal_path,
             'train',
-            args.image_extension,
+            image_extension=args.image_extension,
             transform_generator=transform_generator,
             visual_effect_generator=visual_effect_generator,
             **common_args
@@ -276,7 +276,7 @@ def create_generators(args, preprocess_image):
         validation_generator = PascalVocGenerator(
             args.pascal_path,
             'val',
-            args.image_extension,
+            image_extension=args.image_extension,
             shuffle_groups=False,
             **common_args
         )
