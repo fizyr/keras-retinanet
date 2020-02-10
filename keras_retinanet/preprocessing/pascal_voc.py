@@ -77,7 +77,7 @@ class PascalVocGenerator(Generator):
         data_dir,
         set_name,
         classes=voc_classes,
-        image_extension,
+        image_extension='.jpg',
         skip_truncated=False,
         skip_difficult=False,
         **kwargs
