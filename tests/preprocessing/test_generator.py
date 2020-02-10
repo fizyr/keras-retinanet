@@ -35,6 +35,9 @@ class SimpleGenerator(Generator):
     def load_image(self, image_index):
         return self.image
 
+    def image_path(self, image_index):
+        return ''
+
     def size(self):
         return len(self.bboxes)
 

@@ -32,7 +32,6 @@ if __name__ == "__main__" and __package__ is None:
     __package__ = "keras_retinanet.bin"
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
-from .. import backend
 from .. import layers  # noqa: F401
 from .. import losses
 from .. import models
@@ -51,10 +50,6 @@ from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
-
-
-# Disable Tensorflow 2 behavior as we experience issues with it.
-backend.disable_tensorflow_v2_behavior()
 
 
 def makedirs(path):
@@ -425,7 +420,7 @@ def parse_args(args):
     parser.add_argument('--steps',            help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--lr',               help='Learning rate.', type=float, default=1e-5)
     parser.add_argument('--snapshot-path',    help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
-    parser.add_argument('--tensorboard-dir',  help='Log directory for Tensorboard output', default='./logs')
+    parser.add_argument('--tensorboard-dir',  help='Log directory for Tensorboard output', default='')  # default='./logs') => https://github.com/tensorflow/tensorflow/pull/34870
     parser.add_argument('--no-snapshots',     help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',    help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
     parser.add_argument('--freeze-backbone',  help='Freeze training of backbone layers.', action='store_true')
