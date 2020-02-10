@@ -19,7 +19,7 @@ from __future__ import print_function
 import tensorflow as tf
 import sys
 
-MINIMUM_TF_VERSION = 1, 14, 0
+MINIMUM_TF_VERSION = 2, 1, 0
 
 
 def tf_version():
