@@ -68,12 +68,14 @@ def _compute_f1(recall, precision):
     # to calculate area under PR curve, look for points
     # where X axis (recall) and Y axis(precision) have
     # higher and identical values
-    i = np.where((precision==precision.max()) & (recall==recall.max()) & (recall==precision))[0]
+    # i = np.where((precision==precision.max()) & (recall==recall.max()) & (recall==precision))[0]
 
     # and multiply precision and recall, sum precision 
     # and recall, divide each other and multiply for two
-    f1 = np.sum(2 * (precision[i] * recall[i]) / (precision[i] + recall[i]), axis=0)
-    return f1.max()
+    # f1 = np.sum(2 * (precision[i] * recall[i]) / (precision[i] + recall[i]), axis=0)
+
+    f1 = 2*((precision.max()*recall.max())/(precision.max()+recall.max()))
+    return f1 # f1.max()
 
 
 def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
