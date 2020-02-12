@@ -21,6 +21,7 @@ import keras
 from keras_retinanet import losses
 from keras_retinanet.models.mobilenet import MobileNetBackbone
 
+
 alphas = ['1.0']
 parameters = []
 
