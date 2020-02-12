@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import keras
+import keras_retinanet.backend
 import keras_retinanet.layers
 
 import numpy as np
