@@ -117,7 +117,7 @@ def parse_args(args):
 
 
 def main(args=None):
-    # parse argumentsbin
+    # parse arguments
     if args is None:
         args = sys.argv[1:]
     args = parse_args(args)
