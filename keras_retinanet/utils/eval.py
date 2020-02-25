@@ -261,11 +261,11 @@ def evaluate(
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
         
-        # inference time
-        inference_time = np.sum(all_inferences) / generator.size()
-        
         # compute F1 scores
         f1_score = _compute_f1(recall, precision)
         f1_scores[label] = f1_score, num_annotations
+
+    # inference time
+    inference_time = np.sum(all_inferences) / generator.size()
 
     return average_precisions, inference_time, f1_scores
