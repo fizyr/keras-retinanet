@@ -309,6 +309,9 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
 def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     """Compute bounding-box regression targets for an image."""
 
+    # The Mean and std are calculated from COCO dataset.
+    # Bounding box normalization was firstly introduced in the Fast R-CNN paper.
+    # See https://github.com/fizyr/keras-retinanet/issues/1273#issuecomment-585828825  for more details
     if mean is None:
         mean = np.array([0, 0, 0, 0])
     if std is None:
@@ -327,6 +330,9 @@ def bbox_transform(anchors, gt_boxes, mean=None, std=None):
     anchor_widths  = anchors[:, 2] - anchors[:, 0]
     anchor_heights = anchors[:, 3] - anchors[:, 1]
 
+    # According to the information provided by a keras-retinanet author, they got marginally better results using
+    # the following way of bounding box parametrization.
+    # See https://github.com/fizyr/keras-retinanet/issues/1273#issuecomment-585828825 for more details
     targets_dx1 = (gt_boxes[:, 0] - anchors[:, 0]) / anchor_widths
     targets_dy1 = (gt_boxes[:, 1] - anchors[:, 1]) / anchor_heights
     targets_dx2 = (gt_boxes[:, 2] - anchors[:, 2]) / anchor_widths
