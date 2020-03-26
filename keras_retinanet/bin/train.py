@@ -454,7 +454,7 @@ def main(args=None):
     check_tf_version()
 
     # optionally choose specific GPU
-    if args.gpu:
+    if args.gpu is not None:
         setup_gpu(args.gpu)
 
     # optionally load config parameters
