@@ -87,7 +87,7 @@ def load_model(filepath, backbone_name='resnet50'):
     return keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
 
 
-def convert_model(model, nms=True, class_specific_filter=True, anchor_params=None):
+def convert_model(model, nms=True, class_specific_filter=True, anchor_params=None, **kwargs):
     """ Converts a training model to an inference model.
 
     Args
@@ -95,6 +95,7 @@ def convert_model(model, nms=True, class_specific_filter=True, anchor_params=Non
         nms                   : Boolean, whether to add NMS filtering to the converted model.
         class_specific_filter : Whether to use class specific filtering or filter for the best scoring class only.
         anchor_params         : Anchor parameters object. If omitted, default values are used.
+        **kwargs              : Inference and minimal retinanet model settings
 
     Returns
         A keras.models.Model object.
@@ -104,7 +105,7 @@ def convert_model(model, nms=True, class_specific_filter=True, anchor_params=Non
         ValueError: In case of an invalid savefile.
     """
     from .retinanet import retinanet_bbox
-    return retinanet_bbox(model=model, nms=nms, class_specific_filter=class_specific_filter, anchor_params=anchor_params)
+    return retinanet_bbox(model=model, nms=nms, class_specific_filter=class_specific_filter, anchor_params=anchor_params, **kwargs)
 
 
 def assert_training_model(model):

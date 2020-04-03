@@ -290,6 +290,10 @@ def retinanet_bbox(
     class_specific_filter = True,
     name                  = 'retinanet-bbox',
     anchor_params         = None,
+    nms_threshold         = 0.5,
+    score_threshold       = 0.05,
+    max_detections        = 300,
+    parallel_iterations   = 32,
     **kwargs
 ):
     """ Construct a RetinaNet model on top of a backbone and adds convenience functions to output boxes directly.
@@ -303,7 +307,11 @@ def retinanet_bbox(
         class_specific_filter : Whether to use class specific filtering or filter for the best scoring class only.
         name                  : Name of the model.
         anchor_params         : Struct containing anchor parameters. If None, default values are used.
-        *kwargs               : Additional kwargs to pass to the minimal retinanet model.
+        nms_threshold         : Threshold for the IoU value to determine when a box should be suppressed.
+        score_threshold       : Threshold used to prefilter the boxes with.
+        max_detections        : Maximum number of detections to keep.
+        parallel_iterations   : Number of batch items to process in parallel.
+        **kwargs              : Additional kwargs to pass to the minimal retinanet model.
 
     Returns
         A keras.models.Model which takes an image as input and outputs the detections on the image.
@@ -345,7 +353,11 @@ def retinanet_bbox(
     detections = layers.FilterDetections(
         nms                   = nms,
         class_specific_filter = class_specific_filter,
-        name                  = 'filtered_detections'
+        name                  = 'filtered_detections',
+        nms_threshold         = nms_threshold,
+        score_threshold       = score_threshold,
+        max_detections        = max_detections,
+        parallel_iterations   = parallel_iterations
     )([boxes, classification] + other)
 
     # construct the model
