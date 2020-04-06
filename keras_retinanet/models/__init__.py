@@ -95,7 +95,7 @@ def convert_model(model, nms=True, class_specific_filter=True, anchor_params=Non
         nms                   : Boolean, whether to add NMS filtering to the converted model.
         class_specific_filter : Whether to use class specific filtering or filter for the best scoring class only.
         anchor_params         : Anchor parameters object. If omitted, default values are used.
-        **kwargs              : Inference and minimal retinanet model settings
+        **kwargs              : Inference and minimal retinanet model settings.
 
     Returns
         A keras.models.Model object.
