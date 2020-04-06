@@ -78,14 +78,16 @@ def main(args=None):
     models.check_training_model(model)
 
     # convert the model
-    model = models.convert_model(model,
-                                 nms=args.nms,
-                                 class_specific_filter=args.class_specific_filter,
-                                 anchor_params=anchor_parameters,
-                                 nms_threshold=args.nms_threshold,
-                                 score_threshold=args.score_threshold,
-                                 max_detections=args.max_detections,
-                                 parallel_iterations=args.parallel_iterations)
+    model = models.convert_model(
+        model,
+        nms=args.nms,
+        class_specific_filter=args.class_specific_filter,
+        anchor_params=anchor_parameters,
+        nms_threshold=args.nms_threshold,
+        score_threshold=args.score_threshold,
+        max_detections=args.max_detections,
+        parallel_iterations=args.parallel_iterations
+    )
 
     # save model
     model.save(args.model_out)
