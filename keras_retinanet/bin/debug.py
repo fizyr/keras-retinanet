@@ -36,6 +36,9 @@ if __name__ == "__main__" and __package__ is None:
     import keras_retinanet.bin  # noqa: F401
     __package__ = "keras_retinanet.bin"
 
+import tensorflow as tf
+tf.compat.v1.disable_v2_behavior()
+
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..preprocessing.csv_generator import CSVGenerator

@@ -22,6 +22,7 @@ import sys
 import warnings
 
 import tensorflow as tf
+tf.compat.v1.disable_v2_behavior()
 
 # Allow relative imports when being executed as script.
 if __name__ == "__main__" and __package__ is None:
