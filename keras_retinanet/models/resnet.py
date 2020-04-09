@@ -40,7 +40,7 @@ class ResNetBackbone(Backbone):
     def download_imagenet(self):
         """ Downloads ImageNet weights and returns path to weights file.
         """
-        resnet_filename = 'ResNet-{}-model.tf.keras.h5'
+        resnet_filename = 'ResNet-{}-model.keras.h5'
         resnet_resource = 'https://github.com/fizyr/keras-models/releases/download/v0.0.1/{}'.format(resnet_filename)
         depth = int(self.backbone.replace('resnet', ''))
 
