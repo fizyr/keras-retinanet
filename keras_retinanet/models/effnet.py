@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
-from keras.utils import get_file
+import tensorflow as tf
+from tensorflow.keras.utils import get_file
 
 from . import retinanet
 from . import Backbone
@@ -77,11 +77,11 @@ def effnet_retinanet(num_classes, backbone='EfficientNetB0', inputs=None, modifi
     """
     # choose default input
     if inputs is None:
-        if keras.backend.image_data_format() == 'channels_first':
-            inputs = keras.layers.Input(shape=(3, None, None))
+        if tf.keras.backend.image_data_format() == 'channels_first':
+            inputs = tf.keras.layers.Input(shape=(3, None, None))
         else:
-            # inputs = keras.layers.Input(shape=(224, 224, 3))
-            inputs = keras.layers.Input(shape=(None, None, 3))
+            # inputs = tf.keras.layers.Input(shape=(224, 224, 3))
+            inputs = tf.keras.layers.Input(shape=(None, None, 3))
 
     # get last conv layer from the end of each block [28x28, 14x14, 7x7]
     if backbone == 'EfficientNetB0':
@@ -111,7 +111,7 @@ def effnet_retinanet(num_classes, backbone='EfficientNetB0', inputs=None, modifi
         model.get_layer(name=layer_outputs[2]).output,  # 7x7
     ]
     # create the densenet backbone
-    model = keras.models.Model(inputs=inputs, outputs=layer_outputs, name=model.name)
+    model = tf.keras.models.Model(inputs=inputs, outputs=layer_outputs, name=model.name)
 
     # invoke modifier if given
     if modifier:

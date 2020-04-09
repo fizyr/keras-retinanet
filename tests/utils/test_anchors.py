@@ -1,6 +1,6 @@
 import numpy as np
 import configparser
-import keras
+import tensorflow as tf
 
 from keras_retinanet.utils.anchors import anchors_for_shape, AnchorParameters
 from keras_retinanet.utils.config import read_config_file, parse_anchor_parameters
@@ -36,8 +36,8 @@ def test_parse_anchor_parameters():
 
     sizes   = [32, 64, 128, 256, 512]
     strides = [8, 16, 32, 64, 128]
-    ratios  = np.array([0.5, 1], keras.backend.floatx())
-    scales  = np.array([1, 1.2, 1.6], keras.backend.floatx())
+    ratios  = np.array([0.5, 1], tf.keras.backend.floatx())
+    scales  = np.array([1, 1.2, 1.6], tf.keras.backend.floatx())
 
     assert sizes   == anchor_params_parsed.sizes
     assert strides == anchor_params_parsed.strides
@@ -48,8 +48,8 @@ def test_parse_anchor_parameters():
 def test_anchors_for_shape_dimensions():
     sizes   = [32, 64, 128]
     strides = [8, 16, 32]
-    ratios  = np.array([0.5, 1, 2, 3], keras.backend.floatx())
-    scales  = np.array([1, 1.2, 1.6], keras.backend.floatx())
+    ratios  = np.array([0.5, 1, 2, 3], tf.keras.backend.floatx())
+    scales  = np.array([1, 1.2, 1.6], tf.keras.backend.floatx())
     anchor_params = AnchorParameters(sizes, strides, ratios, scales)
 
     pyramid_levels = [3, 4, 5]
@@ -62,8 +62,8 @@ def test_anchors_for_shape_dimensions():
 def test_anchors_for_shape_values():
     sizes   = [12]
     strides = [8]
-    ratios  = np.array([1, 2], keras.backend.floatx())
-    scales  = np.array([1, 2], keras.backend.floatx())
+    ratios  = np.array([1, 2], tf.keras.backend.floatx())
+    scales  = np.array([1, 2], tf.keras.backend.floatx())
     anchor_params = AnchorParameters(sizes, strides, ratios, scales)
 
     pyramid_levels = [3]

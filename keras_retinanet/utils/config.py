@@ -16,7 +16,7 @@ limitations under the License.
 
 import configparser
 import numpy as np
-import keras
+import tensorflow as tf
 from ..utils.anchors import AnchorParameters
 
 
@@ -39,8 +39,8 @@ def read_config_file(config_path):
 
 
 def parse_anchor_parameters(config):
-    ratios  = np.array(list(map(float, config['anchor_parameters']['ratios'].split(' '))), keras.backend.floatx())
-    scales  = np.array(list(map(float, config['anchor_parameters']['scales'].split(' '))), keras.backend.floatx())
+    ratios  = np.array(list(map(float, config['anchor_parameters']['ratios'].split(' '))), tf.keras.backend.floatx())
+    scales  = np.array(list(map(float, config['anchor_parameters']['scales'].split(' '))), tf.keras.backend.floatx())
     sizes   = list(map(int, config['anchor_parameters']['sizes'].split(' ')))
     strides = list(map(int, config['anchor_parameters']['strides'].split(' ')))
 

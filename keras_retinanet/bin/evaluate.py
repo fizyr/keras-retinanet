@@ -32,7 +32,6 @@ from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.eval import evaluate
 from ..utils.gpu import setup_gpu
-from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
 
 
@@ -122,8 +121,7 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # make sure keras and tensorflow are the minimum required version
-    check_keras_version()
+    # make sure tensorflow is the minimum required version
     check_tf_version()
 
     # optionally choose specific GPU

@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
-import keras
+import tensorflow as tf
 import keras_retinanet.backend
 
 
@@ -30,7 +30,7 @@ def test_bbox_transform_inv():
         [80,  120, 200, 300],
         [80,  120, 300, 200],
     ]])
-    boxes = keras.backend.variable(boxes)
+    boxes = tf.keras.backend.variable(boxes)
 
     deltas = np.array([[
         [0   , 0  , 0   , 0   ],
@@ -42,7 +42,7 @@ def test_bbox_transform_inv():
         [0   , 0  , 0.2 , 0.2 ],
         [0.1 , 0.2, -0.3, 0.4 ],
     ]])
-    deltas = keras.backend.variable(deltas)
+    deltas = tf.keras.backend.variable(deltas)
 
     expected = np.array([[
         [100  , 100  , 200   , 200  ],
@@ -56,7 +56,7 @@ def test_bbox_transform_inv():
     ]])
 
     result = keras_retinanet.backend.bbox_transform_inv(boxes, deltas)
-    result = keras.backend.eval(result)
+    result = tf.keras.backend.eval(result)
 
     np.testing.assert_array_almost_equal(result, expected, decimal=2)
 
@@ -71,7 +71,7 @@ def test_shift():
         [-12, -12, 12, 12],
         [-12, -16, 12, 16],
         [-16, -12, 16, 12]
-    ], dtype=keras.backend.floatx())
+    ], dtype=tf.keras.backend.floatx())
 
     expected = [
         # anchors for (0, 0)
@@ -118,6 +118,6 @@ def test_shift():
     ]
 
     result = keras_retinanet.backend.shift(shape, stride, anchors)
-    result = keras.backend.eval(result)
+    result = tf.keras.backend.eval(result)
 
     np.testing.assert_array_equal(result, expected)

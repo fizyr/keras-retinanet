@@ -18,7 +18,7 @@ import numpy as np
 import random
 import warnings
 
-import keras
+import tensorflow as tf
 
 from ..utils.anchors import (
     anchor_targets_bbox,
@@ -36,7 +36,7 @@ from ..utils.image import (
 from ..utils.transform import transform_aabb
 
 
-class Generator(keras.utils.Sequence):
+class Generator(tf.keras.utils.Sequence):
     """ Abstract generator class.
     """
 
@@ -265,7 +265,7 @@ class Generator(keras.utils.Sequence):
         annotations['bboxes'] *= image_scale
 
         # convert to the wanted keras floatx
-        image = keras.backend.cast_to_floatx(image)
+        image = tf.keras.backend.cast_to_floatx(image)
 
         return image, annotations
 
@@ -300,13 +300,13 @@ class Generator(keras.utils.Sequence):
         max_shape = tuple(max(image.shape[x] for image in image_group) for x in range(3))
 
         # construct an image batch object
-        image_batch = np.zeros((self.batch_size,) + max_shape, dtype=keras.backend.floatx())
+        image_batch = np.zeros((self.batch_size,) + max_shape, dtype=tf.keras.backend.floatx())
 
         # copy all images to the upper left part of the image batch object
         for image_index, image in enumerate(image_group):
             image_batch[image_index, :image.shape[0], :image.shape[1], :image.shape[2]] = image
 
-        if keras.backend.image_data_format() == 'channels_first':
+        if tf.keras.backend.image_data_format() == 'channels_first':
             image_batch = image_batch.transpose((0, 3, 1, 2))
 
         return image_batch

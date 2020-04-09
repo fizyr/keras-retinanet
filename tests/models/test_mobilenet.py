@@ -17,7 +17,7 @@ limitations under the License.
 import warnings
 import pytest
 import numpy as np
-import keras
+import tensorflow as tf
 from keras_retinanet import losses
 from keras_retinanet.models.mobilenet import MobileNetBackbone
 
@@ -40,7 +40,7 @@ def test_backbone(backbone, alpha):
     inputs = np.zeros((1, 1024, 363, 3), dtype=np.float32)
     targets = [np.zeros((1, 68760, 5), dtype=np.float32), np.zeros((1, 68760, num_classes + 1))]
 
-    inp = keras.layers.Input(inputs[0].shape)
+    inp = tf.keras.layers.Input(inputs[0].shape)
 
     mobilenet_backbone = MobileNetBackbone(backbone='{}_{}'.format(backbone, format(alpha)))
     training_model = mobilenet_backbone.retinanet(num_classes=num_classes, inputs=inp)
@@ -52,6 +52,6 @@ def test_backbone(backbone, alpha):
             'regression': losses.smooth_l1(),
             'classification': losses.focal()
         },
-        optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001))
+        optimizer=tf.keras.optimizers.Adam(lr=1e-5, clipnorm=0.001))
 
     training_model.fit(inputs, targets, batch_size=1)

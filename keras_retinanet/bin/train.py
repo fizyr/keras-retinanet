@@ -21,8 +21,6 @@ import os
 import sys
 import warnings
 
-import keras
-import keras.preprocessing.image
 import tensorflow as tf
 
 # Allow relative imports when being executed as script.
@@ -46,7 +44,6 @@ from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters
 from ..utils.gpu import setup_gpu
 from ..utils.image import random_visual_effect_generator
-from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
@@ -106,7 +103,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
-        from keras.utils import multi_gpu_model
+        from tensorflow.keras.utils import multi_gpu_model
         with tf.device('/cpu:0'):
             model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
@@ -123,7 +120,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
             'regression'    : losses.smooth_l1(),
             'classification': losses.focal()
         },
-        optimizer=keras.optimizers.adam(lr=lr, clipnorm=0.001)
+        optimizer=tf.keras.optimizers.Adam(lr=lr, clipnorm=0.001)
     )
 
     return model, training_model, prediction_model
@@ -148,7 +145,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     if args.tensorboard_dir:
         makedirs(args.tensorboard_dir)
-        tensorboard_callback = keras.callbacks.TensorBoard(
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(
             log_dir                = args.tensorboard_dir,
             histogram_freq         = 0,
             batch_size             = args.batch_size,
@@ -175,7 +172,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
     if args.snapshots:
         # ensure directory created first; otherwise h5py will error after epoch.
         makedirs(args.snapshot_path)
-        checkpoint = keras.callbacks.ModelCheckpoint(
+        checkpoint = tf.keras.callbacks.ModelCheckpoint(
             os.path.join(
                 args.snapshot_path,
                 '{backbone}_{dataset_type}_{{epoch:02d}}.h5'.format(backbone=args.backbone, dataset_type=args.dataset_type)
@@ -188,7 +185,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         checkpoint = RedirectModel(checkpoint, model)
         callbacks.append(checkpoint)
 
-    callbacks.append(keras.callbacks.ReduceLROnPlateau(
+    callbacks.append(tf.keras.callbacks.ReduceLROnPlateau(
         monitor    = 'loss',
         factor     = 0.1,
         patience   = 2,
@@ -433,9 +430,9 @@ def parse_args(args):
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss', action='store_true')
 
     # Fit generator arguments
-    parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')
+    parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit.', action='store_true')
     parser.add_argument('--workers',          help='Number of generator workers.', type=int, default=1)
-    parser.add_argument('--max-queue-size',   help='Queue length for multiprocessing workers in fit_generator.', type=int, default=10)
+    parser.add_argument('--max-queue-size',   help='Queue length for multiprocessing workers in fit.', type=int, default=10)
 
     return check_args(parser.parse_args(args))
 
@@ -449,8 +446,7 @@ def main(args=None):
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
 
-    # make sure keras and tensorflow are the minimum required version
-    check_keras_version()
+    # make sure tensorflow is the minimum required version
     check_tf_version()
 
     # optionally choose specific GPU
@@ -512,7 +508,7 @@ def main(args=None):
         validation_generator = None
 
     # start training
-    return training_model.fit_generator(
+    return training_model.fit(
         generator=train_generator,
         steps_per_epoch=args.steps,
         epochs=args.epochs,

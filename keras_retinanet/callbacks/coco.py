@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
+import tensorflow as tf
 from ..utils.coco_eval import evaluate_coco
 
 
-class CocoEval(keras.callbacks.Callback):
+class CocoEval(tf.keras.callbacks.Callback):
     """ Performs COCO evaluation on each epoch.
     """
     def __init__(self, generator, tensorboard=None, threshold=0.05):
@@ -57,7 +57,6 @@ class CocoEval(keras.callbacks.Callback):
                 logs[coco_tag[index]] = result
 
             if self.tensorboard:
-                import tensorflow as tf
                 if tf.version.VERSION < '2.0.0' and self.tensorboard.writer:
                     summary = tf.Summary()
                     for index, result in enumerate(coco_eval_stats):

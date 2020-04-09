@@ -22,7 +22,7 @@ This repository is migrating to (tf-retinanet)[https://github.com/fizyr/tf-retin
 An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet.ipynb).
 In general, inference of the network works as follows:
 ```python
-boxes, scores, labels = model.predict_on_batch(inputs)
+boxes, scores, labels = model.predict(inputs)
 ```
 
 Where `boxes` are shaped `(None, None, 4)` (for `(x1, y1, x2, y2)`), scores is shaped `(None, None)` (classification score) and labels is shaped `(None, None)` (label corresponding to the score). In all three outputs, the first dimension represents the shape and the second dimension indexes the list of detections.
@@ -137,11 +137,11 @@ model.compile(
         'regression'    : keras_retinanet.losses.smooth_l1(),
         'classification': keras_retinanet.losses.focal()
     },
-    optimizer=keras.optimizers.adam(lr=1e-5, clipnorm=0.001)
+    optimizer=keras.optimizers.Adam(lr=1e-5, clipnorm=0.001)
 )
 ```
 2) Create generators for training and testing data (an example is show in [`keras_retinanet.preprocessing.pascal_voc.PascalVocGenerator`](https://github.com/fizyr/keras-retinanet/blob/master/keras_retinanet/preprocessing/pascal_voc.py)).
-3) Use `model.fit_generator` to start training.
+3) Use `model.fit` to start training.
 
 ## Pretrained models
 

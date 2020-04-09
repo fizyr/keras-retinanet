@@ -77,14 +77,14 @@ def load_model(filepath, backbone_name='resnet50'):
         backbone_name         : Backbone with which the model was trained.
 
     Returns
-        A keras.models.Model object.
+        A tf.keras.models.Model object.
 
     Raises
         ImportError: if h5py is not available.
         ValueError: In case of an invalid savefile.
     """
-    import keras.models
-    return keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
+    import tensorflow as tf
+    return tf.keras.models.load_model(filepath, custom_objects=backbone(backbone_name).custom_objects)
 
 
 def convert_model(model, nms=True, class_specific_filter=True, anchor_params=None, **kwargs):
@@ -98,7 +98,7 @@ def convert_model(model, nms=True, class_specific_filter=True, anchor_params=Non
         **kwargs              : Inference and minimal retinanet model settings.
 
     Returns
-        A keras.models.Model object.
+        A tf.keras.models.Model object.
 
     Raises
         ImportError: if h5py is not available.

@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
-from keras.utils import get_file
+import tensorflow as tf
+from tensorflow.keras.utils import get_file
 
 from . import retinanet
 from . import Backbone
@@ -80,11 +80,11 @@ def senet_retinanet(num_classes, backbone='seresnext50', inputs=None, modifier=N
     """
     # choose default input
     if inputs is None:
-        if keras.backend.image_data_format() == 'channels_first':
-            inputs = keras.layers.Input(shape=(3, None, None))
+        if tf.keras.backend.image_data_format() == 'channels_first':
+            inputs = tf.keras.layers.Input(shape=(3, None, None))
         else:
-            # inputs = keras.layers.Input(shape=(224, 224, 3))
-            inputs = keras.layers.Input(shape=(None, None, 3))
+            # inputs = tf.keras.layers.Input(shape=(224, 224, 3))
+            inputs = tf.keras.layers.Input(shape=(None, None, 3))
 
     classifier, _ = Classifiers.get(backbone)
     model = classifier(input_tensor=inputs, include_top=False, weights=None)
@@ -113,7 +113,7 @@ def senet_retinanet(num_classes, backbone='seresnext50', inputs=None, modifier=N
         model.get_layer(name=layer_outputs[2]).output,  # 7x7
     ]
     # create the densenet backbone
-    model = keras.models.Model(inputs=inputs, outputs=layer_outputs, name=model.name)
+    model = tf.keras.models.Model(inputs=inputs, outputs=layer_outputs, name=model.name)
 
     # invoke modifier if given
     if modifier:

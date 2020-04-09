@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
+import tensorflow as tf
 from .. import backend
 from ..utils import anchors as utils_anchors
 
 import numpy as np
 
 
-class Anchors(keras.layers.Layer):
+class Anchors(tf.keras.layers.Layer):
     """ Keras layer for generating achors for a given shape.
     """
 
@@ -49,7 +49,7 @@ class Anchors(keras.layers.Layer):
             self.scales  = np.array(scales)
 
         self.num_anchors = len(self.ratios) * len(self.scales)
-        self.anchors     = keras.backend.variable(utils_anchors.generate_anchors(
+        self.anchors     = tf.keras.backend.variable(utils_anchors.generate_anchors(
             base_size=self.size,
             ratios=self.ratios,
             scales=self.scales,
@@ -59,20 +59,20 @@ class Anchors(keras.layers.Layer):
 
     def call(self, inputs, **kwargs):
         features = inputs
-        features_shape = keras.backend.shape(features)
+        features_shape = tf.keras.backend.shape(features)
 
         # generate proposals from bbox deltas and shifted anchors
-        if keras.backend.image_data_format() == 'channels_first':
+        if tf.keras.backend.image_data_format() == 'channels_first':
             anchors = backend.shift(features_shape[2:4], self.stride, self.anchors)
         else:
             anchors = backend.shift(features_shape[1:3], self.stride, self.anchors)
-        anchors = keras.backend.tile(keras.backend.expand_dims(anchors, axis=0), (features_shape[0], 1, 1))
+        anchors = tf.keras.backend.tile(tf.keras.backend.expand_dims(anchors, axis=0), (features_shape[0], 1, 1))
 
         return anchors
 
     def compute_output_shape(self, input_shape):
         if None not in input_shape[1:]:
-            if keras.backend.image_data_format() == 'channels_first':
+            if tf.keras.backend.image_data_format() == 'channels_first':
                 total = np.prod(input_shape[2:4]) * self.num_anchors
             else:
                 total = np.prod(input_shape[1:3]) * self.num_anchors
@@ -93,14 +93,14 @@ class Anchors(keras.layers.Layer):
         return config
 
 
-class UpsampleLike(keras.layers.Layer):
+class UpsampleLike(tf.keras.layers.Layer):
     """ Keras layer for upsampling a Tensor to be the same shape as another Tensor.
     """
 
     def call(self, inputs, **kwargs):
         source, target = inputs
-        target_shape = keras.backend.shape(target)
-        if keras.backend.image_data_format() == 'channels_first':
+        target_shape = tf.keras.backend.shape(target)
+        if tf.keras.backend.image_data_format() == 'channels_first':
             source = backend.transpose(source, (0, 2, 3, 1))
             output = backend.resize_images(source, (target_shape[2], target_shape[3]), method='nearest')
             output = backend.transpose(output, (0, 3, 1, 2))
@@ -109,13 +109,13 @@ class UpsampleLike(keras.layers.Layer):
             return backend.resize_images(source, (target_shape[1], target_shape[2]), method='nearest')
 
     def compute_output_shape(self, input_shape):
-        if keras.backend.image_data_format() == 'channels_first':
+        if tf.keras.backend.image_data_format() == 'channels_first':
             return (input_shape[0][0], input_shape[0][1]) + input_shape[1][2:4]
         else:
             return (input_shape[0][0],) + input_shape[1][1:3] + (input_shape[0][-1],)
 
 
-class RegressBoxes(keras.layers.Layer):
+class RegressBoxes(tf.keras.layers.Layer):
     """ Keras layer for applying regression values to boxes.
     """
 
@@ -162,13 +162,13 @@ class RegressBoxes(keras.layers.Layer):
         return config
 
 
-class ClipBoxes(keras.layers.Layer):
+class ClipBoxes(tf.keras.layers.Layer):
     """ Keras layer to clip box values to lie inside a given shape.
     """
     def call(self, inputs, **kwargs):
         image, boxes = inputs
-        shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())
-        if keras.backend.image_data_format() == 'channels_first':
+        shape = tf.keras.backend.cast(tf.keras.backend.shape(image), tf.keras.backend.floatx())
+        if tf.keras.backend.image_data_format() == 'channels_first':
             _, _, height, width = backend.unstack(shape, axis=0)
         else:
             _, height, width, _ = backend.unstack(shape, axis=0)
@@ -179,7 +179,7 @@ class ClipBoxes(keras.layers.Layer):
         x2 = backend.clip_by_value(x2, 0, width  - 1)
         y2 = backend.clip_by_value(y2, 0, height - 1)
 
-        return keras.backend.stack([x1, y1, x2, y2], axis=2)
+        return tf.keras.backend.stack([x1, y1, x2, y2], axis=2)
 
     def compute_output_shape(self, input_shape):
         return input_shape[1]

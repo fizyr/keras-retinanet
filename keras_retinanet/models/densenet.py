@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
-from keras.applications import densenet
-from keras.utils import get_file
+import tensorflow as tf
+from tensorflow.keras.applications import densenet
+from tensorflow.keras.utils import get_file
 
 from . import retinanet
 from . import Backbone
@@ -50,7 +50,7 @@ class DenseNetBackbone(Backbone):
         file_name = '{}_weights_tf_dim_ordering_tf_kernels_notop.h5'
 
         # load weights
-        if keras.backend.image_data_format() == 'channels_first':
+        if tf.keras.backend.image_data_format() == 'channels_first':
             raise ValueError('Weights for "channels_first" format are not available.')
 
         weights_url = origin + file_name.format(self.backbone)
@@ -84,7 +84,7 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
     """
     # choose default input
     if inputs is None:
-        inputs = keras.layers.Input((None, None, 3))
+        inputs = tf.keras.layers.Input((None, None, 3))
 
     blocks, creator = allowed_backbones[backbone]
     model = creator(input_tensor=inputs, include_top=False, pooling=None, weights=None)
@@ -93,7 +93,7 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
     layer_outputs = [model.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
 
     # create the densenet backbone
-    model = keras.models.Model(inputs=inputs, outputs=layer_outputs[1:], name=model.name)
+    model = tf.keras.models.Model(inputs=inputs, outputs=layer_outputs[1:], name=model.name)
 
     # invoke modifier if given
     if modifier:

@@ -1,11 +1,11 @@
-import keras.callbacks
+import tensorflow as tf
 
 
-class RedirectModel(keras.callbacks.Callback):
+class RedirectModel(tf.keras.callbacks.Callback):
     """Callback which wraps another callback, but executed on a different model.
 
     ```python
-    model = keras.models.load_model('model.h5')
+    model = tf.keras.models.load_model('model.h5')
     model_checkpoint = ModelCheckpoint(filepath='snapshot.h5')
     parallel_model = multi_gpu_model(model, gpus=2)
     parallel_model.fit(X_train, Y_train, callbacks=[RedirectModel(model_checkpoint, model)])

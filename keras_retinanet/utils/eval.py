@@ -17,7 +17,7 @@ limitations under the License.
 from .anchors import compute_overlap
 from .visualization import draw_detections, draw_annotations
 
-import keras
+import tensorflow as tf
 import numpy as np
 import os
 import time
@@ -79,12 +79,12 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image        = generator.preprocess_image(raw_image.copy())
         image, scale = generator.resize_image(image)
 
-        if keras.backend.image_data_format() == 'channels_first':
+        if tf.keras.backend.image_data_format() == 'channels_first':
             image = image.transpose((2, 0, 1))
 
         # run network
         start = time.time()
-        boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))[:3]
+        boxes, scores, labels = model.predict(np.expand_dims(image, axis=0))[:3]
         inference_time = time.time() - start
 
         # correct boxes for image scale

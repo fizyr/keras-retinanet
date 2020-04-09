@@ -2,8 +2,8 @@
 # coding: utf-8
 
 # ## Load necessary modules
-# import keras
-import keras
+# import tensorflow as tf
+import tensorflow as tf
 
 import sys
 sys.path.insert(0, '../')
@@ -73,7 +73,7 @@ image, scale = resize_image(image)
 
 # process image
 start = time.time()
-boxes, scores, labels = model.predict_on_batch(np.expand_dims(image, axis=0))
+boxes, scores, labels = model.predict(np.expand_dims(image, axis=0))
 print("processing time: ", time.time() - start)
 
 # correct for image scale

@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
+import tensorflow as tf
 from ..utils.eval import evaluate
 
 
-class Evaluate(keras.callbacks.Callback):
+class Evaluate(tf.keras.callbacks.Callback):
     """ Evaluation callback for arbitrary datasets.
     """
 
@@ -41,7 +41,7 @@ class Evaluate(keras.callbacks.Callback):
             score_threshold  : The score confidence threshold to use for detections.
             max_detections   : The maximum number of detections to use per image.
             save_path        : The path to save images with visualized detections to.
-            tensorboard      : Instance of keras.callbacks.TensorBoard used to log the mAP value.
+            tensorboard      : Instance of tf.keras.callbacks.TensorBoard used to log the mAP value.
             weighted_average : Compute the mAP using the weighted average of precisions among classes.
             verbose          : Set the verbosity level, by default this is set to 1.
         """
