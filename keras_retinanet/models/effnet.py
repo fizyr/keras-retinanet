@@ -38,13 +38,13 @@ class EfficientNetBackbone(Backbone):
     def download_imagenet(self):
         """ Downloads ImageNet weights and returns path to weights file.
         """
-        from efficientnet.model import BASE_WEIGHTS_PATH
-        from efficientnet.model import WEIGHTS_HASHES
+        from efficientnet.weights import IMAGENET_WEIGHTS_PATH
+        from efficientnet.weights import IMAGENET_WEIGHTS_HASHES
 
         model_name = 'efficientnet-b' + self.backbone[-1]
         file_name = model_name + '_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'
-        file_hash = WEIGHTS_HASHES[model_name][1]
-        weights_path = get_file(file_name, BASE_WEIGHTS_PATH + file_name, cache_subdir='models', file_hash=file_hash)
+        file_hash = IMAGENET_WEIGHTS_HASHES[model_name][1]
+        weights_path = get_file(file_name, IMAGENET_WEIGHTS_PATH + file_name, cache_subdir='models', file_hash=file_hash)
         return weights_path
 
     def validate(self):
