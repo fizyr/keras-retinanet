@@ -199,6 +199,13 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
         min_lr     = 0
     ))
 
+    callbacks.append(keras.callbacks.EarlyStopping(
+        monitor    = 'mAP',
+        patience   = 5,
+        mode       = 'max',
+        min_delta  = 0.01
+    ))
+
     if args.tensorboard_dir:
         callbacks.append(tensorboard_callback)
 
