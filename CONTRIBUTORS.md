@@ -71,3 +71,4 @@ please create an issue or pull request at https://github.com/fizyr/keras-retinan
 * Ben Weinstein
 * Anil Karaka
 * Andrea Panizza
+* Bruno Santos
