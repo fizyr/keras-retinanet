@@ -18,12 +18,13 @@ import keras
 from . import backend
 
 
-def focal(alpha=0.25, gamma=2.0):
+def focal(alpha=0.25, gamma=2.0, cutoff=0.5):
     """ Create a functor for computing the focal loss.
 
     Args
         alpha: Scale the focal weight with alpha.
         gamma: Take the power of the focal weight with gamma.
+        cutoff: Positive prediction cutoff for soft targets
 
     Returns
         A functor that computes the focal loss using the alpha and gamma.
@@ -51,8 +52,8 @@ def focal(alpha=0.25, gamma=2.0):
 
         # compute the focal loss
         alpha_factor = keras.backend.ones_like(labels) * alpha
-        alpha_factor = backend.where(keras.backend.equal(labels, 1), alpha_factor, 1 - alpha_factor)
-        focal_weight = backend.where(keras.backend.equal(labels, 1), 1 - classification, classification)
+        alpha_factor = backend.where(keras.backend.greater(labels, cutoff), alpha_factor, 1 - alpha_factor)
+        focal_weight = backend.where(keras.backend.greater(labels, cutoff), 1 - classification, classification)
         focal_weight = alpha_factor * focal_weight ** gamma
 
         cls_loss = focal_weight * keras.backend.binary_crossentropy(labels, classification)
