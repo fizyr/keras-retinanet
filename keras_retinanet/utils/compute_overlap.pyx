@@ -30,8 +30,8 @@ def compute_overlap(
     cdef unsigned int k, n
     for k in range(K):
         box_area = (
-            (query_boxes[k, 2] - query_boxes[k, 0] ) *
-            (query_boxes[k, 3] - query_boxes[k, 1] )
+            (query_boxes[k, 2] - query_boxes[k, 0]) *
+            (query_boxes[k, 3] - query_boxes[k, 1])
         )
         for n in range(N):
             iw = (
@@ -45,8 +45,8 @@ def compute_overlap(
                 )
                 if ih > 0:
                     ua = np.float64(
-                        (boxes[n, 2] - boxes[n, 0] ) *
-                        (boxes[n, 3] - boxes[n, 1] ) +
+                        (boxes[n, 2] - boxes[n, 0]) *
+                        (boxes[n, 3] - boxes[n, 1]) +
                         box_area - iw * ih
                     )
                     overlaps[n, k] = iw * ih / ua
