@@ -29,8 +29,8 @@ def read_image_bgr(path):
         path: Path to the image.
     """
     # We deliberately don't use cv2.imread here, since it gives no feedback on errors while reading the image.
-    image = np.asarray(Image.open(path).convert('RGB'))
-    return image[:, :, ::-1].copy()
+    image = np.ascontiguousarray(Image.open(path).convert('RGB'))
+    return image[:, :, ::-1]
 
 
 def preprocess_image(x, mode='caffe'):
