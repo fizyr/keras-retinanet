@@ -45,3 +45,8 @@ def parse_anchor_parameters(config):
     strides = list(map(int, config['anchor_parameters']['strides'].split(' ')))
 
     return AnchorParameters(sizes, strides, ratios, scales)
+
+def parse_pyramid_levels(config):
+    levels   = list(map(int, config['pyramid_levels']['P'].split(' ')))
+
+    return levels

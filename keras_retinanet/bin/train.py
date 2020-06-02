@@ -43,7 +43,7 @@ from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
-from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
 from ..utils.image import random_visual_effect_generator
 from ..utils.keras_version import check_keras_version
@@ -102,6 +102,9 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     if config and 'anchor_parameters' in config:
         anchor_params = parse_anchor_parameters(config)
         num_anchors   = anchor_params.num_anchors()
+    if config and 'pyramid_levels' in config:
+        pyramid_levels = parse_pyramid_levels(config)
+        print('pyramid levels are', pyramid_levels)
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
