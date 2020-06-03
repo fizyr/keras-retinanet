@@ -25,7 +25,7 @@ from ..utils.anchors import (
     anchors_for_shape,
     guess_shapes
 )
-from ..utils.config import parse_anchor_parameters
+from ..utils.config import parse_anchor_parameters, parse_pyramid_levels
 from ..utils.image import (
     TransformParameters,
     adjust_transform_for_image,
@@ -313,9 +313,13 @@ class Generator(keras.utils.Sequence):
 
     def generate_anchors(self, image_shape):
         anchor_params = None
+        pyramid_levels = None
         if self.config and 'anchor_parameters' in self.config:
             anchor_params = parse_anchor_parameters(self.config)
-        return anchors_for_shape(image_shape, anchor_params=anchor_params, shapes_callback=self.compute_shapes)
+        if self.config and 'pyramid_levels' in self.config:
+            pyramid_levels = parse_pyramid_levels(self.config)
+
+        return anchors_for_shape(image_shape, anchor_params=anchor_params, pyramid_levels = pyramid_levels, shapes_callback=self.compute_shapes)
 
     def compute_targets(self, image_group, annotations_group):
         """ Compute target outputs for the network using images and their annotations.

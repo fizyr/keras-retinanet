@@ -66,10 +66,15 @@ def main(args=None):
 
     # optionally load config parameters
     anchor_parameters = None
+    pyramid_levels = None
     if args.config:
         args.config = read_config_file(args.config)
         if 'anchor_parameters' in args.config:
             anchor_parameters = parse_anchor_parameters(args.config)
+
+        if 'pyramid_levels' in args.config:
+            pyramid_levels = parse_pyramid_levels(args.config)
+            print('pyramid levels are', pyramid_levels)
 
     # load the model
     model = models.load_model(args.model_in, backbone_name=args.backbone)
@@ -83,6 +88,7 @@ def main(args=None):
         nms=args.nms,
         class_specific_filter=args.class_specific_filter,
         anchor_params=anchor_parameters,
+        pyramid_levels=pyramid_levels,
         nms_threshold=args.nms_threshold,
         score_threshold=args.score_threshold,
         max_detections=args.max_detections,

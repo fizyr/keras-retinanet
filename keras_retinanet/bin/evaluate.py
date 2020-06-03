@@ -144,8 +144,12 @@ def main(args=None):
 
     # optionally load anchor parameters
     anchor_params = None
+    pyramid_levels = None
     if args.config and 'anchor_parameters' in args.config:
         anchor_params = parse_anchor_parameters(args.config)
+    if args.config and 'pyramid_levels' in args.config:
+        pyramid_levels = parse_pyramid_levels(args.config)
+
 
     # load the model
     print('Loading model, this may take a second...')
@@ -154,7 +158,7 @@ def main(args=None):
 
     # optionally convert the model
     if args.convert_model:
-        model = models.convert_model(model, anchor_params=anchor_params)
+        model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
 
     # print model summary
     # print(model.summary())
