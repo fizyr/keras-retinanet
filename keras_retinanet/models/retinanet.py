@@ -157,12 +157,12 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
     # add P4 elementwise to C3
     P3 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C3_reduced')(C3)
     P3 = keras.layers.Add(name='P3_merged')([P4_upsampled, P3])
-    if (C2 is not None) and (2 in pyramid_levels):
+    if C2 is not None and 2 in pyramid_levels:
         P3_upsampled = layers.UpsampleLike(name='P3_upsampled')([P3, C2])
     P3 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P3')(P3)
     output_layers["P3"] = P3
 
-    if (C2 is not None) and (2 in pyramid_levels):
+    if C2 is not None and 2 in pyramid_levels:
         P2 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C2_reduced')(C2)
         P2 = keras.layers.Add(name='P2_merged')([P3_upsampled, P2])
         P2 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P2')(P2)
@@ -171,12 +171,15 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
 
 
     # "P6 is obtained via a 3x3 stride-2 conv on C5"
-    P6 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P6')(C5)
-    output_layers["P6"] = P6
+    if 6 in pyramid_levels:
+        P6 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P6')(C5)
+        output_layers["P6"] = P6
 
 
     # "P7 is computed by applying ReLU followed by a 3x3 stride-2 conv on P6"
     if 7 in pyramid_levels:
+        if 6 not in pyramid_levels:
+            raise ValueError("P6 is required to use P7")
         P7 = keras.layers.Activation('relu', name='C6_relu')(P6)
         P7 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P7')(P7)
         output_layers["P7"] = P7
@@ -306,14 +309,22 @@ def retinanet(
 
     backbone_layer_counter = 0
     backbone_layer_number = len(backbone_layers)
+
+
     if backbone_layer_number < 3:
         raise ValueError('Must provide at least 3 layers for backbone')
 
-    if 2 in pyramid_levels:
-        if backbone_layer_number < 4:
-            raise ValueError('Error: backbone model providing fewer than 4 layers. Need 4 to use P2 pyramid layers. only resenet implemented for P2 layers')
-        else:
+    if backbone_layer_number < 4 and 2 in pyramid_levels:
+        raise ValueError("backbone model providing {} layers. Need 4 backbone layers to use pyramid level 2 layers.\
+         Only resnet returns 4 layers and will work with pyramid level 2 ".format(backbone_layer_number))
+
+    # Resent backbone has 4 usable layers. Other backbone models have 3.
+    if backbone_layer_number >= 4:
+        if 2 in pyramid_levels:
             C2 = backbone_layers[backbone_layer_counter]
+            backbone_layer_counter+=1
+        else:
+            print('using resenet but not using first layer since P2 not used')
             backbone_layer_counter+=1
 
     if 3 in pyramid_levels:
@@ -330,9 +341,12 @@ def retinanet(
 
     if 5 in pyramid_levels:
         C5 = backbone_layers[backbone_layer_counter]
+        backbone_layer_counter+=1
     else:
         raise ValueError("pyramid level 5 and C5 are necessary for code function")
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
+    if backbone_layer_counter != backbone_layer_number:
+        raise ValueError('there were unused layers in the backbone')
 
     features = create_pyramid_features(C3, C4, C5, C2=C2, pyramid_levels=pyramid_levels)
 
