@@ -42,7 +42,7 @@ from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.anchors import anchors_for_shape, compute_gt_annotations
-from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.image import random_visual_effect_generator
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
@@ -179,7 +179,7 @@ def parse_args(args):
     parser.add_argument('--no-resize', help='Disable image resizing.', dest='resize', action='store_false')
     parser.add_argument('--anchors', help='Show positive anchors on the image.', action='store_true')
     parser.add_argument('--display-name', help='Display image name on the bottom left corner.', action='store_true')
-    parser.add_argument('--annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
+    parser.add_argument('--show-annotations', help='Show annotations on the image. Green annotations have anchors, red annotations don\'t and therefore don\'t contribute to training.', action='store_true')
     parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--image-min-side', help='Rescale the image so the smallest side is min_side.', type=int, default=800)
     parser.add_argument('--image-max-side', help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
@@ -191,7 +191,7 @@ def parse_args(args):
     return parser.parse_args(args)
 
 
-def run(generator, args, anchor_params):
+def run(generator, args, anchor_params, pyramid_levels):
     """ Main loop.
 
     Args
@@ -215,7 +215,7 @@ def run(generator, args, anchor_params):
                 image, image_scale = generator.resize_image(image)
                 annotations['bboxes'] *= image_scale
 
-            anchors = anchors_for_shape(image.shape, anchor_params=anchor_params)
+            anchors = anchors_for_shape(image.shape, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
             positive_indices, _, max_indices = compute_gt_annotations(anchors, annotations['bboxes'])
 
             # draw anchors on the image
@@ -223,7 +223,7 @@ def run(generator, args, anchor_params):
                 draw_boxes(image, anchors[positive_indices], (255, 255, 0), thickness=1)
 
             # draw annotations on the image
-            if args.annotations:
+            if args.show_annotations:
                 # draw annotations in red
                 draw_annotations(image, annotations, color=(0, 0, 255), label_to_name=generator.label_to_name)
 
@@ -311,11 +311,14 @@ def main(args=None):
     if args.config and 'anchor_parameters' in args.config:
         anchor_params = parse_anchor_parameters(args.config)
 
+    pyramid_levels = None
+    if args.config and 'pyramid_levels' in args.config:
+        pyramid_levels = parse_pyramid_levels(args.config)
     # create the display window if necessary
     if not args.no_gui:
         cv2.namedWindow('Image', cv2.WINDOW_NORMAL)
 
-    run(generator, args, anchor_params=anchor_params)
+    run(generator, args, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
 
 if __name__ == '__main__':
