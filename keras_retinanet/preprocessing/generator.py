@@ -319,7 +319,7 @@ class Generator(keras.utils.Sequence):
         if self.config and 'pyramid_levels' in self.config:
             pyramid_levels = parse_pyramid_levels(self.config)
 
-        return anchors_for_shape(image_shape, anchor_params=anchor_params, pyramid_levels = pyramid_levels, shapes_callback=self.compute_shapes)
+        return anchors_for_shape(image_shape, anchor_params=anchor_params, pyramid_levels=pyramid_levels, shapes_callback=self.compute_shapes)
 
     def compute_targets(self, image_group, annotations_group):
         """ Compute target outputs for the network using images and their annotations.

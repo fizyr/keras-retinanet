@@ -105,21 +105,20 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
         num_anchors   = anchor_params.num_anchors()
     if config and 'pyramid_levels' in config:
         pyramid_levels = parse_pyramid_levels(config)
-        print('pyramid levels are', pyramid_levels)
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         from keras.utils import multi_gpu_model
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier,pyramid_levels=pyramid_levels), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier, pyramid_levels=pyramid_levels), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
         model          = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier, pyramid_levels=pyramid_levels), weights=weights, skip_mismatch=True)
         training_model = model
 
     # make prediction model
-    prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
+    prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
     # compile model
     training_model.compile(
@@ -488,7 +487,6 @@ def main(args=None):
             anchor_params = parse_anchor_parameters(args.config)
         if args.config and 'pyramid_levels' in args.config:
             pyramid_levels = parse_pyramid_levels(args.config)
-            print('pyramid levels are', pyramid_levels)
 
         prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
     else:

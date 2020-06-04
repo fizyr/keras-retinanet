@@ -215,7 +215,7 @@ def run(generator, args, anchor_params, pyramid_levels):
                 image, image_scale = generator.resize_image(image)
                 annotations['bboxes'] *= image_scale
 
-            anchors = anchors_for_shape(image.shape, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
+            anchors = anchors_for_shape(image.shape, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
             positive_indices, _, max_indices = compute_gt_annotations(anchors, annotations['bboxes'])
 
             # draw anchors on the image

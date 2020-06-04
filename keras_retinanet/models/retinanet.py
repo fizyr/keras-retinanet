@@ -315,10 +315,8 @@ def retinanet(
         raise ValueError('Must provide at least 3 layers for backbone')
 
     if backbone_layer_number < 4 and 2 in pyramid_levels:
-        raise ValueError("backbone model providing {} layers. Need 4 backbone layers to use pyramid level 2 layers.\
-         Only resnet returns 4 layers and will work with pyramid level 2 ".format(backbone_layer_number))
+        raise ValueError("backbone model providing {} layers. Need 4 backbone layers to use pyramid level 2 layers.".format(backbone_layer_number))
 
-    # Resent backbone has 4 usable layers. Other backbone models have 3.
     if backbone_layer_number >= 4:
         if 2 in pyramid_levels:
             C2 = backbone_layers[backbone_layer_counter]
