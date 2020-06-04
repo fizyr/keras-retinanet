@@ -132,11 +132,11 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
         C4           : Feature stage C4 from the backbone.
         C5           : Feature stage C5 from the backbone.
         C2           : Feature stage C2 from the backbone (if pyramid level 2 is in use).
-        pyramid_levels: pyramid levels in use.
+        pyramid_levels: Pyramid levels in use.
         feature_size : The feature size to use for the resulting feature levels.
 
     Returns
-        A list of feature levels. P3, P4, P5, P6 are always included. P2 and P7 included if in use.
+        A list of feature levels. P3, P4, P5, P6 are always included. P2, P6, P7 included if in use.
     """
 
     output_layers = {}
@@ -168,13 +168,10 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
         P2 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P2')(P2)
         output_layers["P2"] = P2
 
-
-
     # "P6 is obtained via a 3x3 stride-2 conv on C5"
     if 6 in pyramid_levels:
         P6 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P6')(C5)
         output_layers["P6"] = P6
-
 
     # "P7 is computed by applying ReLU followed by a 3x3 stride-2 conv on P6"
     if 7 in pyramid_levels:
@@ -184,7 +181,7 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
         P7 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P7')(P7)
         output_layers["P7"] = P7
 
-    return [output_layers['P'+str(p)] for p in pyramid_levels]
+    return [output_layers['P{}'.format(p)] for p in pyramid_levels]
 
 
 
@@ -302,7 +299,7 @@ def retinanet(
         submodels = default_submodels(num_classes, num_anchors)
 
     if pyramid_levels is None:
-        pyramid_levels = [3,4,5,6,7]
+        pyramid_levels = [3, 4, 5, 6, 7]
 
 
     C2, C3, C4, C5 = None, None, None, None
