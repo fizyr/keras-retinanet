@@ -106,4 +106,11 @@ def mobilenet_retinanet(num_classes, backbone='mobilenet224_1.0', inputs=None, m
     if modifier:
         backbone = modifier(backbone)
 
-    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone.outputs, **kwargs)
+    # C2 not provided
+    backbone_layers = {
+        'C3' : backbone.outputs[0],
+        'C4' : backbone.outputs[1],
+        'C5' : backbone.outputs[2]
+        }
+
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone_layers, **kwargs)

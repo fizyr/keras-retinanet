@@ -117,8 +117,15 @@ def effnet_retinanet(num_classes, backbone='EfficientNetB0', inputs=None, modifi
     if modifier:
         model = modifier(model)
 
+    # C2 not provided
+    backbone_layers = {
+        'C3' : model.outputs[0],
+        'C4' : model.outputs[1],
+        'C5' : model.outputs[2]
+        }
+
     # create the full model
-    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=model.outputs, **kwargs)
+    return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone_layers, **kwargs)
 
 
 def EfficientNetB0_retinanet(num_classes, inputs=None, **kwargs):

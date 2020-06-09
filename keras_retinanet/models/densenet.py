@@ -93,13 +93,21 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
     layer_outputs = [model.get_layer(name='conv{}_block{}_concat'.format(idx + 2, block_num)).output for idx, block_num in enumerate(blocks)]
 
     # create the densenet backbone
-    model = keras.models.Model(inputs=inputs, outputs=layer_outputs[1:], name=model.name)
+    # layer_outputs contains 4 layers
+    model = keras.models.Model(inputs=inputs, outputs=layer_outputs, name=model.name)
 
     # invoke modifier if given
     if modifier:
         model = modifier(model)
 
     # create the full model
-    model = retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=model.outputs, **kwargs)
+    backbone_layers = {
+        'C2' : model.outputs[0],
+        'C3' : model.outputs[1],
+        'C4' : model.outputs[2],
+        'C5' : model.outputs[3]
+        }
+
+    model = retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone_layers, **kwargs)
 
     return model

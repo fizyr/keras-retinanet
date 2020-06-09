@@ -136,7 +136,7 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
         feature_size : The feature size to use for the resulting feature levels.
 
     Returns
-        A list of feature levels. P3, P4, P5, P6 are always included. P2, P6, P7 included if in use.
+        output_layers : A dict of feature levels. P3, P4, P5, P6 are always included. P2, P6, P7 included if in use.
     """
 
     output_layers = {}
@@ -181,7 +181,7 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
         P7 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P7')(P7)
         output_layers["P7"] = P7
 
-    return [output_layers['P{}'.format(p)] for p in pyramid_levels]
+    return output_layers
 
 
 
@@ -301,52 +301,27 @@ def retinanet(
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
 
+    C2 = None
 
-    C2, C3, C4, C5 = None, None, None, None
+    C3 = backbone_layers['C3']
+    C4 = backbone_layers['C4']
+    C5 = backbone_layers['C5']
 
-    backbone_layer_counter = 0
-    backbone_layer_number = len(backbone_layers)
-
-
-    if backbone_layer_number < 3:
-        raise ValueError('Must provide at least 3 layers for backbone')
-
-    if backbone_layer_number < 4 and 2 in pyramid_levels:
-        raise ValueError("backbone model providing {} layers. Need 4 backbone layers to use pyramid level 2 layers.".format(backbone_layer_number))
-
-    if backbone_layer_number >= 4:
-        if 2 in pyramid_levels:
-            C2 = backbone_layers[backbone_layer_counter]
-            backbone_layer_counter+=1
+    if 2 in pyramid_levels:
+        if 'C2' in backbone_layers:
+            C2 = backbone_layers['C2']
         else:
-            print('using resenet but not using first layer since P2 not used')
-            backbone_layer_counter+=1
+            raise ValueError('C2 not provided by backbone model. Cannot create P2 layers.')
 
-    if 3 in pyramid_levels:
-        C3 = backbone_layers[backbone_layer_counter]
-        backbone_layer_counter+=1
-    else:
-        raise ValueError("pyramid level 3 and C3 are necessary for code function")
+    if 3 not in pyramid_levels or 4 not in pyramid_levels or 5 not in pyramid_levels:
+        raise ValueError('pyramid levels 3, 4, and 5 required for functionality')
 
-    if 4 in pyramid_levels:
-        C4 = backbone_layers[backbone_layer_counter]
-        backbone_layer_counter+=1
-    else:
-        raise ValueError("pyramid level 4 and C4 are necessary for code function")
-
-    if 5 in pyramid_levels:
-        C5 = backbone_layers[backbone_layer_counter]
-        backbone_layer_counter+=1
-    else:
-        raise ValueError("pyramid level 5 and C5 are necessary for code function")
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
-    if backbone_layer_counter != backbone_layer_number:
-        raise ValueError('there were unused layers in the backbone')
-
     features = create_pyramid_features(C3, C4, C5, C2=C2, pyramid_levels=pyramid_levels)
+    feature_list = [features['P{}'.format(p)] for p in pyramid_levels]
 
     # for all pyramid levels, run available submodels
-    pyramids = __build_pyramid(submodels, features)
+    pyramids = __build_pyramid(submodels, feature_list)
 
     return keras.models.Model(inputs=inputs, outputs=pyramids, name=name)
 
@@ -406,7 +381,7 @@ def retinanet_bbox(
     if pyramid_levels is None:
         pyramid_levels = [3,4,5,6,7]
 
-    pyramid_layer_names = ['P'+str(p) for p in pyramid_levels]
+    pyramid_layer_names = ['P{}'.format(p) for p in pyramid_levels]
     # compute the anchors
     features = [model.get_layer(p_name).output for p_name in pyramid_layer_names]
     anchors  = __build_anchors(anchor_params, features)
