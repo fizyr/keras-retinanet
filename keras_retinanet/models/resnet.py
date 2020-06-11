@@ -111,12 +111,12 @@ def resnet_retinanet(num_classes, backbone='resnet50', inputs=None, modifier=Non
     # create the full model
     # resnet.outputs contains 4 layers
     backbone_layers = {
-        'C2' : resnet.outputs[0],
-        'C3' : resnet.outputs[1],
-        'C4' : resnet.outputs[2],
-        'C5' : resnet.outputs[3]
-        }
-        
+        'C2': resnet.outputs[0],
+        'C3': resnet.outputs[1],
+        'C4': resnet.outputs[2],
+        'C5': resnet.outputs[3]
+    }
+
     return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone_layers, **kwargs)
 
 

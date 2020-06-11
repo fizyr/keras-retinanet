@@ -102,11 +102,11 @@ def densenet_retinanet(num_classes, backbone='densenet121', inputs=None, modifie
 
     # create the full model
     backbone_layers = {
-        'C2' : model.outputs[0],
-        'C3' : model.outputs[1],
-        'C4' : model.outputs[2],
-        'C5' : model.outputs[3]
-        }
+        'C2': model.outputs[0],
+        'C3': model.outputs[1],
+        'C4': model.outputs[2],
+        'C5': model.outputs[3]
+    }
 
     model = retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone_layers, **kwargs)
 

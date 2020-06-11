@@ -488,7 +488,7 @@ def main(args=None):
         if args.config and 'pyramid_levels' in args.config:
             pyramid_levels = parse_pyramid_levels(args.config)
 
-        prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
+        prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
     else:
         weights = args.weights
         # default to imagenet if nothing else is specified

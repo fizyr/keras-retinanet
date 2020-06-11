@@ -124,14 +124,11 @@ def default_regression_model(num_values, num_anchors, pyramid_feature_size=256, 
     return keras.models.Model(inputs=inputs, outputs=outputs, name=name)
 
 
-def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=256):
+def __create_pyramid_features(backbone_layers, pyramid_levels, feature_size=256):
     """ Creates the FPN layers on top of the backbone features.
 
     Args
-        C3           : Feature stage C3 from the backbone.
-        C4           : Feature stage C4 from the backbone.
-        C5           : Feature stage C5 from the backbone.
-        C2           : Feature stage C2 from the backbone (if pyramid level 2 is in use).
+        backbone_layers: a dictionary containing feature stages C3, C4, C5 from the backbone. Also contains C2 if provided.
         pyramid_levels: Pyramid levels in use.
         feature_size : The feature size to use for the resulting feature levels.
 
@@ -142,35 +139,35 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
     output_layers = {}
 
     # upsample C5 to get P5 from the FPN paper
-    P5           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C5_reduced')(C5)
-    P5_upsampled = layers.UpsampleLike(name='P5_upsampled')([P5, C4])
+    P5           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C5_reduced')(backbone_layers['C5'])
+    P5_upsampled = layers.UpsampleLike(name='P5_upsampled')([P5, backbone_layers['C4']])
     P5           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P5')(P5)
     output_layers["P5"] = P5
 
     # add P5 elementwise to C4
-    P4           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C4_reduced')(C4)
+    P4           = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C4_reduced')(backbone_layers['C4'])
     P4           = keras.layers.Add(name='P4_merged')([P5_upsampled, P4])
-    P4_upsampled = layers.UpsampleLike(name='P4_upsampled')([P4, C3])
+    P4_upsampled = layers.UpsampleLike(name='P4_upsampled')([P4, backbone_layers['C3']])
     P4           = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P4')(P4)
     output_layers["P4"] = P4
 
     # add P4 elementwise to C3
-    P3 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C3_reduced')(C3)
+    P3 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C3_reduced')(backbone_layers['C3'])
     P3 = keras.layers.Add(name='P3_merged')([P4_upsampled, P3])
-    if C2 is not None and 2 in pyramid_levels:
-        P3_upsampled = layers.UpsampleLike(name='P3_upsampled')([P3, C2])
+    if 'C2' in backbone_layers and 2 in pyramid_levels:
+        P3_upsampled = layers.UpsampleLike(name='P3_upsampled')([P3, backbone_layers['C2']])
     P3 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P3')(P3)
     output_layers["P3"] = P3
 
-    if C2 is not None and 2 in pyramid_levels:
-        P2 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C2_reduced')(C2)
+    if 'C2' in backbone_layers and 2 in pyramid_levels:
+        P2 = keras.layers.Conv2D(feature_size, kernel_size=1, strides=1, padding='same', name='C2_reduced')(backbone_layers['C2'])
         P2 = keras.layers.Add(name='P2_merged')([P3_upsampled, P2])
         P2 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=1, padding='same', name='P2')(P2)
         output_layers["P2"] = P2
 
     # "P6 is obtained via a 3x3 stride-2 conv on C5"
     if 6 in pyramid_levels:
-        P6 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P6')(C5)
+        P6 = keras.layers.Conv2D(feature_size, kernel_size=3, strides=2, padding='same', name='P6')(backbone_layers['C5'])
         output_layers["P6"] = P6
 
     # "P7 is computed by applying ReLU followed by a 3x3 stride-2 conv on P6"
@@ -182,7 +179,6 @@ def __create_pyramid_features(C3, C4, C5, pyramid_levels, C2=None, feature_size=
         output_layers["P7"] = P7
 
     return output_layers
-
 
 
 def default_submodels(num_classes, num_anchors):
@@ -301,23 +297,14 @@ def retinanet(
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
 
-    C2 = None
-
-    C3 = backbone_layers['C3']
-    C4 = backbone_layers['C4']
-    C5 = backbone_layers['C5']
-
-    if 2 in pyramid_levels:
-        if 'C2' in backbone_layers:
-            C2 = backbone_layers['C2']
-        else:
-            raise ValueError('C2 not provided by backbone model. Cannot create P2 layers.')
+    if 2 in pyramid_levels and 'C2' not in backbone_layers:
+        raise ValueError("C2 not provided by backbone model. Cannot create P2 layers.")
 
     if 3 not in pyramid_levels or 4 not in pyramid_levels or 5 not in pyramid_levels:
-        raise ValueError('pyramid levels 3, 4, and 5 required for functionality')
+        raise ValueError("pyramid levels 3, 4, and 5 required for functionality")
 
     # compute pyramid features as per https://arxiv.org/abs/1708.02002
-    features = create_pyramid_features(C3, C4, C5, C2=C2, pyramid_levels=pyramid_levels)
+    features = create_pyramid_features(backbone_layers, pyramid_levels)
     feature_list = [features['P{}'.format(p)] for p in pyramid_levels]
 
     # for all pyramid levels, run available submodels
@@ -379,7 +366,7 @@ def retinanet_bbox(
         assert_training_model(model)
 
     if pyramid_levels is None:
-        pyramid_levels = [3,4,5,6,7]
+        pyramid_levels = [3, 4, 5, 6, 7]
 
     pyramid_layer_names = ['P{}'.format(p) for p in pyramid_levels]
     # compute the anchors

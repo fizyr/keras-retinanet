@@ -28,7 +28,7 @@ if __name__ == "__main__" and __package__ is None:
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import models
-from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
@@ -74,7 +74,6 @@ def main(args=None):
 
         if 'pyramid_levels' in args.config:
             pyramid_levels = parse_pyramid_levels(args.config)
-            print('pyramid levels are', pyramid_levels)
 
     # load the model
     model = models.load_model(args.model_in, backbone_name=args.backbone)

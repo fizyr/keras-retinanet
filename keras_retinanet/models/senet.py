@@ -121,10 +121,10 @@ def senet_retinanet(num_classes, backbone='seresnext50', inputs=None, modifier=N
 
     # C2 not provided
     backbone_layers = {
-        'C3' : model.outputs[0],
-        'C4' : model.outputs[1],
-        'C5' : model.outputs[2]
-        }
+        'C3': model.outputs[0],
+        'C4': model.outputs[1],
+        'C5': model.outputs[2]
+    }
 
     # create the full model
     return retinanet.retinanet(inputs=inputs, num_classes=num_classes, backbone_layers=backbone_layers, **kwargs)

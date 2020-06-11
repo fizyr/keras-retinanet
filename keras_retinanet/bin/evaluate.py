@@ -29,7 +29,7 @@ from .. import models
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
-from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.eval import evaluate
 from ..utils.gpu import setup_gpu
 from ..utils.keras_version import check_keras_version
@@ -150,7 +150,6 @@ def main(args=None):
     if args.config and 'pyramid_levels' in args.config:
         pyramid_levels = parse_pyramid_levels(args.config)
 
-
     # load the model
     print('Loading model, this may take a second...')
     model = models.load_model(args.model, backbone_name=args.backbone)
@@ -158,7 +157,7 @@ def main(args=None):
 
     # optionally convert the model
     if args.convert_model:
-        model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels = pyramid_levels)
+        model = models.convert_model(model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
     # print model summary
     # print(model.summary())
