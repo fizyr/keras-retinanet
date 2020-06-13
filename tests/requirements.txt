@@ -1,6 +1,7 @@
 check-manifest
 image-classifiers
 efficientnet
+pycocotools
 # pytest
 pytest-xdist
 pytest-cov

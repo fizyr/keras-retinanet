@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+keras_retinanet/utils/compute_overlap.c
 
 # Distribution / packaging
 .Python
@@ -21,3 +22,6 @@ __pycache__/
 .coverage.*
 coverage.xml
 *.cover
+
+# IDE files
+.idea/
