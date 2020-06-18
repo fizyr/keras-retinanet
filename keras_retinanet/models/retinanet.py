@@ -368,6 +368,10 @@ def retinanet_bbox(
     if pyramid_levels is None:
         pyramid_levels = [3, 4, 5, 6, 7]
 
+    assert len(pyramid_levels) == len(anchor_params.sizes), \
+        "number of pyramid levels {} should match number of anchor parameter sizes {}".format(len(pyramid_levels),
+                                                                                              len(anchor_params.sizes))
+
     pyramid_layer_names = ['P{}'.format(p) for p in pyramid_levels]
     # compute the anchors
     features = [model.get_layer(p_name).output for p_name in pyramid_layer_names]

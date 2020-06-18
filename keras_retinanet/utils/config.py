@@ -35,6 +35,9 @@ def read_config_file(config_path):
     assert config_keys <= default_keys, \
         "Malformed config file. These keys are not valid: {}".format(config_keys - default_keys)
 
+    if 'pyramid_levels' in config:
+        assert('P' in config['pyramid_levels']), "pyramid levels specified by P key"
+
     return config
 
 
@@ -43,6 +46,7 @@ def parse_anchor_parameters(config):
     scales  = np.array(list(map(float, config['anchor_parameters']['scales'].split(' '))), keras.backend.floatx())
     sizes   = list(map(int, config['anchor_parameters']['sizes'].split(' ')))
     strides = list(map(int, config['anchor_parameters']['strides'].split(' ')))
+    assert (len(sizes) == len(strides)), "sizes and strides should have an equal number of values"
 
     return AnchorParameters(sizes, strides, ratios, scales)
 
