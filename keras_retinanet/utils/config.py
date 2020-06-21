@@ -36,7 +36,7 @@ def read_config_file(config_path):
         "Malformed config file. These keys are not valid: {}".format(config_keys - default_keys)
 
     if 'pyramid_levels' in config:
-        assert('P' in config['pyramid_levels']), "pyramid levels specified by P key"
+        assert('levels' in config['pyramid_levels']), "pyramid levels specified by levels key"
 
     return config
 
@@ -52,6 +52,6 @@ def parse_anchor_parameters(config):
 
 
 def parse_pyramid_levels(config):
-    levels = list(map(int, config['pyramid_levels']['P'].split(' ')))
+    levels = list(map(int, config['pyramid_levels']['levels'].split(' ')))
 
     return levels
