@@ -347,7 +347,6 @@ def retinanet_bbox(
 
     # apply predicted regression to anchors
     boxes = layers.RegressBoxes(name='boxes')([anchors, regression])
-    boxes = layers.ClipBoxes(name='clipped_boxes')([model.inputs[0], boxes])
 
     # filter detections (apply NMS / score threshold / select top-k)
     detections = layers.FilterDetections(
