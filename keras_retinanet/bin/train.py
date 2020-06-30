@@ -43,7 +43,7 @@ from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
 from ..utils.anchors import make_shapes_callback
-from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
 from ..utils.image import random_visual_effect_generator
 from ..utils.keras_version import check_keras_version
@@ -99,23 +99,26 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
     # load anchor parameters, or pass None (so that defaults will be used)
     anchor_params = None
     num_anchors   = None
+    pyramid_levels = None
     if config and 'anchor_parameters' in config:
         anchor_params = parse_anchor_parameters(config)
         num_anchors   = anchor_params.num_anchors()
+    if config and 'pyramid_levels' in config:
+        pyramid_levels = parse_pyramid_levels(config)
 
     # Keras recommends initialising a multi-gpu model on the CPU to ease weight sharing, and to prevent OOM errors.
     # optionally wrap in a parallel model
     if multi_gpu > 1:
         from keras.utils import multi_gpu_model
         with tf.device('/cpu:0'):
-            model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
+            model = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier, pyramid_levels=pyramid_levels), weights=weights, skip_mismatch=True)
         training_model = multi_gpu_model(model, gpus=multi_gpu)
     else:
-        model          = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier), weights=weights, skip_mismatch=True)
+        model          = model_with_weights(backbone_retinanet(num_classes, num_anchors=num_anchors, modifier=modifier, pyramid_levels=pyramid_levels), weights=weights, skip_mismatch=True)
         training_model = model
 
     # make prediction model
-    prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
+    prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
 
     # compile model
     training_model.compile(
@@ -480,9 +483,13 @@ def main(args=None):
         model            = models.load_model(args.snapshot, backbone_name=args.backbone)
         training_model   = model
         anchor_params    = None
+        pyramid_levels   = None
         if args.config and 'anchor_parameters' in args.config:
             anchor_params = parse_anchor_parameters(args.config)
-        prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params)
+        if args.config and 'pyramid_levels' in args.config:
+            pyramid_levels = parse_pyramid_levels(args.config)
+
+        prediction_model = retinanet_bbox(model=model, anchor_params=anchor_params, pyramid_levels=pyramid_levels)
     else:
         weights = args.weights
         # default to imagenet if nothing else is specified

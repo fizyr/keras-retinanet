@@ -28,7 +28,7 @@ if __name__ == "__main__" and __package__ is None:
 
 # Change these to absolute imports if you copy this script outside the keras_retinanet package.
 from .. import models
-from ..utils.config import read_config_file, parse_anchor_parameters
+from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
 from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
@@ -66,10 +66,14 @@ def main(args=None):
 
     # optionally load config parameters
     anchor_parameters = None
+    pyramid_levels = None
     if args.config:
         args.config = read_config_file(args.config)
         if 'anchor_parameters' in args.config:
             anchor_parameters = parse_anchor_parameters(args.config)
+
+        if 'pyramid_levels' in args.config:
+            pyramid_levels = parse_pyramid_levels(args.config)
 
     # load the model
     model = models.load_model(args.model_in, backbone_name=args.backbone)
@@ -83,6 +87,7 @@ def main(args=None):
         nms=args.nms,
         class_specific_filter=args.class_specific_filter,
         anchor_params=anchor_parameters,
+        pyramid_levels=pyramid_levels,
         nms_threshold=args.nms_threshold,
         score_threshold=args.score_threshold,
         max_detections=args.max_detections,
