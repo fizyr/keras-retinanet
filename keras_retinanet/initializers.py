@@ -15,8 +15,8 @@ limitations under the License.
 """
 
 import keras
+import keras.backend as K
 
-import numpy as np
 import math
 
 
@@ -34,6 +34,6 @@ class PriorProbability(keras.initializers.Initializer):
 
     def __call__(self, shape, dtype=None):
         # set bias to -log((1 - p)/p) for foreground
-        result = np.ones(shape, dtype=dtype) * -math.log((1 - self.probability) / self.probability)
+        result = K.ones(shape, dtype=dtype) * -math.log((1 - self.probability) / self.probability)
 
         return result
