@@ -32,7 +32,17 @@ def transpose(*args, **kwargs):
 def map_fn(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/map_fn .
     """
-    return tensorflow.map_fn(*args, **kwargs)
+
+    shapes = kwargs.pop("shapes")
+    dtype = kwargs.pop("dtype")
+    sig = [tensorflow.TensorSpec(shapes[i], dtype=t) for i, t in
+           enumerate(dtype)]
+    try:
+        return tensorflow.map_fn(*args, **kwargs, fn_output_signature=sig)
+    except TypeError:
+        pass
+
+    return tensorflow.map_fn(*args, **kwargs, dtype=dtype)
 
 
 def pad(*args, **kwargs):
