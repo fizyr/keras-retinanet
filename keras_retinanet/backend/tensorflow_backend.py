@@ -33,18 +33,19 @@ def map_fn(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/map_fn .
     """
 
-    shapes = kwargs.pop("shapes")
-    dtype = kwargs.pop("dtype")
-    sig = [tensorflow.TensorSpec(shapes[i], dtype=t) for i, t in
-           enumerate(dtype)]
+    if "shapes" in kwargs:
+        shapes = kwargs.pop("shapes")
+        dtype = kwargs.pop("dtype")
+        sig = [tensorflow.TensorSpec(shapes[i], dtype=t) for i, t in
+               enumerate(dtype)]
 
-    # Try to use the new feature fn_output_signature in TF 2.3, use fallback if this is not available
-    try:
-        return tensorflow.map_fn(*args, **kwargs, fn_output_signature=sig)
-    except TypeError:
-        pass
+        # Try to use the new feature fn_output_signature in TF 2.3, use fallback if this is not available
+        try:
+            return tensorflow.map_fn(*args, **kwargs, fn_output_signature=sig)
+        except TypeError:
+            kwargs["dtype"] = dtype
 
-    return tensorflow.map_fn(*args, **kwargs, dtype=dtype)
+    return tensorflow.map_fn(*args, **kwargs)
 
 
 def pad(*args, **kwargs):
