@@ -16,7 +16,6 @@ limitations under the License.
 
 import keras
 from .. import backend
-import  tensorflow
 
 
 def filter_detections(
