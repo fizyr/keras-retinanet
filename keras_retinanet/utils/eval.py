@@ -56,6 +56,28 @@ def _compute_ap(recall, precision):
     return ap
 
 
+def _compute_f1(recall, precision):
+    """
+    # Arguments
+        recall:    The recall curve (list).
+        precision: The precision curve (list).
+    # Returns
+        The F1 score
+    """
+
+    # to calculate area under PR curve, look for points
+    # where X axis (recall) and Y axis(precision) have
+    # higher and identical values
+    # i = np.where((precision==precision.max()) & (recall==recall.max()) & (recall==precision))[0]
+
+    # and multiply precision and recall, sum precision 
+    # and recall, divide each other and multiply for two
+    # f1 = np.sum(2 * (precision[i] * recall[i]) / (precision[i] + recall[i]), axis=0)
+
+    f1 = 2*((precision.max()*recall.max())/(precision.max()+recall.max()))
+    return f1 # f1.max()
+
+
 def _get_detections(generator, model, score_threshold=0.05, max_detections=100, save_path=None):
     """ Get the detections from the model using the generator.
 
@@ -174,6 +196,7 @@ def evaluate(
     all_detections, all_inferences = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections, save_path=save_path)
     all_annotations    = _get_annotations(generator)
     average_precisions = {}
+    f1_scores = {}
 
     # all_detections = pickle.load(open('all_detections.pkl', 'rb'))
     # all_annotations = pickle.load(open('all_annotations.pkl', 'rb'))
@@ -237,8 +260,12 @@ def evaluate(
         # compute average precision
         average_precision  = _compute_ap(recall, precision)
         average_precisions[label] = average_precision, num_annotations
+        
+        # compute F1 scores
+        f1_score = _compute_f1(recall, precision)
+        f1_scores[label] = f1_score, num_annotations
 
     # inference time
     inference_time = np.sum(all_inferences) / generator.size()
 
-    return average_precisions, inference_time
+    return average_precisions, inference_time, f1_scores
