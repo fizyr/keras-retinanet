@@ -272,6 +272,8 @@ Example output images using `keras-retinanet` are shown below.
 * [poke.AI](https://github.com/Raghav-B/poke.AI). An experimental AI that attempts to master the 3rd Generation Pokemon games. Using keras-retinanet for in-game mapping and localization.
 * [retinanetjs](https://github.com/faustomorales/retinanetjs). A wrapper to run RetinaNet inference in the browser / Node.js. You can also take a look at the [example app](https://faustomorales.github.io/retinanetjs-example-app/).
 * [CRFNet](https://github.com/TUMFTM/CameraRadarFusionNet). This network fuses radar and camera data to perform object detection for autonomous driving applications.
+* [LogoDet](https://github.com/notAI-tech/LogoDet). Project for detecting company logos in images.
+
 
 If you have a project based on `keras-retinanet` and would like to have it published here, shoot me a message on Slack.
 
