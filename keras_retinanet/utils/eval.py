@@ -76,8 +76,12 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         raw_image    = generator.load_image(i)
-        image        = generator.preprocess_image(raw_image.copy())
-        image, scale = generator.resize_image(image)
+        if generator.resize_invariant_preprocessing:
+            image = generator.preprocess_image(raw_image.copy())
+            image, scale = generator.resize_image(image)
+        else:
+            image = generator.preprocess_image(raw_image.copy())
+            image, scale = generator.resize_image(image)
 
         if keras.backend.image_data_format() == 'channels_first':
             image = image.transpose((2, 0, 1))
