@@ -77,8 +77,8 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         raw_image    = generator.load_image(i)
         if generator.resize_invariant_preprocessing:
-            image = generator.preprocess_image(raw_image.copy())
             image, scale = generator.resize_image(image)
+            image = generator.preprocess_image(raw_image.copy())
         else:
             image = generator.preprocess_image(raw_image.copy())
             image, scale = generator.resize_image(image)
