@@ -71,19 +71,19 @@ class Generator(keras.utils.Sequence):
             compute_shapes         : Function handler for computing the shapes of the pyramid for a given input.
             preprocess_image       : Function handler for preprocessing an image (scaling / normalizing) for passing through a network.
         """
-        self.transform_generator    = transform_generator
-        self.visual_effect_generator = visual_effect_generator
-        self.batch_size             = int(batch_size)
-        self.group_method           = group_method
-        self.shuffle_groups         = shuffle_groups
-        self.image_min_side         = image_min_side
-        self.image_max_side         = image_max_side
-        self.no_resize              = no_resize
-        self.transform_parameters   = transform_parameters or TransformParameters()
-        self.compute_anchor_targets = compute_anchor_targets
-        self.compute_shapes         = compute_shapes
-        self.preprocess_image       = preprocess_image
-        self.config                 = config
+        self.transform_generator            = transform_generator
+        self.visual_effect_generator        = visual_effect_generator
+        self.batch_size                     = int(batch_size)
+        self.group_method                   = group_method
+        self.shuffle_groups                 = shuffle_groups
+        self.image_min_side                 = image_min_side
+        self.image_max_side                 = image_max_side
+        self.no_resize                      = no_resize
+        self.transform_parameters           = transform_parameters or TransformParameters()
+        self.compute_anchor_targets         = compute_anchor_targets
+        self.compute_shapes                 = compute_shapes
+        self.preprocess_image               = preprocess_image
+        self.config                         = config
 
         # Define groups
         self.group_images()
@@ -255,11 +255,11 @@ class Generator(keras.utils.Sequence):
     def preprocess_group_entry(self, image, annotations):
         """ Preprocess image and its annotations.
         """
-        # preprocess the image
-        image = self.preprocess_image(image)
-
         # resize image
         image, image_scale = self.resize_image(image)
+
+        # preprocess the image
+        image = self.preprocess_image(image)
 
         # apply resizing to annotations too
         annotations['bboxes'] *= image_scale
