@@ -54,7 +54,6 @@ class Generator(keras.utils.Sequence):
         compute_anchor_targets=anchor_targets_bbox,
         compute_shapes=guess_shapes,
         preprocess_image=preprocess_image,
-        resize_invariant_preprocessing=True,
         config=None
     ):
         """ Initialize Generator object.
@@ -84,7 +83,6 @@ class Generator(keras.utils.Sequence):
         self.compute_anchor_targets         = compute_anchor_targets
         self.compute_shapes                 = compute_shapes
         self.preprocess_image               = preprocess_image
-        self.resize_invariant_preprocessing = resize_invariant_preprocessing
         self.config                         = config
 
         # Define groups
@@ -257,20 +255,11 @@ class Generator(keras.utils.Sequence):
     def preprocess_group_entry(self, image, annotations):
         """ Preprocess image and its annotations.
         """
-        if self.resize_invariant_preprocessing:
-            # this order is quicker
+        # resize image
+        image, image_scale = self.resize_image(image)
 
-            # resize image
-            image, image_scale = self.resize_image(image)
-
-            # preprocess the image
-            image = self.preprocess_image(image)
-        else:
-            # preprocess the image
-            image = self.preprocess_image(image)
-
-            # resize image
-            image, image_scale = self.resize_image(image)
+        # preprocess the image
+        image = self.preprocess_image(image)
 
         # apply resizing to annotations too
         annotations['bboxes'] *= image_scale
