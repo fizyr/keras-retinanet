@@ -49,11 +49,12 @@ class Anchors(keras.layers.Layer):
             self.scales  = np.array(scales)
 
         self.num_anchors = len(self.ratios) * len(self.scales)
-        self.anchors     = keras.backend.variable(utils_anchors.generate_anchors(
+        self.num_anchors = len(self.ratios) * len(self.scales)
+        self.anchors = utils_anchors.generate_anchors(
             base_size=self.size,
             ratios=self.ratios,
             scales=self.scales,
-        ))
+        ).astype(np.float32)
 
         super(Anchors, self).__init__(*args, **kwargs)
 
