@@ -230,6 +230,7 @@ def create_generators(args, preprocess_image):
         'image_max_side'   : args.image_max_side,
         'no_resize'        : args.no_resize,
         'preprocess_image' : preprocess_image,
+        'group_method'     : args.group_method
     }
 
     # create random transform generator for augmenting training data
@@ -444,6 +445,7 @@ def parse_args(args):
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss', action='store_true')
     parser.add_argument('--reduce-lr-patience', help='Reduce learning rate after validation loss decreases over reduce_lr_patience epochs', type=int, default=2)
     parser.add_argument('--reduce-lr-factor', help='When learning rate is reduced due to reduce_lr_patience, multiply by reduce_lr_factor', type=float, default=0.1)
+    parser.add_argument('--group-method',     help='Determines how images are grouped together', type=str, default='ratio', choices=['none', 'random', 'ratio'])
 
     # Fit generator arguments
     parser.add_argument('--multiprocessing',  help='Use multiprocessing in fit_generator.', action='store_true')

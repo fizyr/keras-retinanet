@@ -40,7 +40,12 @@ def create_generator(args, preprocess_image):
     """ Create generators for evaluation.
     """
     common_args = {
-        'preprocess_image': preprocess_image,
+        'config'           : args.config,
+        'image_min_side'   : args.image_min_side,
+        'image_max_side'   : args.image_max_side,
+        'no_resize'        : args.no_resize,
+        'preprocess_image' : preprocess_image,
+        'group_method'     : args.group_method
     }
 
     if args.dataset_type == 'coco':
@@ -50,11 +55,7 @@ def create_generator(args, preprocess_image):
         validation_generator = CocoGenerator(
             args.coco_path,
             'val2017',
-            image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side,
-            config=args.config,
             shuffle_groups=False,
-            no_resize=args.no_resize,
             **common_args
         )
     elif args.dataset_type == 'pascal':
@@ -62,22 +63,14 @@ def create_generator(args, preprocess_image):
             args.pascal_path,
             'test',
             image_extension=args.image_extension,
-            image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side,
-            config=args.config,
             shuffle_groups=False,
-            no_resize=args.no_resize,
             **common_args
         )
     elif args.dataset_type == 'csv':
         validation_generator = CSVGenerator(
             args.annotations,
             args.classes,
-            image_min_side=args.image_min_side,
-            image_max_side=args.image_max_side,
-            config=args.config,
             shuffle_groups=False,
-            no_resize=args.no_resize,
             **common_args
         )
     else:
@@ -116,6 +109,7 @@ def parse_args(args):
     parser.add_argument('--image-max-side',   help='Rescale the image if the largest side is larger than max_side.', type=int, default=1333)
     parser.add_argument('--no-resize',        help='Don''t rescale the image.', action='store_true')
     parser.add_argument('--config',           help='Path to a configuration parameters .ini file (only used with --convert-model).')
+    parser.add_argument('--group-method',     help='Determines how images are grouped together', type=str, default='ratio', choices=['none', 'random', 'ratio'])
 
     return parser.parse_args(args)
 
