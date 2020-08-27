@@ -77,7 +77,7 @@ def model_with_weights(model, weights, skip_mismatch):
 
 
 def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
-                  freeze_backbone=False, lr=1e-5, config=None):
+                  freeze_backbone=False, lr=1e-5, optimizer_clipnorm=0.001, config=None):
     """ Creates three models (model, training_model, prediction_model).
 
     Args
@@ -126,7 +126,7 @@ def create_models(backbone_retinanet, num_classes, weights, multi_gpu=0,
             'regression'    : losses.smooth_l1(),
             'classification': losses.focal()
         },
-        optimizer=keras.optimizers.Adam(lr=lr, clipnorm=0.001)
+        optimizer=keras.optimizers.Adam(lr=lr, clipnorm=optimizer_clipnorm)
     )
 
     return model, training_model, prediction_model
@@ -151,6 +151,9 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
 
     if args.tensorboard_dir:
         makedirs(args.tensorboard_dir)
+        update_freq = args.tensorboard_freq
+        if update_freq not in ['epoch', 'batch']:
+            update_freq = int(update_freq)
         tensorboard_callback = keras.callbacks.TensorBoard(
             log_dir                = args.tensorboard_dir,
             histogram_freq         = 0,
@@ -158,6 +161,7 @@ def create_callbacks(model, training_model, prediction_model, validation_generat
             write_graph            = True,
             write_grads            = False,
             write_images           = False,
+            update_freq            = update_freq,
             embeddings_freq        = 0,
             embeddings_layer_names = None,
             embeddings_metadata    = None
@@ -431,8 +435,10 @@ def parse_args(args):
     parser.add_argument('--epochs',           help='Number of epochs to train.', type=int, default=50)
     parser.add_argument('--steps',            help='Number of steps per epoch.', type=int, default=10000)
     parser.add_argument('--lr',               help='Learning rate.', type=float, default=1e-5)
+    parser.add_argument('--optimizer-clipnorm', help='Clipnorm parameter for  optimizer.', type=float, default=0.001)
     parser.add_argument('--snapshot-path',    help='Path to store snapshots of models during training (defaults to \'./snapshots\')', default='./snapshots')
     parser.add_argument('--tensorboard-dir',  help='Log directory for Tensorboard output', default='')  # default='./logs') => https://github.com/tensorflow/tensorflow/pull/34870
+    parser.add_argument('--tensorboard-freq', help='Update frequency for Tensorboard output. Values \'epoch\', \'batch\' or int', default='epoch')
     parser.add_argument('--no-snapshots',     help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation',    help='Disable per epoch evaluation.', dest='evaluation', action='store_false')
     parser.add_argument('--freeze-backbone',  help='Freeze training of backbone layers.', action='store_true')
@@ -506,6 +512,7 @@ def main(args=None):
             multi_gpu=args.multi_gpu,
             freeze_backbone=args.freeze_backbone,
             lr=args.lr,
+            optimizer_clipnorm=args.optimizer_clipnorm,
             config=args.config
         )
 
