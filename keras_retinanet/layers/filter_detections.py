@@ -172,11 +172,15 @@ class FilterDetections(keras.layers.Layer):
             )
 
         # call filter_detections on each batch
+        dtypes = [keras.backend.floatx(), keras.backend.floatx(), 'int32'] + [o.dtype for o in other]
+        shapes = [(self.max_detections,4), (self.max_detections,), (self.max_detections),]
+        shapes.extend([(self.max_detections,) + o.shape[2:] for o in other])
         outputs = backend.map_fn(
             _filter_detections,
             elems=[boxes, classification, other],
-            dtype=[keras.backend.floatx(), keras.backend.floatx(), 'int32'] + [o.dtype for o in other],
-            parallel_iterations=self.parallel_iterations
+            dtype=dtypes,
+            shapes=shapes,
+            parallel_iterations=self.parallel_iterations,
         )
 
         return outputs
