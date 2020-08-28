@@ -53,7 +53,7 @@ setuptools.setup(
     maintainer_email = 'h.gaiser@fizyr.com',
     cmdclass         = {'build_ext': BuildExtension},
     packages         = setuptools.find_packages(),
-    install_requires = ['tensorflow', 'keras-resnet==0.2.0', 'six', 'scipy', 'cython', 'Pillow', 'opencv-python', 'progressbar2'],
+    install_requires = ['keras-resnet==0.2.0', 'six', 'scipy', 'cython', 'Pillow', 'opencv-python', 'progressbar2'],
     entry_points     = {
         'console_scripts': [
             'retinanet-train=keras_retinanet.bin.train:main',
