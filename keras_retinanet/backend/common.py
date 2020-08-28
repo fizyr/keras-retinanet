@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras.backend
+from tensorflow import keras
 from .dynamic import meshgrid
 
 

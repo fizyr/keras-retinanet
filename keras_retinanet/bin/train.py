@@ -21,8 +21,7 @@ import os
 import sys
 import warnings
 
-import keras
-import keras.preprocessing.image
+from tensorflow import keras
 import tensorflow as tf
 
 # Allow relative imports when being executed as script.
