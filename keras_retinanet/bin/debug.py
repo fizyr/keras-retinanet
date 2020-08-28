@@ -44,7 +44,6 @@ from ..preprocessing.open_images import OpenImagesGenerator
 from ..utils.anchors import anchors_for_shape, compute_gt_annotations
 from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.image import random_visual_effect_generator
-from ..utils.keras_version import check_keras_version
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
 from ..utils.visualization import draw_annotations, draw_boxes, draw_caption
@@ -293,8 +292,7 @@ def main(args=None):
         args = sys.argv[1:]
     args = parse_args(args)
 
-    # make sure keras and tensorflow are the minimum required version
-    check_keras_version()
+    # make sure tensorflow is the minimum required version
     check_tf_version()
 
     # create the generator

@@ -45,7 +45,6 @@ from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.gpu import setup_gpu
 from ..utils.image import random_visual_effect_generator
-from ..utils.keras_version import check_keras_version
 from ..utils.model import freeze as freeze_model
 from ..utils.tf_version import check_tf_version
 from ..utils.transform import random_transform_generator
@@ -469,8 +468,7 @@ def main(args=None):
     # create object that stores backbone information
     backbone = models.backbone(args.backbone)
 
-    # make sure keras and tensorflow are the minimum required version
-    check_keras_version()
+    # make sure tensorflow is the minimum required version
     check_tf_version()
 
     # optionally choose specific GPU
