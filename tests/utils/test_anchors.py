@@ -1,6 +1,6 @@
 import numpy as np
 import configparser
-import keras
+from tensorflow import keras
 
 from keras_retinanet.utils.anchors import anchors_for_shape, AnchorParameters
 from keras_retinanet.utils.config import read_config_file, parse_anchor_parameters
