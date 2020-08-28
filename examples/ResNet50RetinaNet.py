@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# ## Load necessary modules
-# import keras
-import keras
+# Load necessary modules
+from tensorflow import keras
 
 import sys
 sys.path.insert(0, '../')
@@ -84,15 +83,15 @@ for box, score, label in zip(boxes[0], scores[0], labels[0]):
     # scores are sorted so we can break
     if score < 0.5:
         break
-        
+
     color = label_color(label)
-    
+
     b = box.astype(int)
     draw_box(draw, b, color=color)
-    
+
     caption = "{} {:.3f}".format(labels_to_names[label], score)
     draw_caption(draw, b, caption)
-    
+
 plt.figure(figsize=(15, 15))
 plt.axis('off')
 plt.imshow(draw)
@@ -106,7 +105,3 @@ plt.show()
 
 
 # In[ ]:
-
-
-
-
