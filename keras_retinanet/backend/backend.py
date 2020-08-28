@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from tensorflow import keras
-from .dynamic import meshgrid
 
 
 def bbox_transform_inv(boxes, deltas, mean=None, std=None):
@@ -51,7 +50,6 @@ def bbox_transform_inv(boxes, deltas, mean=None, std=None):
 
     return pred_boxes
 
-
 def shift(shape, stride, anchors):
     """ Produce shifted anchors based on shape of the map and stride size.
 
@@ -63,7 +61,7 @@ def shift(shape, stride, anchors):
     shift_x = (keras.backend.arange(0, shape[1], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
     shift_y = (keras.backend.arange(0, shape[0], dtype=keras.backend.floatx()) + keras.backend.constant(0.5, dtype=keras.backend.floatx())) * stride
 
-    shift_x, shift_y = meshgrid(shift_x, shift_y)
+    shift_x, shift_y = tensorflow.meshgrid(shift_x, shift_y)
     shift_x = keras.backend.reshape(shift_x, [-1])
     shift_y = keras.backend.reshape(shift_y, [-1])
 
@@ -83,3 +81,35 @@ def shift(shape, stride, anchors):
     shifted_anchors = keras.backend.reshape(shifted_anchors, [k * number_of_anchors, 4])
 
     return shifted_anchors
+
+def map_fn(*args, **kwargs):
+    """ See https://www.tensorflow.org/api_docs/python/tf/map_fn .
+    """
+
+    if "shapes" in kwargs:
+        shapes = kwargs.pop("shapes")
+        dtype = kwargs.pop("dtype")
+        sig = [tensorflow.TensorSpec(shapes[i], dtype=t) for i, t in
+               enumerate(dtype)]
+
+        # Try to use the new feature fn_output_signature in TF 2.3, use fallback if this is not available
+        try:
+            return tensorflow.map_fn(*args, **kwargs, fn_output_signature=sig)
+        except TypeError:
+            kwargs["dtype"] = dtype
+
+    return tensorflow.map_fn(*args, **kwargs)
+
+def resize_images(images, size, method='bilinear', align_corners=False):
+    """ See https://www.tensorflow.org/versions/r1.14/api_docs/python/tf/image/resize_images .
+
+    Args
+        method: The method used for interpolation. One of ('bilinear', 'nearest', 'bicubic', 'area').
+    """
+    methods = {
+        'bilinear': tensorflow.image.ResizeMethod.BILINEAR,
+        'nearest' : tensorflow.image.ResizeMethod.NEAREST_NEIGHBOR,
+        'bicubic' : tensorflow.image.ResizeMethod.BICUBIC,
+        'area'    : tensorflow.image.ResizeMethod.AREA,
+    }
+    return tensorflow.compat.v1.image.resize_images(images, size, methods[method], align_corners)
