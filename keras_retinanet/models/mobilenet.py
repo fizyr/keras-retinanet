@@ -56,7 +56,7 @@ class MobileNetBackbone(Backbone):
             alpha_text = '2_5'
 
         model_name = 'mobilenet_{}_{}_tf_no_top.h5'.format(alpha_text, rows)
-        weights_url = keras.applications.mobilenet.mobilenet.BASE_WEIGHT_PATH + model_name # ERROR
+        weights_url = 'https://github.com/fchollet/deep-learning-models/releases/download/v0.6/' + model_name
         weights_path = keras.utils.get_file(model_name, weights_url, cache_subdir='models')
 
         return weights_path
