@@ -161,26 +161,3 @@ class RegressBoxes(keras.layers.Layer):
         })
 
         return config
-
-
-class ClipBoxes(keras.layers.Layer):
-    """ Keras layer to clip box values to lie inside a given shape.
-    """
-    def call(self, inputs, **kwargs):
-        image, boxes = inputs
-        shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())
-        if keras.backend.image_data_format() == 'channels_first':
-            _, _, height, width = backend.unstack(shape, axis=0)
-        else:
-            _, height, width, _ = backend.unstack(shape, axis=0)
-
-        x1, y1, x2, y2 = backend.unstack(boxes, axis=-1)
-        x1 = backend.clip_by_value(x1, 0, width  - 1)
-        y1 = backend.clip_by_value(y1, 0, height - 1)
-        x2 = backend.clip_by_value(x2, 0, width  - 1)
-        y2 = backend.clip_by_value(y2, 0, height - 1)
-
-        return keras.backend.stack([x1, y1, x2, y2], axis=2)
-
-    def compute_output_shape(self, input_shape):
-        return input_shape[1]
