@@ -50,7 +50,6 @@ class Anchors(keras.layers.Layer):
             self.scales  = np.array(scales)
 
         self.num_anchors = len(self.ratios) * len(self.scales)
-        self.num_anchors = len(self.ratios) * len(self.scales)
         self.anchors = utils_anchors.generate_anchors(
             base_size=self.size,
             ratios=self.ratios,
