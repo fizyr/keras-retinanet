@@ -21,3 +21,6 @@ __pycache__/
 .coverage.*
 coverage.xml
 *.cover
+
+# IDE
+.idea

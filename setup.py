@@ -60,6 +60,7 @@ setuptools.setup(
             'retinanet-evaluate=keras_retinanet.bin.evaluate:main',
             'retinanet-debug=keras_retinanet.bin.debug:main',
             'retinanet-convert-model=keras_retinanet.bin.convert_model:main',
+            'retinanet-build-hdf5=keras_retinanet.bin.build_hdf5:main',
         ],
     },
     ext_modules    = extensions,
