@@ -6,6 +6,7 @@ from .generator import Generator
 
 
 class HDF5Generator(Generator):
+
     def __init__(
             self,
             hdf5_file,
@@ -23,6 +24,11 @@ class HDF5Generator(Generator):
         self.images = [img.reshape(shapes[i]) for i, img in enumerate(self.images)]
         self.bboxes = [box.reshape(-1, 4) for box in self.bboxes]
         self.classes = OrderedDict({key: i for i, key in enumerate(self.classes)})
+
+        self.labels_dict = {}
+        for key, value in self.classes.items():
+            self.labels_dict[value] = key
+
         super(HDF5Generator, self).__init__(**kwargs)
 
     def size(self):
@@ -45,6 +51,36 @@ class HDF5Generator(Generator):
         return [{'labels': self.labels[i],
                  'bboxes': self.bboxes[i]} for i in group]
 
+    def has_label(self, label):
+        """ Return True if label is a known label.
+        """
+        return label in self.labels_dict
+
+    def has_name(self, name):
+        """ Returns True if name is a known class.
+        """
+        return name in self.classes
+
+    def name_to_label(self, name):
+        """ Map name to label.
+        """
+        return self.classes[name]
+
+    def label_to_name(self, label):
+        """ Map label to name.
+        """
+        return self.labels_dict[label]
+
+    def image_path(self, image_index):
+        return str(image_index)
+
+    def load_image(self, image_index):
+        return self.images[image_index]
+
+    def load_annotations(self, image_index):
+        return {'labels': self.labels[image_index],
+                'bboxes': self.bboxes[image_index]}
+
     def compute_input_output(self, group):
         """ Compute inputs and target outputs for the network.
         """
@@ -65,3 +101,4 @@ class HDF5Generator(Generator):
         targets = self.compute_targets(image_group, annotations_group)
 
         return inputs, targets
+
