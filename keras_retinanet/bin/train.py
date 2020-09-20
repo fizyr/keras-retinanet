@@ -39,6 +39,7 @@ from ..callbacks import RedirectModel
 from ..callbacks.eval import Evaluate
 from ..models.retinanet import retinanet_bbox
 from ..preprocessing.csv_generator import CSVGenerator
+from ..preprocessing.hdf5_generator import HDF5Generator
 from ..preprocessing.kitti import KittiGenerator
 from ..preprocessing.open_images import OpenImagesGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
@@ -352,6 +353,23 @@ def create_generators(args, preprocess_image):
             shuffle_groups=False,
             **common_args
         )
+
+    elif args.dataset_type == 'hdf5':
+        train_generator = HDF5Generator(
+            args.dataset_file,
+            'train',
+            transform_generator=transform_generator,
+            visual_effect_generator=visual_effect_generator,
+            **common_args,
+        )
+        try:
+            validation_generator = HDF5Generator(
+                args.dataset_file,
+                'val',
+                **common_args)
+        except KeyError:
+            validation_generator = None
+
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -420,6 +438,9 @@ def parse_args(args):
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for training.')
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
     csv_parser.add_argument('--val-annotations', help='Path to CSV file containing annotations for validation (optional).')
+
+    hdf5_parser = subparsers.add_parser('hdf5')
+    hdf5_parser.add_argument('dataset_file', help='Path to HDF5 file containing dataset for training.')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--snapshot',          help='Resume training from a snapshot.')
