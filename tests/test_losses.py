@@ -1,5 +1,5 @@
 import keras_retinanet.losses
-import keras
+from tensorflow import keras
 
 import numpy as np
 

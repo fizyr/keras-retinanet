@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
-from keras.utils import get_file
+from tensorflow import keras
 
 from . import retinanet
 from . import Backbone
@@ -43,7 +42,7 @@ class SeBackbone(Backbone):
         weights_path = None
         for el in WEIGHTS_COLLECTION:
             if el['model'] == self.backbone and not el['include_top']:
-                weights_path = get_file(el['name'], el['url'], cache_subdir='models', file_hash=el['md5'])
+                weights_path = keras.utils.get_file(el['name'], el['url'], cache_subdir='models', file_hash=el['md5'])
 
         if weights_path is None:
             raise ValueError('Unable to find imagenet weights for backbone {}!'.format(self.backbone))

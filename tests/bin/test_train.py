@@ -16,7 +16,7 @@ limitations under the License.
 
 import keras_retinanet.backend
 import keras_retinanet.bin.train
-import keras.backend
+from tensorflow import keras
 
 import warnings
 

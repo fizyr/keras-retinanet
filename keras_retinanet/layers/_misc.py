@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
+import tensorflow
+from tensorflow import keras
 from .. import backend
 from ..utils import anchors as utils_anchors
 
@@ -48,7 +49,6 @@ class Anchors(keras.layers.Layer):
         elif isinstance(scales, list):
             self.scales  = np.array(scales)
 
-        self.num_anchors = len(self.ratios) * len(self.scales)
         self.num_anchors = len(self.ratios) * len(self.scales)
         self.anchors = utils_anchors.generate_anchors(
             base_size=self.size,
@@ -102,9 +102,9 @@ class UpsampleLike(keras.layers.Layer):
         source, target = inputs
         target_shape = keras.backend.shape(target)
         if keras.backend.image_data_format() == 'channels_first':
-            source = backend.transpose(source, (0, 2, 3, 1))
+            source = tensorflow.transpose(source, (0, 2, 3, 1))
             output = backend.resize_images(source, (target_shape[2], target_shape[3]), method='nearest')
-            output = backend.transpose(output, (0, 3, 1, 2))
+            output = tensorflow.transpose(output, (0, 3, 1, 2))
             return output
         else:
             return backend.resize_images(source, (target_shape[1], target_shape[2]), method='nearest')
@@ -170,15 +170,15 @@ class ClipBoxes(keras.layers.Layer):
         image, boxes = inputs
         shape = keras.backend.cast(keras.backend.shape(image), keras.backend.floatx())
         if keras.backend.image_data_format() == 'channels_first':
-            _, _, height, width = backend.unstack(shape, axis=0)
+            _, _, height, width = tensorflow.unstack(shape, axis=0)
         else:
-            _, height, width, _ = backend.unstack(shape, axis=0)
+            _, height, width, _ = tensorflow.unstack(shape, axis=0)
 
-        x1, y1, x2, y2 = backend.unstack(boxes, axis=-1)
-        x1 = backend.clip_by_value(x1, 0, width  - 1)
-        y1 = backend.clip_by_value(y1, 0, height - 1)
-        x2 = backend.clip_by_value(x2, 0, width  - 1)
-        y2 = backend.clip_by_value(y2, 0, height - 1)
+        x1, y1, x2, y2 = tensorflow.unstack(boxes, axis=-1)
+        x1 = tensorflow.clip_by_value(x1, 0, width  - 1)
+        y1 = tensorflow.clip_by_value(y1, 0, height - 1)
+        x2 = tensorflow.clip_by_value(x2, 0, width  - 1)
+        y2 = tensorflow.clip_by_value(y2, 0, height - 1)
 
         return keras.backend.stack([x1, y1, x2, y2], axis=2)
 

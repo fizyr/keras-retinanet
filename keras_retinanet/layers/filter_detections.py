@@ -14,7 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import keras
+import tensorflow
+from tensorflow import keras
 from .. import backend
 
 
@@ -50,20 +51,20 @@ def filter_detections(
     """
     def _filter_detections(scores, labels):
         # threshold based on score
-        indices = backend.where(keras.backend.greater(scores, score_threshold))
+        indices = tensorflow.where(keras.backend.greater(scores, score_threshold))
 
         if nms:
-            filtered_boxes  = backend.gather_nd(boxes, indices)
+            filtered_boxes  = tensorflow.gather_nd(boxes, indices)
             filtered_scores = keras.backend.gather(scores, indices)[:, 0]
 
             # perform NMS
-            nms_indices = backend.non_max_suppression(filtered_boxes, filtered_scores, max_output_size=max_detections, iou_threshold=nms_threshold)
+            nms_indices = tensorflow.image.non_max_suppression(filtered_boxes, filtered_scores, max_output_size=max_detections, iou_threshold=nms_threshold)
 
             # filter indices based on NMS
             indices = keras.backend.gather(indices, nms_indices)
 
         # add indices to list of all indices
-        labels = backend.gather_nd(labels, indices)
+        labels = tensorflow.gather_nd(labels, indices)
         indices = keras.backend.stack([indices[:, 0], labels], axis=1)
 
         return indices
@@ -73,7 +74,7 @@ def filter_detections(
         # perform per class filtering
         for c in range(int(classification.shape[1])):
             scores = classification[:, c]
-            labels = c * backend.ones((keras.backend.shape(scores)[0],), dtype='int64')
+            labels = c * tensorflow.ones((keras.backend.shape(scores)[0],), dtype='int64')
             all_indices.append(_filter_detections(scores, labels))
 
         # concatenate indices to single tensor
@@ -84,9 +85,9 @@ def filter_detections(
         indices = _filter_detections(scores, labels)
 
     # select top k
-    scores              = backend.gather_nd(classification, indices)
+    scores              = tensorflow.gather_nd(classification, indices)
     labels              = indices[:, 1]
-    scores, top_indices = backend.top_k(scores, k=keras.backend.minimum(max_detections, keras.backend.shape(scores)[0]))
+    scores, top_indices = tensorflow.nn.top_k(scores, k=keras.backend.minimum(max_detections, keras.backend.shape(scores)[0]))
 
     # filter input using the final set of indices
     indices             = keras.backend.gather(indices[:, 0], top_indices)
@@ -96,11 +97,11 @@ def filter_detections(
 
     # zero pad the outputs
     pad_size = keras.backend.maximum(0, max_detections - keras.backend.shape(scores)[0])
-    boxes    = backend.pad(boxes, [[0, pad_size], [0, 0]], constant_values=-1)
-    scores   = backend.pad(scores, [[0, pad_size]], constant_values=-1)
-    labels   = backend.pad(labels, [[0, pad_size]], constant_values=-1)
+    boxes    = tensorflow.pad(boxes, [[0, pad_size], [0, 0]], constant_values=-1)
+    scores   = tensorflow.pad(scores, [[0, pad_size]], constant_values=-1)
+    labels   = tensorflow.pad(labels, [[0, pad_size]], constant_values=-1)
     labels   = keras.backend.cast(labels, 'int32')
-    other_   = [backend.pad(o, [[0, pad_size]] + [[0, 0] for _ in range(1, len(o.shape))], constant_values=-1) for o in other_]
+    other_   = [tensorflow.pad(o, [[0, pad_size]] + [[0, 0] for _ in range(1, len(o.shape))], constant_values=-1) for o in other_]
 
     # set shapes, since we know what they are
     boxes.set_shape([max_detections, 4])
