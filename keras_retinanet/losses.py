@@ -16,7 +16,6 @@ limitations under the License.
 
 import tensorflow
 from tensorflow import keras
-from . import backend
 
 
 def focal(alpha=0.25, gamma=2.0, cutoff=0.5):

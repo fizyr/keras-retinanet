@@ -51,6 +51,7 @@ def bbox_transform_inv(boxes, deltas, mean=None, std=None):
 
     return pred_boxes
 
+
 def shift(shape, stride, anchors):
     """ Produce shifted anchors based on shape of the map and stride size.
 
@@ -83,6 +84,7 @@ def shift(shape, stride, anchors):
 
     return shifted_anchors
 
+
 def map_fn(*args, **kwargs):
     """ See https://www.tensorflow.org/api_docs/python/tf/map_fn .
     """
@@ -100,6 +102,7 @@ def map_fn(*args, **kwargs):
             kwargs["dtype"] = dtype
 
     return tensorflow.map_fn(*args, **kwargs)
+
 
 def resize_images(images, size, method='bilinear', align_corners=False):
     """ See https://www.tensorflow.org/versions/r1.14/api_docs/python/tf/image/resize_images .

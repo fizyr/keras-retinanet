@@ -164,7 +164,10 @@ def layer_shapes(image_shape, model):
     for layer in model.layers[1:]:
         nodes = layer._inbound_nodes
         for node in nodes:
-            inputs = [shape[lr.name] for lr in node.inbound_layers]
+            if isinstance(node.inbound_layers, keras.layers.Layer):
+                inputs = [shape[node.inbound_layers.name]]
+            else:
+                inputs = [shape[lr.name] for lr in node.inbound_layers]
             if not inputs:
                 continue
             shape[layer.name] = layer.compute_output_shape(inputs[0] if len(inputs) == 1 else inputs)

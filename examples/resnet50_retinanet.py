@@ -2,7 +2,6 @@
 # coding: utf-8
 
 # Load necessary modules
-from tensorflow import keras
 
 import sys
 sys.path.insert(0, '../')

@@ -16,8 +16,6 @@ limitations under the License.
 
 import tensorflow as tf
 
-from .tf_version import tf_version_ok
-
 
 def setup_gpu(gpu_id):
     if gpu_id == 'cpu' or gpu_id == -1:

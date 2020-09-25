@@ -94,7 +94,7 @@ class Evaluate(keras.callbacks.Callback):
                     for label, (average_precision, num_annotations) in average_precisions.items():
                         summary_value = summary.value.add()
                         summary_value.simple_value = average_precision
-                        summary_value.tag = "AP_"+self.generator.label_to_name(label)
+                        summary_value.tag = "AP_" + self.generator.label_to_name(label)
                 self.tensorboard.writer.add_summary(summary, epoch)
 
         logs['mAP'] = self.mean_ap

@@ -1,6 +1,5 @@
 import os
 import pytest
-from pathlib import Path
 from PIL import Image
 from keras_retinanet.utils import image
 import numpy as np
