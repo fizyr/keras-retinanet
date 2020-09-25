@@ -3,7 +3,7 @@
 Keras implementation of RetinaNet object detection as described in [Focal Loss for Dense Object Detection](https://arxiv.org/abs/1708.02002)
 by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
-## Deprecated
+## :warning: Deprecated
 
 This repository is deprecated in favor of the [torchvision](https://github.com/pytorch/vision/) module.
 This project should work with keras 2.4 and tensorflow 2.3.0, newer versions might break support.
