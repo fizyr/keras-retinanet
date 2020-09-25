@@ -1,5 +1,5 @@
 cython
-keras-resnet==0.1.0
+keras-resnet==0.2.0
 git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 h5py
 keras
@@ -8,4 +8,4 @@ numpy>=1.14
 opencv-python>=3.3.0
 pillow
 progressbar2
-tensorflow
+tensorflow>=2.3.0
