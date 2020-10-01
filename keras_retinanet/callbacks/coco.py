@@ -16,6 +16,7 @@ limitations under the License.
 
 from tensorflow import keras
 from ..utils.coco_eval import evaluate_coco
+from ..utils.tf_version import check_tf_version
 
 
 class CocoEval(keras.callbacks.Callback):
@@ -58,17 +59,11 @@ class CocoEval(keras.callbacks.Callback):
 
             if self.tensorboard:
                 import tensorflow as tf
-                if tf.version.VERSION < '2.0.0':
-                    if self.tensorboard.writer:
-                        summary = tf.Summary()
-                        for index, result in enumerate(coco_eval_stats):
-                            summary_value = summary.value.add()
-                            summary_value.simple_value = result
-                            summary_value.tag = '{}. {}'.format(index + 1, coco_tag[index])
-                            self.tensorboard.writer.add_summary(summary, epoch)
-                else:
-                    writer = tf.summary.create_file_writer(self.tensorboard.log_dir)
-                    with writer.as_default():
-                        for index, result in enumerate(coco_eval_stats):
-                            tf.summary.scalar('{}. {}'.format(index + 1, coco_tag[index]), result, step=epoch)
-                        writer.flush()
+                # make sure tensorflow is the minimum required version
+                check_tf_version()
+
+                writer = tf.summary.create_file_writer(self.tensorboard.log_dir)
+                with writer.as_default():
+                    for index, result in enumerate(coco_eval_stats):
+                        tf.summary.scalar('{}. {}'.format(index + 1, coco_tag[index]), result, step=epoch)
+                    writer.flush()

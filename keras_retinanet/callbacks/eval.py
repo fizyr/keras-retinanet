@@ -16,6 +16,7 @@ limitations under the License.
 
 from tensorflow import keras
 from ..utils.eval import evaluate
+from ..utils.tf_version import check_tf_version
 
 
 class Evaluate(keras.callbacks.Callback):
@@ -85,26 +86,16 @@ class Evaluate(keras.callbacks.Callback):
 
         if self.tensorboard:
             import tensorflow as tf
-            if tf.version.VERSION < '2.0.0':
-                if self.tensorboard.writer:
-                    summary = tf.Summary()
-                    summary_value = summary.value.add()
-                    summary_value.simple_value = self.mean_ap
-                    summary_value.tag = "mAP"
-                    if self.verbose == 1:
-                        for label, (average_precision, num_annotations) in average_precisions.items():
-                            summary_value = summary.value.add()
-                            summary_value.simple_value = average_precision
-                            summary_value.tag = "AP_" + self.generator.label_to_name(label)
-                    self.tensorboard.writer.add_summary(summary, epoch)
-            else:
-                writer = tf.summary.create_file_writer(self.tensorboard.log_dir)
-                with writer.as_default():
-                    tf.summary.scalar("mAP", self.mean_ap, step=epoch)
-                    if self.verbose == 1:
-                        for label, (average_precision, num_annotations) in average_precisions.items():
-                            tf.summary.scalar("AP_" + self.generator.label_to_name(label), average_precision, step=epoch)
-                    writer.flush()
+            # make sure tensorflow is the minimum required version
+            check_tf_version()
+           
+            writer = tf.summary.create_file_writer(self.tensorboard.log_dir)
+            with writer.as_default():
+                tf.summary.scalar("mAP", self.mean_ap, step=epoch)
+                if self.verbose == 1:
+                    for label, (average_precision, num_annotations) in average_precisions.items():
+                        tf.summary.scalar("AP_" + self.generator.label_to_name(label), average_precision, step=epoch)
+                writer.flush()
 
         logs['mAP'] = self.mean_ap
 
