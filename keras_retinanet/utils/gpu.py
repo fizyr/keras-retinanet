@@ -18,23 +18,26 @@ import tensorflow as tf
 
 
 def setup_gpu(gpu_id):
-    if gpu_id == 'cpu' or gpu_id == -1:
+    try:
+        visible_gpu_indices = [int(id) for id in gpu_id.split(',')]
+        available_gpus = tf.config.list_physical_devices('GPU')
+        visible_gpus = [gpu for idx, gpu in enumerate(available_gpus) if idx in visible_gpu_indices]
+
+        if visible_gpus:
+            try:
+                # Currently, memory growth needs to be the same across GPUs.
+                for gpu in available_gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+
+                # Use only the selcted gpu.
+                tf.config.set_visible_devices(visible_gpus, 'GPU')
+            except RuntimeError as e:
+                # Visible devices must be set before GPUs have been initialized.
+                print(e)
+
+            logical_gpus = tf.config.list_logical_devices('GPU')
+            print(len(available_gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        else:
+            tf.config.set_visible_devices([], 'GPU')
+    except ValueError:
         tf.config.set_visible_devices([], 'GPU')
-        return
-
-    gpus = tf.config.list_physical_devices('GPU')
-    if gpus:
-        # Restrict TensorFlow to only use the first GPU.
-        try:
-            # Currently, memory growth needs to be the same across GPUs.
-            for gpu in gpus:
-                tf.config.experimental.set_memory_growth(gpu, True)
-
-            # Use only the selcted gpu.
-            tf.config.set_visible_devices(gpus[int(gpu_id)], 'GPU')
-        except RuntimeError as e:
-            # Visible devices must be set before GPUs have been initialized.
-            print(e)
-
-        logical_gpus = tf.config.list_logical_devices('GPU')
-        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
