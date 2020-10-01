@@ -19,7 +19,7 @@ import tensorflow as tf
 
 def setup_gpu(gpu_id):
     try:
-        visible_gpu_indice = [int(id) for id in gpu_id.split(',')]
+        visible_gpu_indices = [int(id) for id in gpu_id.split(',')]
         available_gpus = tf.config.list_physical_devices('GPU')
         visible_gpus = [gpu for idx, gpu in enumerate(available_gpus) if idx in visible_gpu_indice]
 
