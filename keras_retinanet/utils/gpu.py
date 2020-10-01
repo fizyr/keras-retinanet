@@ -21,7 +21,7 @@ def setup_gpu(gpu_id):
     try:
         visible_gpu_indices = [int(id) for id in gpu_id.split(',')]
         available_gpus = tf.config.list_physical_devices('GPU')
-        visible_gpus = [gpu for idx, gpu in enumerate(available_gpus) if idx in visible_gpu_indice]
+        visible_gpus = [gpu for idx, gpu in enumerate(available_gpus) if idx in visible_gpu_indices]
 
         if visible_gpus:
             try:
