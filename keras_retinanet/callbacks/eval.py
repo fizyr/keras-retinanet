@@ -16,7 +16,6 @@ limitations under the License.
 
 from tensorflow import keras
 from ..utils.eval import evaluate
-from ..utils.tf_version import check_tf_version
 
 
 class Evaluate(keras.callbacks.Callback):
@@ -85,10 +84,7 @@ class Evaluate(keras.callbacks.Callback):
             self.mean_ap = sum(precisions) / sum(x > 0 for x in total_instances)
 
         if self.tensorboard:
-            import tensorflow as tf
-            # make sure tensorflow is the minimum required version
-            check_tf_version()
-           
+            import tensorflow as tf           
             writer = tf.summary.create_file_writer(self.tensorboard.log_dir)
             with writer.as_default():
                 tf.summary.scalar("mAP", self.mean_ap, step=epoch)

@@ -16,7 +16,6 @@ limitations under the License.
 
 from tensorflow import keras
 from ..utils.coco_eval import evaluate_coco
-from ..utils.tf_version import check_tf_version
 
 
 class CocoEval(keras.callbacks.Callback):
@@ -59,9 +58,6 @@ class CocoEval(keras.callbacks.Callback):
 
             if self.tensorboard:
                 import tensorflow as tf
-                # make sure tensorflow is the minimum required version
-                check_tf_version()
-
                 writer = tf.summary.create_file_writer(self.tensorboard.log_dir)
                 with writer.as_default():
                     for index, result in enumerate(coco_eval_stats):
