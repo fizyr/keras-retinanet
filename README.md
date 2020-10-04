@@ -11,13 +11,12 @@ This project should work with keras 2.4 and tensorflow 2.3.0, newer versions mig
 ## Installation
 
 1) Clone this repository.
-2) Ensure numpy is installed using `pip install numpy --user`
-3) In the repository, execute `pip install . --user`.
+2) In the repository, execute `pip install . --user`.
    Note that due to inconsistencies with how `tensorflow` should be installed,
    this package does not define a dependency on `tensorflow` as it will try to install that (which at least on Arch Linux results in an incorrect installation).
    Please make sure `tensorflow` is installed as per your systems requirements.
-4) Alternatively, you can run the code directly from the cloned  repository, however you need to run `python setup.py build_ext --inplace` to compile Cython code first.
-5) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset by running `pip install --user git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI`.
+3) Alternatively, you can run the code directly from the cloned  repository, however you need to run `python setup.py build_ext --inplace` to compile Cython code first.
+4) Optionally, install `pycocotools` if you want to train / test on the MS COCO dataset by running `pip install --user git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI`.
 
 ## Testing
 An example of testing the network can be seen in [this Notebook](https://github.com/delftrobotics/keras-retinanet/blob/master/examples/ResNet50RetinaNet.ipynb).
@@ -269,7 +268,7 @@ Example output images using `keras-retinanet` are shown below.
 * [boring-detector](https://github.com/lexfridman/boring-detector). I suppose not all projects need to solve life's biggest questions. This project detects the "The Boring Company" hats in videos.
 * [comet.ml](https://towardsdatascience.com/how-i-monitor-and-track-my-machine-learning-experiments-from-anywhere-described-in-13-tweets-ec3d0870af99). Using keras-retinanet in combination with [comet.ml](https://comet.ml) to interactively inspect and compare experiments.
 * [Weights and Biases](https://app.wandb.ai/syllogismos/keras-retinanet/reports?view=carey%2FObject%20Detection%20with%20RetinaNet). Trained keras-retinanet on coco dataset from beginning on resnet50 and resnet101 backends.
-* [Google Open Images Challenge 2018 15th place solution](https://github.com/ZFTurbo/Keras-RetinaNet-for-Open-Images-Challenge-2018). Pretrained weights for keras-retinanet based on ResNet50, ResNet101 and ResNet152 trained on open images dataset. 
+* [Google Open Images Challenge 2018 15th place solution](https://github.com/ZFTurbo/Keras-RetinaNet-for-Open-Images-Challenge-2018). Pretrained weights for keras-retinanet based on ResNet50, ResNet101 and ResNet152 trained on open images dataset.
 * [poke.AI](https://github.com/Raghav-B/poke.AI). An experimental AI that attempts to master the 3rd Generation Pokemon games. Using keras-retinanet for in-game mapping and localization.
 * [retinanetjs](https://github.com/faustomorales/retinanetjs). A wrapper to run RetinaNet inference in the browser / Node.js. You can also take a look at the [example app](https://faustomorales.github.io/retinanetjs-example-app/).
 * [CRFNet](https://github.com/TUMFTM/CameraRadarFusionNet). This network fuses radar and camera data to perform object detection for autonomous driving applications.
@@ -279,7 +278,7 @@ Example output images using `keras-retinanet` are shown below.
 If you have a project based on `keras-retinanet` and would like to have it published here, shoot me a message on Slack.
 
 ### Notes
-* This repository requires Keras 2.3.0 or higher.
+* This repository requires Tensorflow 2.3.0 or higher.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using OpenCV 3.4.
 * This repository is [tested](https://github.com/fizyr/keras-retinanet/blob/master/.travis.yml) using Python 2.7 and 3.6.
 
