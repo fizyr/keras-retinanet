@@ -2,7 +2,7 @@ import argparse
 
 import h5py
 import numpy as np
-from tqdm import tqdm
+from progressbar import progressbar
 
 from ..preprocessing.csv_generator import CSVGenerator
 from ..models import backbone
@@ -85,7 +85,7 @@ def main():
         bboxes_group = []
         shapes_group = []
 
-        for i in tqdm(range(generator.size()), desc=f'{split}: '):
+        for i in progressbar(range(generator.size()), prefix=f'{split}: '):
             group = [i]
             image_group = generator.load_image_group(group)
             annotations_group = generator.load_annotations_group(group)
