@@ -7,6 +7,7 @@ by Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He and Piotr Dollár.
 
 This repository is deprecated in favor of the [torchvision](https://github.com/pytorch/vision/) module.
 This project should work with keras 2.4 and tensorflow 2.3.0, newer versions might break support.
+For more information, check [here](https://github.com/fizyr/keras-retinanet/issues/1471#issuecomment-704187205).
 
 ## Installation
 
