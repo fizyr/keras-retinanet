@@ -103,7 +103,7 @@ def parse_args(args):
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
-       
+    
     kitti_parser=subparsers.add_parser('kitti')
     kitti_parser.add_argument('--kitti_path', help='Path to dataset directory')    
     
