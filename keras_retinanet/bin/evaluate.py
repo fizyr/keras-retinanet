@@ -28,6 +28,7 @@ if __name__ == "__main__" and __package__ is None:
 from .. import models
 from ..preprocessing.csv_generator import CSVGenerator
 from ..preprocessing.pascal_voc import PascalVocGenerator
+from ..preprocessing.kitti import KittiGenerator
 from ..utils.anchors import make_shapes_callback
 from ..utils.config import read_config_file, parse_anchor_parameters, parse_pyramid_levels
 from ..utils.eval import evaluate
@@ -72,6 +73,13 @@ def create_generator(args, preprocess_image):
             shuffle_groups=False,
             **common_args
         )
+    elif args.dataset_type == 'kitti':
+        validation_generator = KittiGenerator(
+            args.kitti_path,
+            'val',
+            shuffle_groups=False,
+            **common_args
+        )
     else:
         raise ValueError('Invalid data type received: {}'.format(args.dataset_type))
 
@@ -95,7 +103,10 @@ def parse_args(args):
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations', help='Path to CSV file containing annotations for evaluation.')
     csv_parser.add_argument('classes', help='Path to a CSV file containing class label mapping.')
-
+       
+    kitti_parser=subparsers.add_parser('kitti')
+    kitti_parser.add_argument('--kitti_path', help='Path to dataset directory')    
+    
     parser.add_argument('model',              help='Path to RetinaNet model.')
     parser.add_argument('--convert-model',    help='Convert the model to an inference model (ie. the input is a training model).', action='store_true')
     parser.add_argument('--backbone',         help='The backbone of the model.', default='resnet50')
