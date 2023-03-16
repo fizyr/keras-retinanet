@@ -2,7 +2,7 @@ cython
 keras-resnet==0.2.0
 git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 h5py
-keras
+keras>=2.0.9,<=2.3.1
 matplotlib
 numpy>=1.14
 opencv-python>=3.3.0
